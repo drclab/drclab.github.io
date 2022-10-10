@@ -1,5 +1,5 @@
  baseURL = "http://www.example.com"
-title = "johndoe"
+title = "DRC Lab"
 #theme = "dulun"
 languageCode = "en"
 defaultContentLanguage = "en"
@@ -12,7 +12,7 @@ enableEmoji = true
 # disqusShortname = "yourdiscussshortname"
 
 [params]
-author = "John Doe"
+author = "C.J. Duan"
 # license = '<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>'
 description = "John Doe's personal website"
 keywords = "blog,developer,personal"
