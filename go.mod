@@ -1,3 +1,3 @@
-module github.com/luizdepra/hugo-coder
+module github.com/drclab/dulun
 
 go 1.16
