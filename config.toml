@@ -139,7 +139,7 @@ languageName = ":uk:"
 [[languages.en.menu.main]]
 name = "VAE"
 weight = 1
-url = "about/"
+url = "vae/"
 
 [[languages.en.menu.main]]
 name = "Markov Reading List"
@@ -149,11 +149,11 @@ url = "markov/"
 [[languages.en.menu.main]]
 name = "Causal Inference"
 weight = 3
-url = "projects/"
+url = "ci/"
 
 [[languages.en.menu.main]]
 name = "Bayesian Stats"
 weight = 5
-url = "contact/"
+url = "bayesian/"
 
  
