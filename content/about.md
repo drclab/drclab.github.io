@@ -1,25 +1,21 @@
 +++
-title = "About"
+title = "πVAE: Encoding stochastic process priors with variational autoencoders"
 description = "Hugo, the world's fastest framework for building websites"
 date = "2019-02-28"
 aliases = ["about-us", "about-hugo", "contact"]
 author = "Hugo Authors"
+math = true
 +++
 
-Written in Go, Hugo is an open source static site generator available under the [Apache Licence 2.0.](https://github.com/gohugoio/hugo/blob/master/LICENSE) Hugo supports TOML, YAML and JSON data file types, Markdown and HTML content files and uses shortcodes to add rich content. Other notable features are taxonomies, multilingual mode, image processing, custom output formats, HTML/CSS/JS minification and support for Sass SCSS workflows.
+by Swapnil Mishra, Seth Flaxman, Samir Bhatt
 
-Hugo makes use of a variety of open source projects including:
 
-* https://github.com/yuin/goldmark
-* https://github.com/alecthomas/chroma
-* https://github.com/muesli/smartcrop
-* https://github.com/spf13/cobra
-* https://github.com/spf13/viper
+___
+[Abstract](https://arxiv.org/abs/2002.06873v6) 
 
-Hugo is ideal for blogs, corporate websites, creative portfolios, online magazines, single page applications or even a website with thousands of pages.
-
-Hugo is for people who want to hand code their own website without worrying about setting up complicated runtimes, dependencies and databases.
-
-Websites built with Hugo are extremely fast, secure and can be deployed anywhere including, AWS, GitHub Pages, Heroku, Netlify and any other hosting provider.
-
-Learn more and contribute on [GitHub](https://github.com/gohugoio).
+ 
+Stochastic processes provide a mathematically elegant way model complex data. In theory, they provide flexible priors over function classes that can encode a wide range of interesting assumptions. In practice, however, efficient inference by optimisation or marginalisation is difficult, a problem further exacerbated with big data and high dimensional input spaces. We propose a novel variational autoencoder (VAE) called the prior encoding variational autoencoder (πVAE). The πVAE is finitely exchangeable and Kolmogorov consistent, and thus is a continuous stochastic process. We use πVAE to learn low dimensional embeddings of function classes. We show that our framework can accurately learn expressive function classes such as Gaussian processes, but also properties of functions to enable statistical inference (such as the integral of a log Gaussian process). For popular tasks, such as spatial interpolation, πVAE achieves state-of-the-art performance both in terms of accuracy and computational efficiency. Perhaps most usefully, we demonstrate that the low dimensional independently distributed latent space representation learnt provides an elegant and scalable means of performing Bayesian inference for stochastic processes within probabilistic programming languages such as Stan.
+***
+[GitHub](https://github.com/lukasadam/piVAE).
+____
+$$[z_\mu,z_\sigma]^T = e(\eta_e,x)$$
