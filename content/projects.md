@@ -1,6 +1,7 @@
 +++
-title = "MCI | MMM | EHR"
+title = "Multiple Cause Inference | MMM | EHR"
 slug = "projects"
 +++
 
-Coming soon ... !
+___
+ 
