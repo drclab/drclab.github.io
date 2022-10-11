@@ -1,11 +1,11 @@
 +++
-title = "πVAE: Encoding stochastic process priors with variational autoencoders"
-description = "Hugo, the world's fastest framework for building websites"
-date = "2019-02-28"
-aliases = ["about-us", "about-hugo", "contact"]
-author = "Hugo Authors"
+author = "C.J. Duan"
+title = "πVAE: Encoding Stochastic Process Priors with Variational Autoencoders"
+date = "2022-10-11"
+description =  "AE + Stan"
 math = true
 +++
+
 
 by Swapnil Mishra, Seth Flaxman, Samir Bhatt
 
@@ -19,6 +19,10 @@ Stochastic processes provide a mathematically elegant way model complex data. In
 ***
 [GitHub](https://github.com/lukasadam/piVAE).
 ____
-$$[z_\mu,z_\sigma]^T = e(\eta_e,x)$$
+
+$$
+[z_\mu,z_\sigma]^T = e(\eta_e,x)
+$$
+
 $$Z \sim N(z_\mu, \sigma^2_zI)$$
 $$\hat{x} = d(\eta_d,Z)$$
