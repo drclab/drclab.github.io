@@ -142,12 +142,12 @@ weight = 1
 url = "about/"
 
 [[languages.en.menu.main]]
-name = "HMM|MRF|GP"
+name = "Markov Reading List"
 weight = 2
 url = "posts/"
 
 [[languages.en.menu.main]]
-name = "MCI|MMM|EHR"
+name = "Causal Inference"
 weight = 3
 url = "projects/"
 

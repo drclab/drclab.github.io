@@ -1,5 +1,5 @@
 +++
-title = "Projects"
+title = "Markov Random Field | Hidden Markov Model | Gaussian Process"
 slug = "projects"
 +++
 
