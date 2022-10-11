@@ -1,6 +1,12 @@
 +++
-title = "Contact"
+title = "Math in LaTex"
 slug = "contact"
+math = true
 +++
 
-Follow me, @johndoe.
+
+
+
+|$\pi$|$\in$|
+|---|---|
+|||

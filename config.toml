@@ -107,13 +107,13 @@ author = "authors"
 name = "Github"
 icon = "fa fa-2x fa-github"
 weight = 1
-url = "https://github.com/johndoe/"
+url = "https://github.com/hublun/"
 
 [[params.social]]
 name = "Gitlab"
 icon = "fa fa-2x fa-gitlab"
 weight = 2
-url = "https://gitlab.com/johndoe/"
+url = "https://gitlab.com/gitlun/"
 
  
 
@@ -121,17 +121,17 @@ url = "https://gitlab.com/johndoe/"
 name = "LinkedIn"
 icon = "fa fa-2x fa-linkedin"
 weight = 4
-url = "https://www.linkedin.com/in/johndoe/"
+url = "https://www.linkedin.com/in/cj-duan-3ab27a191/"
 
  
 
 [[params.social]]
 name = "RSS"
-icon = "fa fa-2x fa-rss"
+icon = "fa fa-2x fa-envelope"
 weight = 6
-url = "https://myhugosite.com/index.xml"
-rel = "alternate"
-type = "application/rss+xml"
+url = "mailto:compute@dulun.com"
+#rel = "alternate"
+#type = "application/rss+xml"
 
 [languages.en]
 languageName = ":uk:"
