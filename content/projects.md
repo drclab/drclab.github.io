@@ -1,6 +1,6 @@
 +++
-title = "Markov Random Field | Hidden Markov Model | Gaussian Process"
+title = "MCI | MMM | EHR"
 slug = "projects"
 +++
 
-Nothing to see here... Move along!
+Coming soon ... !
