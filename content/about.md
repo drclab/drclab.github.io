@@ -9,7 +9,8 @@ math = true
 
 by Swapnil Mishra, Seth Flaxman, Samir Bhatt
 
-
+___
+**Keywords**: Bayesian Inference, MCMC, VAE, Spatio-Temporal, Gaussian Process 
 ___
 [Abstract](https://arxiv.org/abs/2002.06873v6) 
 
@@ -19,3 +20,5 @@ Stochastic processes provide a mathematically elegant way model complex data. In
 [GitHub](https://github.com/lukasadam/piVAE).
 ____
 $$[z_\mu,z_\sigma]^T = e(\eta_e,x)$$
+$$Z \sim N(z_\mu, \sigma^2_zI)$$
+$$\hat{x} = d(\eta_d,Z)$$
