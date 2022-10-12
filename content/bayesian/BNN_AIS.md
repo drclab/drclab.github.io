@@ -7,7 +7,7 @@ math = true
 
 by Yunshi Huang, Emilie Chouzenoux, Victor Elvira, Jean-Christophe Pesquet
 ___
-*KeywordsS*: Bayesian neural networks, adaptive importance sampling, Bayesian inference, deep learning, confidence intervals, uncertainty quantification
+**Keywords**: Bayesian neural networks, adaptive importance sampling, Bayesian inference, deep learning, confidence intervals, uncertainty quantification
 ___
 **Abstract**
 

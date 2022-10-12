@@ -152,6 +152,11 @@ weight = 3
 url = "ci/"
 
 [[languages.en.menu.main]]
+name = "LDA | Mixture"
+weight = 4
+url = "lda/"
+
+[[languages.en.menu.main]]
 name = "Bayesian Stats"
 weight = 5
 url = "bayesian/"
