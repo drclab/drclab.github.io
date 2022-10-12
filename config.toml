@@ -142,7 +142,7 @@ weight = 1
 url = "autoencoder/vae"
 
 [[languages.en.menu.main]]
-name = "Markov Reading List"
+name = "Markov Model"
 weight = 2
 url = "markov/"
 

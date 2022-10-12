@@ -1,13 +1,13 @@
 +++
 author = "C.J. Duan"
-title = "πVAE: Encoding Stochastic Process Priors with Variational Autoencoders"
+title = "πVAE: a stochastic process prior for Bayesian deep learning with MCMC"
 date = "2022-10-11"
 description =  "AE + Stan"
 math = true
 +++
 
 
-by Swapnil Mishra, Seth Flaxman, Samir Bhatt
+by Swapnil Mishra, Seth Flaxman, Tresnia Berah, Harrison Zhu, Mikko Pakkanen, Samir Bhatt
 
 ___
 **Keywords**: Bayesian Inference, MCMC, VAE, Spatio-Temporal, Gaussian Process 
