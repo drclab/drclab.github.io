@@ -1,5 +1,6 @@
 +++
-title = "Multiple Cause Inference | MMM | EHR"
+title = "EHR | Electronic Health Records"
+date = "2022-10-11"
 slug = "projects"
 +++
 
