@@ -139,7 +139,7 @@ languageName = ":uk:"
 [[languages.en.menu.main]]
 name = "VAE"
 weight = 1
-url = "vae/vae"
+url = "autoencoder/vae"
 
 [[languages.en.menu.main]]
 name = "Markov Reading List"
