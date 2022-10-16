@@ -5,7 +5,6 @@ slug = "projects"
 +++
 
 ___
-**Adjusting for indirectly measured confounding using large-scale propensity score**
 
 by  Ang Li, Judea Pearl
 
