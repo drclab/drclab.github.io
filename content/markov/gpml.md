@@ -3,6 +3,7 @@ title = "Gaussian Processes for Machine Learning"
 slug = "markov"
 date = "2022-04-01"
 +++
+
 [![Gaussian Processes for Machine Learning](../gpml.gif)](http://gaussianprocess.org/gpml/)
 
 
