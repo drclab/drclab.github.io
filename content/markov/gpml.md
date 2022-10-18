@@ -5,7 +5,6 @@ date = "2022-04-01"
 +++
 [![Gaussian Processes for Machine Learning](../gpml.gif)](http://gaussianprocess.org/gpml/)
 
- 
 ___
 
 Gaussian processes (GPs) provide a principled, practical, probabilistic approach to learning in kernel machines. GPs have received increased attention in the machine-learning community over the past decade, and this book provides a long-needed systematic and unified treatment of theoretical and practical aspects of GPs in machine learning. The treatment is comprehensive and self-contained, targeted at researchers and students in machine learning and applied statistics.
