@@ -4,6 +4,8 @@ slug = "gp"
 date = "2022-04-01"
 +++
 
+by Carl Edward Rasmussen and Christopher K. I. Williams
+___ 
 [![Gaussian Processes for Machine Learning](../gpml.gif)](http://gaussianprocess.org/gpml/)
 
 
