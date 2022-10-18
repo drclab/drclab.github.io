@@ -1,6 +1,6 @@
 +++
 title = "Gaussian Processes for Machine Learning"
-slug = "markov"
+slug = "gp"
 date = "2022-04-01"
 +++
 
