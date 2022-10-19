@@ -1,7 +1,7 @@
 +++
 title = "Unit Selection: Case Study and Comparison with A/B Test Heuristic"
 date = "2022-10-16"
-slug = "projects"
+slug = "A/B"
 +++
 
 ___
