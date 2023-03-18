@@ -14,9 +14,9 @@ enableEmoji = true
 [params]
 author = "C.J. Duan"
 # license = '<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>'
-description = "John Doe's personal website"
+description = "DRC Lab's website"
 keywords = "blog,developer,personal"
-info = ["Bayesian Machine Learning Scientist"]
+info = ["Probablistic Machine Learning Scientist"]
 avatarURL = "images/head.jpg"
 #gravatar = "john.doe@example.com"
 dateFormat = "2006-01"
@@ -67,7 +67,7 @@ customJS = []
 
 # If you want to use Google Tag Manager(https://analytics.google.com/) for analytics, add this section
 [params.googleTagManager]
-id = "UA-1945730-1"
+id = "GT-NGP3V98"
 
 # If you want to use Application Insights(https://azure.com/) for analytics, add this section
 # [params.applicationInsights]
