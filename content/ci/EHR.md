@@ -11,7 +11,7 @@ by Linying Zhang, Yixin Wang, Martijn J. Schuemie, David M. Blei, George Hripcsa
 
 **Keywords**: Causal inference; Propensity score; Unmeasured confounder; Observational study; EHR
 
-![](https://ars.els-cdn.com/content/image/1-s2.0-S153204642200209X-ga1.jpg)
+![EHR](../ehr_dag.jpg)
 
 **Abstract**
 
