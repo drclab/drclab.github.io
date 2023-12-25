@@ -137,7 +137,7 @@ url = "mailto:compute@dulun.com"
 languageName = ":uk:"
 
 [[languages.en.menu.main]]
-name = "VAE"
+name = "GPT"
 weight = 1
 url = "autoencoder/vae"
 
