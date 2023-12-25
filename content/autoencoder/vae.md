@@ -20,7 +20,7 @@ Generative pre-trained models have achieved remarkable success in various domain
 [GitHub](https://github.com/bowang-lab/scGPT).
 ____
 
-![](https://www.biorxiv.org/content/biorxiv/early/2023/05/01/2023.04.30.538439/F1.large.jpg?width=800&height=600&carousel=1)
+![IMG](../scGPT.gif)
 ____
 
 @article{cui2023scGPT,
