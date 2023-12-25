@@ -1,25 +1,36 @@
 +++
 author = "C.J. Duan"
-title = "πVAE: a stochastic process prior for Bayesian deep learning with MCMC"
-date = "2022-10-11"
-description =  "AE + Stan"
+title = "scGPT: Towards Building a Foundation Model for Single-Cell Multi-omics Using Generative AI"
+date = "2023-11-07"
+description =  "scGPT"
 math = true
 +++
 
 
-by Swapnil Mishra, Seth Flaxman, Tresnia Berah, Harrison Zhu, Mikko Pakkanen, Samir Bhatt
+by Haotian Cui, Chloe Wang,  Hassaan Maan,  Bo Wang
 
 ___
-**Keywords**: Bayesian Inference, MCMC, VAE, Spatio-Temporal, Gaussian Process 
+**Keywords**: generative pre-trained transformer, foundation models for cell and gene biology, multi-batch integration, multi-omic integration, cell-type annotation, genetic perturbation prediction, and gene network inference 
 ___
-[Abstract](https://arxiv.org/abs/2002.06873v6) 
+[Abstract](https://www.biorxiv.org/content/10.1101/2023.04.30.538439v1) 
 
- 
-Stochastic processes provide a mathematically elegant way model complex data. In theory, they provide flexible priors over function classes that can encode a wide range of interesting assumptions. In practice, however, efficient inference by optimisation or marginalisation is difficult, a problem further exacerbated with big data and high dimensional input spaces. We propose a novel variational autoencoder (VAE) called the prior encoding variational autoencoder (πVAE). The πVAE is finitely exchangeable and Kolmogorov consistent, and thus is a continuous stochastic process. We use πVAE to learn low dimensional embeddings of function classes. We show that our framework can accurately learn expressive function classes such as Gaussian processes, but also properties of functions to enable statistical inference (such as the integral of a log Gaussian process). For popular tasks, such as spatial interpolation, πVAE achieves state-of-the-art performance both in terms of accuracy and computational efficiency. Perhaps most usefully, we demonstrate that the low dimensional independently distributed latent space representation learnt provides an elegant and scalable means of performing Bayesian inference for stochastic processes within probabilistic programming languages such as Stan.
+Generative pre-trained models have achieved remarkable success in various domains such as natural language processing and computer vision. Specifically, the combination of large-scale diverse datasets and pre-trained transformers has emerged as a promising approach for developing foundation models. While texts are made up of words, cells can be characterized by genes. This analogy inspires us to explore the potential of foundation models for cell and gene biology. By leveraging the exponentially growing single-cell sequencing data, we present the first attempt to construct a single-cell foundation model through generative pre-training on over 10 million cells. We demonstrate that the generative pre-trained transformer, scGPT, effectively captures meaningful biological insights into genes and cells. Furthermore, the model can be readily finetuned to achieve state-of-the-art performance across a variety of downstream tasks, including multi-batch integration, multi-omic integration, cell-type annotation, genetic perturbation prediction, and gene network inference. 
+
 ***
-[GitHub](https://github.com/lukasadam/piVAE).
+[GitHub](https://github.com/bowang-lab/scGPT).
 ____
 
+![](https://www.biorxiv.org/content/biorxiv/early/2023/05/01/2023.04.30.538439/F1.large.jpg?width=800&height=600&carousel=1)
+____
+
+@article{cui2023scGPT,
+title={scGPT: Towards Building a Foundation Model for Single-Cell Multi-omics Using Generative AI},
+author={Cui, Haotian and Wang, Chloe and Maan, Hassaan and Pang, Kuan and Luo, Fengning and Wang, Bo},
+journal={bioRxiv},
+year={2023},
+publisher={Cold Spring Harbor Laboratory}
+}
+___
 $$
 [z_\mu,z_\sigma]^T = e(\eta_e,x)
 $$
