@@ -32,8 +32,6 @@ publisher={Cold Spring Harbor Laboratory}
 }
 ___
 $$
-[z_\mu,z_\sigma]^T = e(\eta_e,x)
+Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V
 $$
 
-$$Z \sim N(z_\mu, \sigma^2_zI)$$
-$$\hat{x} = d(\eta_d,Z)$$
