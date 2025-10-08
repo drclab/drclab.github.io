@@ -2,6 +2,7 @@
 date = "2022-07-25"
 title = "Mermaid JS support"
 description = "The post demonstrates Mermaid JS support"
+featured = true
 series = ["Theme", "Hugo"]
 +++
 
