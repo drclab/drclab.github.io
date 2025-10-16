@@ -1,0 +1,49 @@
+{{ $homepage := .Site.Params.homepage }}
+{{ $hero := dict }}
+{{ if $homepage }}
+  {{ $hero = default dict $homepage.hero }}
+{{ end }}
+{{ $enabled := default true ($hero.enable) }}
+{{ if $enabled }}
+  {{ $info := .Site.Params.info }}
+  {{ $eyebrowDefault := "" }}
+  {{ if $info }}
+    {{ if ge (len $info) 1 }}
+      {{ $eyebrowDefault = index $info 0 }}
+    {{ end }}
+  {{ end }}
+  {{ $eyebrow := default $eyebrowDefault ($hero.eyebrow) }}
+  {{ $title := default .Site.Title ($hero.title) }}
+  {{ $subtitle := default (.Site.Params.description) ($hero.subtitle) }}
+  {{ $description := default "" ($hero.description) }}
+  {{ $primary := $hero.primaryButton }}
+  {{ $secondary := $hero.secondaryButton }}
+  <section class="hero">
+    <div class="container hero__inner">
+      {{ if $eyebrow }}
+        <p class="hero__eyebrow">{{ $eyebrow }}</p>
+      {{ end }}
+      <h1 class="hero__title">{{ $title }}</h1>
+      {{ if $subtitle }}
+        <p class="hero__subtitle">{{ $subtitle }}</p>
+      {{ end }}
+      {{ if $description }}
+        <p class="hero__description">{{ $description }}</p>
+      {{ end }}
+      {{ if or (and $primary $primary.label $primary.url) (and $secondary $secondary.label $secondary.url) }}
+        <div class="hero__actions">
+          {{ if and $primary $primary.label $primary.url }}
+            <a class="button button--primary" href="{{ $primary.url }}"{{ with $primary.rel }} rel="{{ . }}"{{ end }}{{ with $primary.target }} target="{{ . }}"{{ end }}>
+              {{ $primary.label }}
+            </a>
+          {{ end }}
+          {{ if and $secondary $secondary.label $secondary.url }}
+            <a class="button button--ghost" href="{{ $secondary.url }}"{{ with $secondary.rel }} rel="{{ . }}"{{ end }}{{ with $secondary.target }} target="{{ . }}"{{ end }}>
+              {{ $secondary.label }}
+            </a>
+          {{ end }}
+        </div>
+      {{ end }}
+    </div>
+  </section>
+{{ end }}

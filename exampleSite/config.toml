@@ -4,9 +4,6 @@ theme = "hugo-coder"
 languageCode = "en"
 defaultContentLanguage = "en"
 paginate = 20
-pygmentsStyle = "bw"
-pygmentsCodeFences = true
-pygmentsCodeFencesGuessSyntax = true
 enableEmoji = true
 # Enable Disqus comments
 # disqusShortname = "yourdiscussshortname"
@@ -35,12 +32,50 @@ colorScheme = "auto"
 hideColorSchemeToggle = false
 # Series see also post count
 maxSeeAlsoItems = 5
-# Custom CSS
-customCSS = []
 # Custom SCSS, file path is relative to Hugo's asset folder (default: {your project root}/assets)
 customSCSS = []
 # Custom JS
 customJS = []
+
+[module]
+  [module.hugoVersion]
+    extended = true
+    min = "0.123.0"
+
+[markup]
+  [markup.highlight]
+    style = "bw"
+    guessSyntax = true
+    codeFences = true
+    noClasses = false
+
+  [markup.goldmark.renderer]
+    unsafe = true
+
+[params.homepage.hero]
+enable = true
+eyebrow = "Software Engineer"
+title = "Hi, I'm John — I build delightful developer tools."
+subtitle = "This site collects my favorite articles, experiments, and talks."
+description = "Follow along for deep dives into automation, infrastructure, and the occasional magic trick."
+
+[params.homepage.hero.primaryButton]
+label = "Start reading"
+url = "posts/"
+
+[params.homepage.hero.secondaryButton]
+label = "About me"
+url = "about/"
+
+[params.homepage.featured]
+enable = true
+title = "Spotlight"
+subtitle = "Hand-picked posts that capture what I'm working on right now."
+limit = 3
+requireFlag = true
+sections = ["posts"]
+ctaLabel = "Keep reading"
+dateFormat = "Jan 2, 2006"
 
 # If you want to use fathom(https://usefathom.com) for analytics, add this section
 # [params.fathomAnalytics]

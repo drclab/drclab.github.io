@@ -1,0 +1,44 @@
+{{ $homepage := .Site.Params.homepage }}
+{{ $featured := dict }}
+{{ if $homepage }}
+  {{ $featured = default dict $homepage.featured }}
+{{ end }}
+{{ $enabled := default true ($featured.enable) }}
+{{ if $enabled }}
+  {{ $sections := default (slice "posts") ($featured.sections) }}
+  {{ $limit := default 3 ($featured.limit) }}
+  {{ $requireFlag := default false ($featured.requireFlag) }}
+  {{ $pages := where .Site.RegularPages "Type" "in" $sections }}
+  {{ if $requireFlag }}
+    {{ $pages = where $pages "Params.featured" true }}
+  {{ end }}
+  {{ $pages = sort $pages "Date" "desc" }}
+  {{ $pages = first $limit $pages }}
+  {{ if gt (len $pages) 0 }}
+    {{ $titleText := default "Featured work" ($featured.title) }}
+    {{ $subtitleText := $featured.subtitle }}
+    {{ $ctaLabel := default "Read more" ($featured.ctaLabel) }}
+    <section class="featured">
+      <div class="container">
+        <div class="featured__header">
+          <h2 class="featured__title">{{ $titleText }}</h2>
+          {{ with $subtitleText }}
+            <p class="featured__subtitle">{{ . }}</p>
+          {{ end }}
+        </div>
+        <div class="featured__grid">
+          {{ range $pages }}
+            <article class="featured-card">
+              <header class="featured-card__header">
+                <p class="featured-card__date">{{ .Date.Format ($featured.dateFormat | default "Jan 2, 2006") }}</p>
+                <h3 class="featured-card__title"><a class="title-link" href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+              </header>
+              <p class="featured-card__summary">{{ with .Params.summary }}{{ . }}{{ else }}{{ .Summary | plainify | truncate 160 }}{{ end }}</p>
+              <a class="featured-card__cta" href="{{ .RelPermalink }}">{{ $ctaLabel }}</a>
+            </article>
+          {{ end }}
+        </div>
+      </div>
+    </section>
+  {{ end }}
+{{ end }}
