@@ -1,4 +1,5 @@
 body.colorscheme-dark {
+@mixin home_dark {
   .hero {
     background: linear-gradient(180deg, rgba(66, 165, 245, 0.35) 0%, rgba(66, 66, 66, 0.65) 100%);
     color: #dadada;
@@ -112,4 +113,74 @@ body.colorscheme-dark {
       color: #42a5f5;
     }
   }
+}
+body.colorscheme-dark {
+  @include home_dark();
+}
+
+body.colorscheme-auto {
+  @media (prefers-color-scheme: dark) {
+    @include home_dark();
+  }
+.hero {
+  background: linear-gradient(180deg, rgba($link-color-dark, 0.35) 0%, rgba($alt-bg-color-dark, 0.65) 100%);
+  background: linear-gradient(135deg, rgba($link-color-dark, 0.4) 0%, rgba($alt-bg-color-dark, 0.8) 100%);
+  color: $fg-color-dark;
+}
+
+.hero__eyebrow {
+  color: $link-color-dark;
+}
+
+.hero__subtitle,
+.hero__description {
+  color: $fg-color-dark;
+}
+
+.button--ghost {
+  color: $fg-color-dark;
+  border-color: rgba($fg-color-dark, 0.5);
+
+  &:focus,
+  &:hover {
+    border-color: $fg-color-dark;
+    color: $fg-color-dark;
+  }
+}
+
+.featured {
+  background-color: rgba($alt-bg-color-dark, 0.35);
+  background-color: transparent;
+}
+
+.featured__subtitle {
+  color: $fg-color-dark;
+}
+
+.featured-card {
+  background-color: rgba($alt-bg-color-dark, 0.55);
+  border-color: rgba($fg-color-dark, 0.18);
+
+  &:focus-within,
+  &:hover {
+    box-shadow: 0 2.4rem 4.8rem -2.4rem rgba(#000, 0.45);
+  background-color: rgba($alt-bg-color-dark, 0.45);
+  border-color: rgba($fg-color-dark, 0.1);
+
+  &:focus-within,
+  &:hover {
+    box-shadow: 0 2.4rem 4.8rem -2.4rem rgba(#000, 0.5);
+  }
+}
+
+.featured-card__summary {
+  color: $fg-color-dark;
+}
+
+.featured-card__date {
+  color: rgba($fg-color-dark, 0.75);
+}
+
+.featured-card__cta {
+  color: $link-color-dark;
 }
