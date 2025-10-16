@@ -39,6 +39,21 @@ customSCSS = []
 # Custom JS
 customJS = []
 
+[module]
+  [module.hugoVersion]
+    extended = true
+    min = "0.123.0"
+
+[markup]
+  [markup.highlight]
+    style = "bw"
+    guessSyntax = true
+    codeFences = true
+    noClasses = false
+
+  [markup.goldmark.renderer]
+    unsafe = true
+
 [params.homepage.hero]
 enable = true
 eyebrow = "Software Engineer"
