@@ -4,9 +4,6 @@ title = "DRC Lab"
 languageCode = "en"
 defaultContentLanguage = "en"
 paginate = 20
-pygmentsStyle = "bw"
-pygmentsCodeFences = true
-pygmentsCodeFencesGuessSyntax = true
 enableEmoji = true
 # Enable Disqus comments
 # disqusShortname = "yourdiscussshortname"
@@ -35,12 +32,51 @@ colorScheme = "auto"
 hideColorSchemeToggle = false
 # Series see also post count
 maxSeeAlsoItems = 5
-# Custom CSS
-customCSS = []
 # Custom SCSS, file path is relative to Hugo's asset folder (default: {your project root}/assets)
 customSCSS = []
 # Custom JS
 customJS = []
+
+[module]
+  [module.hugoVersion]
+    extended = true
+    min = "0.123.0"
+
+[markup]
+  [markup.highlight]
+    style = "bw"
+    guessSyntax = true
+    codeFences = true
+    noClasses = false
+
+  [markup.goldmark.renderer]
+    unsafe = true
+
+[params.homepage.hero]
+enable = true
+eyebrow = "Probabilistic ML"
+title = "Reliable AI research at DRC Lab"
+subtitle = "Exploring probabilistic modeling, causal inference, and modern generative systems."
+description = "We turn academic ideas into reproducible experiments and open-source tooling that teams can build on."
+
+[params.homepage.hero.primaryButton]
+label = "Read the latest posts"
+url = "posts/"
+
+[params.homepage.hero.secondaryButton]
+label = "Work with us"
+url = "mailto:compute@dulun.com"
+rel = "noopener"
+
+[params.homepage.featured]
+enable = true
+title = "Highlighted research notes"
+subtitle = "A curated sample of projects and write-ups from the lab."
+limit = 3
+requireFlag = true
+sections = ["posts"]
+ctaLabel = "Dive in"
+dateFormat = "Jan 2, 2006"
 
 # If you want to use fathom(https://usefathom.com) for analytics, add this section
 # [params.fathomAnalytics]
