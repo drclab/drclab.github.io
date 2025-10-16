@@ -19,6 +19,10 @@ A simple and clean blog theme for [Hugo](https://gohugo.io/).
 
 ![](images/screenshot.png)
 
+## Requirements
+
+This theme requires the [Hugo Extended](https://gohugo.io/installation/) distribution version **0.123.0 or newer** to compile its asset pipeline and enable the latest markup features referenced in this repository.
+
 ## Live Demo
 
 See [here](https://hugo-coder.netlify.app/).
