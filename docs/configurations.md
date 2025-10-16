@@ -256,6 +256,8 @@ An example:
 
 This is a complete configuration example with some recommended values.
 
+> **Hugo 0.123+ required:** The `module.hugoVersion` block below enforces that you build the theme with the extended Hugo 0.123.0 release (or newer). The `markup` table replaces the deprecated `pygments*` parameters with the current syntax-highlighting and Goldmark renderer options.
+
 ```toml
 baseurl = "http://www.example.com"
 title = "johndoe"
@@ -265,9 +267,20 @@ defaultcontentlanguage = "en"
 
 paginate = 20
 
-pygmentsstyle = "bw"
-pygmentscodefences = true
-pygmentscodefencesguesssyntax = true
+[module]
+  [module.hugoVersion]
+    extended = true
+    min = "0.123.0"
+
+[markup]
+  [markup.highlight]
+    style = "bw"
+    guessSyntax = true
+    codeFences = true
+    noClasses = false
+
+  [markup.goldmark.renderer]
+    unsafe = true
 
 disqusShortname = "yourdiscussshortname"
 
