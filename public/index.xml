@@ -2,123 +2,305 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>DRC Lab</title>
-    <link>http://www.example.com/</link>
+    <link>http://127.0.0.1:1313/</link>
     <description>Recent content on DRC Lab</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 25 Jul 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://www.example.com/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 01 Dec 2023 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://127.0.0.1:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Identification and Inference for Synthetic Controls with Confounding</title>
+      <link>http://127.0.0.1:1313/ci/scc/</link>
+      <pubDate>Fri, 01 Dec 2023 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/ci/scc/</guid>
+      <description>by Guido W. Imbens, Davide Viviano&#xA;This paper studies inference on treatment effects in panel data settings with unobserved confounding. We model outcome variables through a factor model with random factors and loadings. Such factors and loadings may act as unobserved confounders: when the treatment is implemented depends on time-varying factors, and who receives the treatment depends on unit-level confounders. We study the identification of treatment effects and illustrate the presence of a trade-off between time and unit-level confounding.</description>
+    </item>
+    <item>
+      <title>Scoring multilevel regression and poststratification based population and subpopulation estimates</title>
+      <link>http://127.0.0.1:1313/bayesian/mrp/</link>
+      <pubDate>Fri, 01 Dec 2023 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/bayesian/mrp/</guid>
+      <description>by Lauren Kennedy, Aki Vehtari, Andrew Gelman&#xA;Keywords:&#xA;Abstract&#xA;Multilevel regression and poststratification (MRP) has been used extensively to adjust convenience and low-response surveys to make population and subpopulation estimates. For this method, model validation is particularly important, but recent work has suggested that simple aggregation of individual prediction errors does not give a good measure of the error of the population estimate. In this manuscript we provide a clear explanation for why this occurs, propose two scoring metrics designed specifically for this problem, and demonstrate their use in three different ways.</description>
+    </item>
+    <item>
+      <title>Stable Differentiable Causal Discovery</title>
+      <link>http://127.0.0.1:1313/ci/sdcd/</link>
+      <pubDate>Fri, 17 Nov 2023 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/ci/sdcd/</guid>
+      <description>by Achille Nazaret, Justin Hong, Elham Azizi, David Blei&#xA;Abstract&#xA;Inferring causal relationships as directed acyclic graphs (DAGs) is an important but challenging problem. Differentiable Causal Discovery (DCD) is a promising approach to this problem, framing the search as a continuous optimization. But existing DCD methods are numerically unstable, with poor performance beyond tens of variables. In this paper, we propose Stable Differentiable Causal Discovery (SDCD), a new method that improves previous DCD methods in two ways: (1) It employs an alternative constraint for acyclicity; this constraint is more stable, both theoretically and empirically, and fast to compute.</description>
+    </item>
+    <item>
+      <title>scGPT: Towards Building a Foundation Model for Single-Cell Multi-omics Using Generative AI</title>
+      <link>http://127.0.0.1:1313/autoencoder/vae/</link>
+      <pubDate>Tue, 07 Nov 2023 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/autoencoder/vae/</guid>
+      <description>by Haotian Cui, Chloe Wang, Hassaan Maan, Bo Wang&#xA;Keywords: generative pre-trained transformer, foundation models for cell and gene biology, multi-batch integration, multi-omic integration, cell-type annotation, genetic perturbation prediction, and gene network inference&#xA;Abstract&#xA;Generative pre-trained models have achieved remarkable success in various domains such as natural language processing and computer vision. Specifically, the combination of large-scale diverse datasets and pre-trained transformers has emerged as a promising approach for developing foundation models.</description>
+    </item>
+    <item>
+      <title>Unit Selection: Case Study and Comparison with A/B Test Heuristic</title>
+      <link>http://127.0.0.1:1313/ci/a/b/</link>
+      <pubDate>Sun, 16 Oct 2022 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/ci/a/b/</guid>
+      <description>by Ang Li, Judea Pearl&#xA;Keywords:&#xA;Abstract&#xA;The unit selection problem defined by Li and Pearl identifies individuals who have desired counterfactual behavior patterns, for example, individuals who would respond positively if encouraged and would not otherwise. Li and Pearl showed by example that their unit selection model is beyond the A/B test heuristics. In this paper, we reveal the essence of the A/B test heuristics, which are exceptional cases of the benefit function defined by Li and Pearl.</description>
+    </item>
+    <item>
+      <title>EHR | Electronic Health Records</title>
+      <link>http://127.0.0.1:1313/ci/projects/</link>
+      <pubDate>Tue, 11 Oct 2022 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/ci/projects/</guid>
+      <description>Adjusting for indirectly measured confounding using large-scale propensity score&#xA;by Linying Zhang, Yixin Wang, Martijn J. Schuemie, David M. Blei, George Hripcsak&#xA;Keywords: Causal inference; Propensity score; Unmeasured confounder; Observational study; EHR&#xA;Abstract&#xA;Confounding remains one of the major challenges to causal inference with observational data. This problem is paramount in medicine, where we would like to answer causal questions from large observational datasets like electronic health records (EHRs) and administrative claims.</description>
+    </item>
+    <item>
+      <title>Efficient Bayes Inference in Neural Networks through Adaptive Importance Sampling</title>
+      <link>http://127.0.0.1:1313/bayesian/bnn_ais/</link>
+      <pubDate>Mon, 03 Oct 2022 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/bayesian/bnn_ais/</guid>
+      <description>by Yunshi Huang, Emilie Chouzenoux, Victor Elvira, Jean-Christophe Pesquet&#xA;Keywords: Bayesian neural networks, adaptive importance sampling, Bayesian inference, deep learning, confidence intervals, uncertainty quantification&#xA;Abstract&#xA;Bayesian neural networks (BNNs) have received an increased interest in the last years. In BNNs, a complete posterior distribution of the unknown weight and bias parameters of the network is produced during the training stage. This probabilistic estimation offers several advantages with respect to point-wise estimates, in particular, the ability to provide uncertainty quantification when predicting new data.</description>
+    </item>
+    <item>
+      <title>Markov Logic Networks</title>
+      <link>http://127.0.0.1:1313/markov/mln/</link>
+      <pubDate>Fri, 30 Sep 2022 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/markov/mln/</guid>
+      <description>by Jiawei Zhang, Linyi Li, Ce Zhang, Bo Li&#xA;Robust learning with reasoning, Markov logic network, graph convolutional network, certified robustness, vari-ational inference&#xA;Abstract&#xA;Despite great recent advances achieved by deep neural networks (DNNs), they are often vulnerable to adversarial attacks. Intensive research efforts have been made to improve the robustness of DNNs; however, most empirical defenses can be adaptively attacked again, and the theoretically certified robustness is limited, especially on large-scale datasets.</description>
+    </item>
+    <item>
+      <title>Incorporating historical controls in clinical trials with longitudinal outcomes using the modified power prior</title>
+      <link>http://127.0.0.1:1313/bayesian/mpp/</link>
+      <pubDate>Sat, 03 Sep 2022 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/bayesian/mpp/</guid>
+      <description>by Hongchao Qi, Dimitris Rizopoulos, Emmanuel Lesaffre, Joost van Rosmalen&#xA;Keywords: Bayesian statistics; clinical trials; historical borrowing; informative prior; modified power prior.&#xA;Abstract&#xA;Several dynamic borrowing methods, such as the modified power prior (MPP), the commensurate prior, have been proposed to increase statistical power and reduce the required sample size in clinical trials where comparable historical controls are available. Most methods have focused on cross-sectional endpoints, and appropriate methodology for longitudinal outcomes is lacking.</description>
+    </item>
+    <item>
+      <title>Variational Inference for Infinitely Deep Neural Networks</title>
+      <link>http://127.0.0.1:1313/lda/infinitydnn/</link>
+      <pubDate>Thu, 01 Sep 2022 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/lda/infinitydnn/</guid>
+      <description>by Achille Nazaret, David Blei&#xA;Keywords:&#xA;Abstract&#xA;We introduce the unbounded depth neural network (UDN), an infinitely deep probabilistic model that adapts its complexity to the training data. The UDN contains an infinite sequence of hidden layers and places an unbounded prior on a truncation L, the layer from which it produces its data. Given a dataset of observations, the posterior UDN provides a conditional distribution of both the parameters of the infinite neural network and its truncation.</description>
+    </item>
     <item>
       <title>Mermaid JS support</title>
-      <link>http://www.example.com/posts/mermaid-support/</link>
+      <link>http://127.0.0.1:1313/posts/mermaid-support/</link>
       <pubDate>Mon, 25 Jul 2022 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.example.com/posts/mermaid-support/</guid>
-      <description>If you want to use Mermaid-JS on your website. Provide mermaid as Shortcode in your markdown file.
-flowchart LR A -- B B -- C C -- D D -- B  sequenceDiagram participant Alice participant Bob Alice-Bob: Hi Bob Bob-Alice: Hi Alice  Find more example on Mermaid-JS website.</description>
+      <guid>http://127.0.0.1:1313/posts/mermaid-support/</guid>
+      <description>If you want to use Mermaid-JS on your website. Provide mermaid as Shortcode in your markdown file.&#xA;flowchart LR A --&gt; B B --&gt; C C --&gt; D D --&gt; B sequenceDiagram participant Alice participant Bob Alice-&gt;&gt;Bob: Hi Bob Bob-&gt;&gt;Alice: Hi Alice Find more example on Mermaid-JS website.</description>
     </item>
-    
     <item>
-      <title>HTML and CSS only tabs</title>
-      <link>http://www.example.com/posts/html-and-css-only-tabs/</link>
-      <pubDate>Sun, 15 May 2022 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.example.com/posts/html-and-css-only-tabs/</guid>
-      <description>Basic shortcodes  Link to heading   The following content:
-{{&amp;lt; tabgroup &amp;gt;}} {{&amp;lt; tab name=&amp;#34;Hello&amp;#34; &amp;gt;}} Hello World! {{&amp;lt; /tab &amp;gt;}} {{&amp;lt; tab name=&amp;#34;Goodbye&amp;#34; &amp;gt;}} Goodbye Everybody! {{&amp;lt; /tab &amp;gt;}} {{&amp;lt; /tabgroup &amp;gt;}} Will generate:
- .tabs input#tab-0-0:checked ~ .tab-content-0-0 { display: block; }  Hello Hello World!   .tabs input#tab-0-1:checked ~ .tab-content-0-1 { display: block; }  Goodbye Goodbye Everybody!   Right alighment  Link to heading   You can also align the tabs to the right:</description>
-    </item>
-    
-    <item>
-      <title>Markdown Syntax Guide</title>
-      <link>http://www.example.com/posts/markdown-syntax/</link>
-      <pubDate>Mon, 11 Mar 2019 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.example.com/posts/markdown-syntax/</guid>
-      <description>&lt;p&gt;This article offers a sample of basic Markdown syntax that can be used in Hugo content files, also it shows whether basic HTML elements are decorated with CSS in a Hugo theme.&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Rich Content</title>
-      <link>http://www.example.com/posts/rich-content/</link>
-      <pubDate>Sun, 10 Mar 2019 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.example.com/posts/rich-content/</guid>
-      <description>&lt;p&gt;Hugo ships with several &lt;a href=&#34;https://gohugo.io/content-management/shortcodes/#use-hugos-built-in-shortcodes&#34;&gt;Built-in Shortcodes&lt;/a&gt; for rich content, along with a &lt;a href=&#34;https://gohugo.io/about/hugo-and-gdpr/&#34;&gt;Privacy Config&lt;/a&gt; and a set of Simple Shortcodes that enable static and no-JS versions of various social media embeds.&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>More Rich Content</title>
-      <link>http://www.example.com/posts/more-rich-content/</link>
-      <pubDate>Sat, 09 Mar 2019 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.example.com/posts/more-rich-content/</guid>
-      <description>&lt;p&gt;Hugo Coder provides some Custom Shortcodes.&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Placeholder Text</title>
-      <link>http://www.example.com/posts/placeholder-text/</link>
-      <pubDate>Sat, 09 Mar 2019 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.example.com/posts/placeholder-text/</guid>
-      <description>&lt;p&gt;Lorem est tota propiore conpellat pectoribus de pectora summo.&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Math Typesetting</title>
-      <link>http://www.example.com/posts/math-typesetting/</link>
-      <pubDate>Fri, 08 Mar 2019 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.example.com/posts/math-typesetting/</guid>
-      <description>&lt;p&gt;Mathematical notation in a Hugo project can be enabled by using third party JavaScript libraries.&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Emoji Support</title>
-      <link>http://www.example.com/posts/emoji-support/</link>
-      <pubDate>Tue, 05 Mar 2019 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.example.com/posts/emoji-support/</guid>
-      <description>&lt;p&gt;Emoji can be enabled in a Hugo project in a number of ways.&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>External Page: Hugo Coder Wiki</title>
-      <link>http://www.example.com/posts/hugo-coder-wiki/</link>
-      <pubDate>Mon, 04 Mar 2019 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.example.com/posts/hugo-coder-wiki/</guid>
+      <title>Survival analysis in Stan</title>
+      <link>http://127.0.0.1:1313/bayesian/hugo-coder-wiki/</link>
+      <pubDate>Thu, 14 Jul 2022 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/bayesian/hugo-coder-wiki/</guid>
       <description></description>
     </item>
-    
     <item>
-      <title>About</title>
-      <link>http://www.example.com/about/</link>
-      <pubDate>Thu, 28 Feb 2019 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.example.com/about/</guid>
-      <description>Written in Go, Hugo is an open source static site generator available under the Apache Licence 2.0. Hugo supports TOML, YAML and JSON data file types, Markdown and HTML content files and uses shortcodes to add rich content. Other notable features are taxonomies, multilingual mode, image processing, custom output formats, HTML/CSS/JS minification and support for Sass SCSS workflows.
-Hugo makes use of a variety of open source projects including:
- https://github.</description>
+      <title>HTML and CSS only tabs</title>
+      <link>http://127.0.0.1:1313/posts/html-and-css-only-tabs/</link>
+      <pubDate>Sun, 15 May 2022 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/posts/html-and-css-only-tabs/</guid>
+      <description>Basic shortcodes The following content:&#xA;{{&amp;lt; tabgroup &amp;gt;}} {{&amp;lt; tab name=&amp;#34;Hello&amp;#34; &amp;gt;}} Hello World! {{&amp;lt; /tab &amp;gt;}} {{&amp;lt; tab name=&amp;#34;Goodbye&amp;#34; &amp;gt;}} Goodbye Everybody! {{&amp;lt; /tab &amp;gt;}} {{&amp;lt; /tabgroup &amp;gt;}} Will generate:&#xA;Tab Hello World! Tab Goodbye Everybody! Right alighment You can also align the tabs to the right:&#xA;{{&amp;lt; tabgroup align=&amp;#34;right&amp;#34; &amp;gt;}} {{&amp;lt; tab name=&amp;#34;Hello&amp;#34; &amp;gt;}} Hello World! {{&amp;lt; /tab &amp;gt;}} {{&amp;lt; tab name=&amp;#34;Goodbye&amp;#34; &amp;gt;}} Goodbye Everybody! {{&amp;lt; /tab &amp;gt;}} {{&amp;lt; /tabgroup &amp;gt;}} Giving you this look:</description>
     </item>
-    
     <item>
-      <title>Contact</title>
-      <link>http://www.example.com/contact/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.example.com/contact/</guid>
-      <description>Follow me, @johndoe.</description>
+      <title>Matrix Completion Methods for Causal Panel Data Models</title>
+      <link>http://127.0.0.1:1313/ci/matrix_completion/</link>
+      <pubDate>Thu, 21 Apr 2022 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/ci/matrix_completion/</guid>
+      <description>by Susan Athey, Mohsen Bayati, Nikolay Doudchenko, Guido Imbens, Khashayar Khosravi&#xA;In this paper we study methods for estimating causal effects in settings with panel data, where some units are exposed to a treatment during some periods and the goal is estimating counterfactual (untreated) outcomes for the treated unit/period combinations. We propose a class of matrix completion estimators that uses the observed elements of the matrix of control outcomes corresponding to untreated unit/periods to impute the &amp;ldquo;missing&amp;rdquo; elements of the control outcome matrix, corresponding to treated units/periods.</description>
     </item>
-    
     <item>
-      <title>Projects</title>
-      <link>http://www.example.com/projects/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.example.com/projects/</guid>
-      <description>Nothing to see here&amp;hellip; Move along!</description>
+      <title>Gaussian Processes for Machine Learning</title>
+      <link>http://127.0.0.1:1313/markov/gp/</link>
+      <pubDate>Fri, 01 Apr 2022 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/markov/gp/</guid>
+      <description>by Carl Edward Rasmussen and Christopher K. I. Williams&#xA;Gaussian processes (GPs) provide a principled, practical, probabilistic approach to learning in kernel machines. GPs have received increased attention in the machine-learning community over the past decade, and this book provides a long-needed systematic and unified treatment of theoretical and practical aspects of GPs in machine learning. The treatment is comprehensive and self-contained, targeted at researchers and students in machine learning and applied statistics.</description>
     </item>
-    
+    <item>
+      <title>Bayesian workflow for disease transmission modeling in Stan</title>
+      <link>http://127.0.0.1:1313/bayesian/sars/</link>
+      <pubDate>Sat, 03 Jul 2021 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/bayesian/sars/</guid>
+      <description>by Léo Grinsztajn, Elizaveta Semenova, Charles C. Margossian, Julien Riou&#xA;Keywords: Bayesian workflow, computational models, epidemiology, infection diseases&#xA;Abstract&#xA;This tutorial shows how to build, fit, and criticize disease transmission models in Stan, and should be useful to researchers interested in modeling the COVID-19 outbreak and doing Bayesian inference. Bayesian modeling provides a principled way to quantify uncertainty and incorporate prior knowledge into the model. What is more, Stan’s main inference engine, Hamiltonian Monte Carlo sampling, is amiable to diagnostics, which means we can verify whether our inference is reliable.</description>
+    </item>
+    <item>
+      <title>Bayesian Workflow</title>
+      <link>http://127.0.0.1:1313/bayesian/bayesian_flow/</link>
+      <pubDate>Tue, 03 Nov 2020 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/bayesian/bayesian_flow/</guid>
+      <description>by Andrew Gelman, Aki Vehtari, Daniel Simpson, Charles C. Margossian, Bob Carpenter, Yuling Yao, Lauren Kennedy, Jonah Gabry, Paul-Christian Bürkner, Martin Modrák&#xA;Keywords:&#xA;Abstract&#xA;The Bayesian approach to data analysis provides a powerful way to handle uncertainty in all observations, model parameters, and model structure using probability theory. Probabilistic programming languages make it easier to specify and fit Bayesian models, but this still leaves us with many options regarding constructing, evaluating, and using these models, along with many remaining challenges in computation.</description>
+    </item>
+    <item>
+      <title>Towards Clarifying the Theory of the Deconfounder</title>
+      <link>http://127.0.0.1:1313/ci/mci_2/</link>
+      <pubDate>Tue, 03 Mar 2020 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/ci/mci_2/</guid>
+      <description>by Yixin Wang &amp;amp; David M. Blei&#xA;Keywords: Causal inference, Machine learning, Probabilistic models, Unconfoundedness, Unobserved confounding&#xA;Abstract&#xA;Wang and Blei (2019) studies multiple causal inference and proposes the deconfounder algorithm. The paper discusses theoretical requirements and presents empirical studies. Several refinements have been suggested around the theory of the deconfounder. Among these, Imai and Jiang clarified the assumption of &amp;ldquo;no unobserved single-cause confounders.&amp;rdquo; Using their assumption, this paper clarifies the theory.</description>
+    </item>
+    <item>
+      <title>The Blessings of Multiple Causes</title>
+      <link>http://127.0.0.1:1313/ci/mci/</link>
+      <pubDate>Thu, 03 Oct 2019 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/ci/mci/</guid>
+      <description>by Yixin Wang &amp;amp; David M. Blei&#xA;Keywords: Causal inference, Machine learning, Probabilistic models, Unconfoundedness, Unobserved confounding&#xA;Abstract&#xA;Causal inference from observational data is a vital problem, but it comes with strong assumptions. Most methods assume that we observe all confounders, variables that affect both the causal variables and the outcome variables. This assumption is standard but it is also untestable. In this article, we develop the deconfounder, a way to do causal inference with weaker assumptions than the traditional methods require.</description>
+    </item>
+    <item>
+      <title>Potential Outcome and Directed Acyclic Graph Approaches to Causality: Relevance for Empirical Practice in Economics</title>
+      <link>http://127.0.0.1:1313/ci/dag/</link>
+      <pubDate>Wed, 03 Jul 2019 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/ci/dag/</guid>
+      <description>by Guido Imbens&#xA;Keywords:&#xA;Abstract&#xA;In this essay I discuss potential outcome and graphical approaches to causality, and their relevance for empirical work in economics. I review some of the work on directed acyclic graphs, including the recent &amp;ldquo;The Book of Why,&amp;rdquo; ([Pearl and Mackenzie, 2018]). I also discuss the potential outcome framework developed by Rubin and coauthors, building on work by Neyman. I then discuss the relative merits of these approaches for empirical work in economics, focusing on the questions each answer well, and why much of the the work in economics is closer in spirit to the potential outcome framework.</description>
+    </item>
+    <item>
+      <title>Markdown Syntax Guide</title>
+      <link>http://127.0.0.1:1313/posts/markdown-syntax/</link>
+      <pubDate>Mon, 11 Mar 2019 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/posts/markdown-syntax/</guid>
+      <description>&lt;p&gt;This article offers a sample of basic Markdown syntax that can be used in Hugo content files, also it shows whether basic HTML elements are decorated with CSS in a Hugo theme.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Rich Content</title>
+      <link>http://127.0.0.1:1313/posts/rich-content/</link>
+      <pubDate>Sun, 10 Mar 2019 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/posts/rich-content/</guid>
+      <description>&lt;p&gt;Hugo ships with several &lt;a href=&#34;https://gohugo.io/content-management/shortcodes/#use-hugos-built-in-shortcodes&#34;&gt;Built-in Shortcodes&lt;/a&gt; for rich content, along with a &lt;a href=&#34;https://gohugo.io/about/hugo-and-gdpr/&#34;&gt;Privacy Config&lt;/a&gt; and a set of Simple Shortcodes that enable static and no-JS versions of various social media embeds.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>More Rich Content</title>
+      <link>http://127.0.0.1:1313/posts/more-rich-content/</link>
+      <pubDate>Sat, 09 Mar 2019 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/posts/more-rich-content/</guid>
+      <description>&lt;p&gt;Hugo Coder provides some Custom Shortcodes.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Placeholder Text</title>
+      <link>http://127.0.0.1:1313/posts/placeholder-text/</link>
+      <pubDate>Sat, 09 Mar 2019 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/posts/placeholder-text/</guid>
+      <description>&lt;p&gt;Lorem est tota propiore conpellat pectoribus de pectora summo.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Math Typesetting</title>
+      <link>http://127.0.0.1:1313/posts/math-typesetting/</link>
+      <pubDate>Fri, 08 Mar 2019 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/posts/math-typesetting/</guid>
+      <description>&lt;p&gt;Mathematical notation in a Hugo project can be enabled by using third party JavaScript libraries.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Emoji Support</title>
+      <link>http://127.0.0.1:1313/posts/emoji-support/</link>
+      <pubDate>Tue, 05 Mar 2019 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/posts/emoji-support/</guid>
+      <description>&lt;p&gt;Emoji can be enabled in a Hugo project in a number of ways.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>External Page: Hugo Coder Wiki</title>
+      <link>http://127.0.0.1:1313/posts/hugo-coder-wiki/</link>
+      <pubDate>Mon, 04 Mar 2019 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/posts/hugo-coder-wiki/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Bayesian aggregation of average data: An application in drug development</title>
+      <link>http://127.0.0.1:1313/bayesian/aggregate/</link>
+      <pubDate>Mon, 03 Sep 2018 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/bayesian/aggregate/</guid>
+      <description>by Sebastian Weber, Andrew Gelman, Daniel Lee, Michael Betancourt, Aki Vehtari, Amy Racine-Poon&#xA;Keywords: Bayesian computation , hierarchical modeling , Meta-analysis , pharmacometrics , Stan&#xA;Abstract&#xA;Throughout the different phases of a drug development program, randomized trials are used to establish the tolerability, safety and efficacy of a candidate drug. At each stage one aims to optimize the design of future studies by extrapolation from the available evidence at the time.</description>
+    </item>
+    <item>
+      <title>Bayesian Inference for a Generative Model of Transcriptome Profiles from Single-cell RNA Sequencing</title>
+      <link>http://127.0.0.1:1313/bayesian/transcriptome/</link>
+      <pubDate>Sat, 03 Mar 2018 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/bayesian/transcriptome/</guid>
+      <description>by Romain Lopez, Jeffrey Regier, Michael Cole, Michael Jordan, Nir Yosef&#xA;Keywords:&#xA;Abstract&#xA;Transcriptome profiles of individual cells reflect true and often unexplored biological diversity, but are also affected by noise of biological and technical nature. This raises the need to explicitly model the resulting uncertainty and take it into account in any downstream analysis, such as dimensionality reduction, clustering, and differential expression. Here, we introduce Single-cell Variational Inference (scVI), a scalable framework for probabilistic representation and analysis of gene expression in single cells.</description>
+    </item>
+    <item>
+      <title> Variational Inference: A Review for Statisticians</title>
+      <link>http://127.0.0.1:1313/lda/vi/</link>
+      <pubDate>Thu, 13 Jul 2017 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/lda/vi/</guid>
+      <description>by David M. Blei, Alp Kucukelbir &amp;amp; Jon D. McAuliffe&#xA;Keywords: AlgorithmsComputationally intensive methodsStatistical computing&#xA;Abstract&#xA;One of the core problems of modern statistics is to approximate difficult-to-compute probability densities. This problem is especially important in Bayesian statistics, which frames all inference about unknown quantities as a calculation involving the posterior density. In this article, we review variational inference (VI), a method from machine learning that approximates probability densities through optimization.</description>
+    </item>
+    <item>
+      <title>Stan: A Probabilistic Programming Language</title>
+      <link>http://127.0.0.1:1313/bayesian/stan/</link>
+      <pubDate>Tue, 03 Jan 2017 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/bayesian/stan/</guid>
+      <description>by Bob Carpenter, Andrew Gelman, Matthew D. Hoffman, Daniel Lee, Ben Goodrich, Michael Betancourt, Marcus Brubaker, Jiqiang Guo, Peter Li, Allen Riddell&#xA;Keywords: probabilistic programming Bayesian inference algorithmic differentiation Stan&#xA;Abstract&#xA;Stan is a probabilistic programming language for specifying statistical models. A Stan program imperatively defines a log probability function over parameters conditioned on specified data and constants. As of version 2.14.0, Stan provides full Bayesian inference for continuous-variable models through Markov chain Monte Carlo methods such as the No-U-Turn sampler, an adaptive form of Hamiltonian Monte Carlo sampling.</description>
+    </item>
+    <item>
+      <title>Bayesian inference with Stan: A tutorial on adding custom distributions</title>
+      <link>http://127.0.0.1:1313/bayesian/tutorial/</link>
+      <pubDate>Fri, 03 Jun 2016 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/bayesian/tutorial/</guid>
+      <description>by Annis, J., Miller, B.J. &amp;amp; Palmeri, T.J.&#xA;Keywords: Bayesian inference, Stan, Linear ballistic accumulator, Probabilistic programming&#xA;Abstract&#xA;When evaluating cognitive models based on fits to observed data (or, really, any model that has free parameters), parameter estimation is critically important. Traditional techniques like hill climbing by minimizing or maximizing a fit statistic often result in point estimates. Bayesian approaches instead estimate parameters as posterior probability distributions, and thus naturally account for the uncertainty associated with parameter estimation; Bayesian approaches also offer powerful and principled methods for model comparison.</description>
+    </item>
+    <item>
+      <title>Posterior predictive checks to quantify lack-of-fit in admixture models of latent population structure</title>
+      <link>http://127.0.0.1:1313/lda/admixture/</link>
+      <pubDate>Mon, 01 Jun 2015 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/lda/admixture/</guid>
+      <description>by David Mimno, David M. Blei, and Barbara E. Engelhardt&#xA;Keywords: posterior predictive checks, admixture models, population structure, model checking, genomic data&#xA;Abstract&#xA;Admixture models are a ubiquitous approach to capture latent population structure in genetic samples. Despite the widespread application of admixture models, little thought has been devoted to the quality of the model fit or the accuracy of the estimates of parameters of interest for a particular study. Here we develop methods for validating admixture models based on posterior predictive checks (PPCs), a Bayesian method for assessing the quality of fit of a statistical model to a specific dataset.</description>
+    </item>
+    <item>
+      <title>Bayesian Data Analysis (BDA)</title>
+      <link>http://127.0.0.1:1313/bayesian/bda3/</link>
+      <pubDate>Fri, 01 Nov 2013 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/bayesian/bda3/</guid>
+      <description>Tutorial on Bayesian Statistics using Bayesian Data Analysis 3</description>
+    </item>
+    <item>
+      <title>Stochastic Variational Inference (SVI)</title>
+      <link>http://127.0.0.1:1313/lda/svi/</link>
+      <pubDate>Mon, 13 May 2013 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/lda/svi/</guid>
+      <description>by Matt Hoffman, David M. Blei, Chong Wang, John Paisley&#xA;Keywords: Bayesian inference, variational inference, stochastic optimization, topic models, Bayesian nonparametrics&#xA;Abstract&#xA;We develop stochastic variational inference, a scalable algorithm for approximating posterior distributions. We develop this technique for a large class of probabilistic models and we demonstrate it with two probabilistic topic models, latent Dirichlet allocation and the hierarchical Dirichlet process topic model. Using stochastic variational inference, we analyze several large collections of documents: 300K articles from Nature, 1.</description>
+    </item>
+    <item>
+      <title>Efficient discovery of overlapping communities in massive networks</title>
+      <link>http://127.0.0.1:1313/lda/networks_communities/</link>
+      <pubDate>Sat, 01 Dec 2012 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/lda/networks_communities/</guid>
+      <description>by Prem K. Gopalan and David M. Blei&#xA;Keywords: network analysis, Bayesian statistics, massive dat&#xA;Abstract&#xA;Detecting overlapping communities is essential to analyzing and exploring natural networks such as social networks, biological networks, and citation networks. However, most existing approaches do not scale to the size of networks that we regularly observe in the real world. In this paper, we develop a scalable approach to community detection that discovers overlapping communities in massive real-world networks.</description>
+    </item>
+    <item>
+      <title>Graphical Models, Exponential Families, and Variational Inference</title>
+      <link>http://127.0.0.1:1313/markov/gmefvi/</link>
+      <pubDate>Mon, 03 Nov 2008 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/markov/gmefvi/</guid>
+      <description>by Martin J. Wainwright and Michael I. Jordan&#xA;Abstract&#xA;The formalism of probabilistic graphical models provides a unifying frameworkforcapturingcomplexdependenciesamongrandom variables,andbuildinglarge-scalemultivariate statisticalmodels. Graphical models have become a focus of research in many statisti-cal, computational and mathematical fields, including bioinformatics, communicationtheory, statisticalphysics,combinatorialoptimiza-tion, signal and image processing, information retrieval and statistical machine learning. Many problems that arise in specific instances — including the key problems of computing marginals and modes of probability distributions — are best studied in the general setting.</description>
+    </item>
+    <item>
+      <title>Pattern Recognition and Machine Learning</title>
+      <link>http://127.0.0.1:1313/markov/markov/</link>
+      <pubDate>Wed, 16 Aug 2006 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/markov/markov/</guid>
+      <description>This leading textbook provides a comprehensive introduction to the fields of pattern recognition and machine learning. It is aimed at advanced undergraduates or first-year PhD students, as well as researchers and practitioners. No previous knowledge of pattern recognition or machine learning concepts is assumed. This is the first machine learning textbook to include a comprehensive coverage of recent developments such as probabilistic graphical models and deterministic inference methods, and to emphasize a modern Bayesian perspective.</description>
+    </item>
+    <item>
+      <title>Latent Dirichlet Allocation (LDA)</title>
+      <link>http://127.0.0.1:1313/lda/lda/</link>
+      <pubDate>Sat, 01 Mar 2003 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/lda/lda/</guid>
+      <description>by David Blei, Andrew Ng, and Michael Jordan&#xA;Keywords:&#xA;Abstract&#xA;We describe latent Dirichlet allocation (LDA), a generative probabilistic model for collections of discrete data such as text corpora. LDA is a three-level hierarchical Bayesian model, in which each item of a collection is modeled as a finite mixture over an underlying set of topics. Each topic is, in turn, modeled as an infinite mixture over an underlying set of topic probabilities.</description>
+    </item>
+    <item>
+      <title>Draft</title>
+      <link>http://127.0.0.1:1313/posts/draft/</link>
+      <pubDate>Thu, 03 Oct 2002 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/posts/draft/</guid>
+      <description>by&#xA;Keywords:&#xA;Abstract&#xA;Github</description>
+    </item>
+    <item>
+      <title>An Introduction to Variational Methods for Graphical Models</title>
+      <link>http://127.0.0.1:1313/markov/graphical_model/</link>
+      <pubDate>Sun, 03 Oct 1999 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/markov/graphical_model/</guid>
+      <description>by Jordan, M.I., Ghahramani, Z., Jaakkola, T.S. et al&#xA;Keywords: graphical models, Bayesian networks, belief networks, probabilistic inference, approximate infer-ence, variational methods, mean field methods, hidden Markov models, Boltzmann machines, neural networks&#xA;Abstract&#xA;This paper presents a tutorial introduction to the use of variational methods for inference and learning in graphical models (Bayesian networks and Markov random fields). We present a number of examples of graphical models, including the QMR-DT database, the sigmoid belief network, the Boltzmann machine, and several variants of hidden Markov models, in which it is infeasible to run exact inference algorithms.</description>
+    </item>
+    <item>
+      <title>Causality</title>
+      <link>http://127.0.0.1:1313/ci/causality/</link>
+      <pubDate>Fri, 03 Sep 1999 00:00:00 +0000</pubDate>
+      <guid>http://127.0.0.1:1313/ci/causality/</guid>
+      <description>by Judea Pearl&#xA;Written by one of the preeminent researchers in the field, this book provides a comprehensive exposition of modern analysis of causation. It shows how causality has grown from a nebulous concept into a mathematical theory with significant applications in the fields of statistics, artificial intelligence, economics, philosophy, cognitive science, and the health and social sciences. Judea Pearl presents and unifies the probabilistic, manipulative, counterfactual, and structural approaches to causation and devises simple mathematical tools for studying the relationships between causal connections and statistical associations.</description>
+    </item>
   </channel>
 </rss>

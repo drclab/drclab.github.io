@@ -1,0 +1,2 @@
+{{ $lang := default "text" (.Get 0) }}
+{{ highlight (trim .Inner "\n") $lang }}

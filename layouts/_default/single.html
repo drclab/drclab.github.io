@@ -1,7 +1,10 @@
-{{ define "title" }}
-  {{ .Title }} · {{ .Site.Title }}
-{{ end }}
-{{ define "content" }}
-  {{ partial "page.html" . }}
-  {{ partial "posts/math.html" . }}
+{{ define "title" }}{{ .Title }} · {{ .Site.Title }}{{ end }}
+{{ define "main" }}
+  <article>
+    <h1>{{ .Title }}</h1>
+    <p><small>{{ .Date.Format "Jan 2, 2006" }}</small></p>
+    <div class="page-content">
+      {{ .Content }}
+    </div>
+  </article>
 {{ end }}

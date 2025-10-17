@@ -13,7 +13,7 @@ categories = [
     "syntax",
 ]
 series = ["Themes Guide"]
-aliases = ["migrate-from-jekyl"]
+aliases = ["html-css-tabs"]
 +++
 
 ## Basic shortcodes

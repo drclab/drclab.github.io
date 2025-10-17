@@ -1,0 +1,8 @@
+baseURL = 'http://example.org/'
+languageCode = 'en'
+title = 'DRC Lab'
+
+disableKinds = ['taxonomy', 'term']
+
+[params]
+tagline = 'Fresh Hugo setup, content preserved.'
