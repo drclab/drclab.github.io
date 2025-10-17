@@ -1,0 +1,116 @@
+body {
+  background-color: #f8fafc;
+  color: #1f2933;
+}
+
+.mermaid {
+  margin: 2.4rem 0;
+  padding: 2rem 2.4rem;
+  border-radius: 1.2rem;
+  background-color: #111827;
+  color: #f9fafb;
+  overflow-x: auto;
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.25);
+}
+
+.mermaid pre,
+.mermaid code {
+  background: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mermaid {
+    background-color: #0f172a;
+    color: #f8fafc;
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.45);
+  }
+}
+
+.navigation .container {
+  margin: 0;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.navigation .navigation-title {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.navigation section.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  margin: 0;
+  max-width: none;
+  padding: 0 1.5rem;
+}
+
+.navigation .navigation-title {
+  display: flex;
+  align-items: center;
+}
+
+.navigation .navigation-list {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.navigation .navigation-item {
+  display: flex;
+  align-items: center;
+}
+
+body.colorscheme-dark {
+  background-color: #0b1f52;
+  color: #e2e8f0;
+}
+
+body.colorscheme-dark .navigation {
+  background-color: rgba(8, 24, 64, 0.95);
+  border-bottom: 1px solid rgba(30, 58, 138, 0.6);
+}
+
+body.colorscheme-dark .navigation a {
+  color: #e2e8f0;
+}
+
+body.colorscheme-dark .navigation a:hover,
+body.colorscheme-dark .navigation a:focus {
+  color: #60a5fa;
+}
+
+body.colorscheme-dark .footer {
+  background-color: rgba(8, 24, 64, 0.85);
+  border-top: 1px solid rgba(30, 64, 175, 0.4);
+  color: #cbd5f5;
+}
+
+@media (prefers-color-scheme: dark) {
+  body.colorscheme-auto {
+    background-color: #0b1f52;
+    color: #e2e8f0;
+  }
+
+  body.colorscheme-auto .navigation {
+    background-color: rgba(8, 24, 64, 0.95);
+    border-bottom: 1px solid rgba(30, 58, 138, 0.6);
+  }
+
+  body.colorscheme-auto .navigation a {
+    color: #e2e8f0;
+  }
+
+  body.colorscheme-auto .navigation a:hover,
+  body.colorscheme-auto .navigation a:focus {
+    color: #60a5fa;
+  }
+
+  body.colorscheme-auto .footer {
+    background-color: rgba(8, 24, 64, 0.85);
+    border-top: 1px solid rgba(30, 64, 175, 0.4);
+    color: #cbd5f5;
+  }
+}

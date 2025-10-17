@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title desc">
+  <title id="title">DRC Lab Avatar</title>
+  <desc id="desc">Stylized avatar using DRC initials</desc>
+  <rect width="120" height="120" rx="28" fill="#0f172a" />
+  <circle cx="60" cy="48" r="28" fill="#1e40af" />
+  <path d="M32 96c8-14 20-22 28-22s20 8 28 22" fill="#1e3a8a" />
+  <text x="50%" y="55%" text-anchor="middle" font-size="30" font-family="'SFMono-Regular', 'Menlo', monospace" fill="#f8fafc">DRC</text>
+</svg>

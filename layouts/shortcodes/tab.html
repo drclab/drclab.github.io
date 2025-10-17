@@ -1,7 +1,0 @@
-{{ $title := default (default "Tab" (.Get "title")) (.Get 0) }}
-<section class="tab">
-  <h3>{{ $title }}</h3>
-  <div class="tab__content">
-    {{ .Inner | markdownify }}
-  </div>
-</section>

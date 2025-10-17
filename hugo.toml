@@ -1,8 +1,84 @@
-baseURL = 'http://example.org/'
-languageCode = 'en'
-title = 'DRC Lab'
+baseURL = "https://drclab.github.io/"
+languageCode = "en"
+title = "DRC Lab"
+theme = "hugo-coder"
+defaultContentLanguage = "en"
+enableEmoji = true
 
-disableKinds = ['taxonomy', 'term']
+[pagination]
+pagerSize = 6
+
+[markup]
+  [markup.highlight]
+  noClasses = false
+
+  [markup.goldmark.renderer]
+  unsafe = true
 
 [params]
-tagline = 'Fresh Hugo setup, content preserved.'
+author = "DRC Lab"
+description = "Notes and experiments from the Data Research Collective."
+keywords = "drc lab, machine learning, bayesian statistics, research"
+info = ["Computational research", "Collaborative analytics"]
+colorScheme = "auto"
+since = 2019
+avatarURL = "images/avatar.svg"
+customCSS = ["css/site.css"]
+
+[taxonomies]
+category = "categories"
+series = "series"
+tag = "tags"
+author = "authors"
+
+[[menu.main]]
+name = "Home"
+url = "/"
+weight = 1
+
+[[menu.main]]
+name = "Posts"
+url = "/posts/"
+weight = 2
+
+[[menu.main]]
+name = "Topics"
+url = "/tags/"
+weight = 3
+
+[[menu.main]]
+name = "Autoencoders"
+url = "/autoencoder/"
+weight = 4
+
+[[menu.main]]
+name = "Bayesian"
+url = "/bayesian/"
+weight = 5
+
+[[menu.main]]
+name = "Causal Inference"
+url = "/ci/"
+weight = 6
+
+[[menu.main]]
+name = "Topic Models"
+url = "/lda/"
+weight = 7
+
+[[menu.main]]
+name = "Markov"
+url = "/markov/"
+weight = 8
+
+[[params.social]]
+name = "GitHub"
+icon = "fa-brands fa-github fa-2x"
+weight = 1
+url = "https://github.com/drclab"
+
+[[params.social]]
+name = "Email"
+icon = "fa-regular fa-envelope fa-2x"
+weight = 2
+url = "mailto:info@drclab.github.io"
