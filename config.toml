@@ -1,0 +1,47 @@
+baseURL = '/'
+languageCode = 'en-us'
+title = 'DRC Lab'
+theme = 'gokarna'
+defaultContentLanguage = 'en'
+enableEmoji = true
+enableRobotsTXT = true
+pygmentsStyle = 'monokai'
+
+[params]
+  description = 'Notes and research updates from the DRC Lab team.'
+  footer = '© DRC Lab'
+  showBackToTopButton = true
+  accentColor = '#4a6cb3'
+  avatarURL = '/images/avatar.webp'
+  avatarSize = 'size-m'
+  avatarAltText = 'DRC Lab logo'
+  socialIcons = [
+    {name = 'github', url = 'https://github.com/drc-lab'},
+    {name = 'linkedin', url = 'https://www.linkedin.com'},
+    {name = 'email', url = 'mailto:info@drc.lab'}
+  ]
+
+[menu]
+  [[menu.main]]
+    name = 'Home'
+    pre = "<span data-feather='home'></span>"
+    url = '/'
+    weight = 1
+
+  [[menu.main]]
+    name = 'Posts'
+    pre = "<span data-feather='book'></span>"
+    url = '/posts/'
+    weight = 2
+
+  [[menu.main]]
+    name = 'Tags'
+    pre = "<span data-feather='tag'></span>"
+    url = '/tags/'
+    weight = 3
+
+[markup]
+  [markup.tableOfContents]
+    startLevel = 1
+    endLevel = 4
+    ordered = false
