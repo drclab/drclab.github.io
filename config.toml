@@ -9,10 +9,10 @@ pygmentsStyle = 'monokai'
 
 [params]
   description = 'Bayesian Data Codexer'
-  footer = '© DRC Lab'
+  footer = '©DRC Lab'
   showBackToTopButton = true
   accentColor = '#682953ff'
-  avatarURL = '/images/avatar.webp'
+  avatarURL = '/images/my-avatar.jpg'
   avatarSize = 'size-m'
   avatarAltText = 'DRC Lab logo'
   socialIcons = [
