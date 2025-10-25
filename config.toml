@@ -8,17 +8,17 @@ enableRobotsTXT = true
 pygmentsStyle = 'monokai'
 
 [params]
-  description = 'Notes and research updates from the DRC Lab team.'
+  description = 'Bayesian Data Codexer'
   footer = '© DRC Lab'
   showBackToTopButton = true
-  accentColor = '#4a6cb3'
+  accentColor = '#682953ff'
   avatarURL = '/images/avatar.webp'
   avatarSize = 'size-m'
   avatarAltText = 'DRC Lab logo'
   socialIcons = [
-    {name = 'github', url = 'https://github.com/drc-lab'},
-    {name = 'linkedin', url = 'https://www.linkedin.com'},
-    {name = 'email', url = 'mailto:info@drc.lab'}
+    {name = 'github', url = 'https://github.com/hublun'},
+    {name = 'linkedin', url = 'https://www.linkedin.com/in/drclab'},
+    {name = 'email', url = 'mailto:compute@dulun.com'}
   ]
 
 [menu]
