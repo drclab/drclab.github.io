@@ -5,7 +5,7 @@ type = "post"
 draft = false
 tags = ["announcement", "agentic_workflow", "LLM"]
 categories = ["posts"]
-description = "Walk through porting the M3 email assistant workflow onto Google’s Agent ADK with tool registration and Gemini 2.0 examples."
+description = "Walk through porting the email assistant workflow onto Google’s Agent ADK with tool registration and Gemini 2.0 examples."
 +++
 
 Welcome back — this update dives into how we're approaching **tool calling in agentic workflows** and what it unlocks for the lab. We've been experimenting with giving our agents programmable interfaces so they can pull the right levers (search, run code, update data) without human babysitting.
@@ -152,5 +152,3 @@ client.chat.completions.create(
 - ADK’s registry enforces tool contracts, preventing silent failures like the missing `delete_email` call.
 - Using Gemini 2.0 inside ADK lets the agent chain multiple email operations without extra glue code.
 - The simulated backend plus `utils.reset_database()` keeps experiments reproducible as you iterate on tool coverage.
-
-If you want to tinker further, spin up `hugo server --buildDrafts --buildFuture`, point it at this blog post, and follow along in the notebook. We’re working on a follow-up guide that dives into monitoring email-agent traces in Cloud Logging—stay tuned.
