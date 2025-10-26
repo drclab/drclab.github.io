@@ -1,8 +1,9 @@
 +++
 title = "Causal Inference 101"
-date = "2025-10-26T00:00:00Z"
+date = "2025-10-22T00:00:00Z"
 type = "post"
 draft = false
+math = true
 tags = ["causal inference", "econometrics", "books"]
 categories = ["posts"]
 description = "Primer on counterfactual thinking, identification strategies, and practical guardrails for causal inference."
@@ -12,10 +13,10 @@ Causal inference asks whether a change we observe is actually caused by the trea
 
 ## Potential Outcomes Mindset
 
-- Each unit carries two potential outcomes, such as earnings with college `Y(1)` and earnings without `Y(0)` (ch. 1). The observed outcome is whichever aligns with the realized treatment, while the unobserved counterfactual stays hidden.
+- Each unit carries two potential outcomes, such as earnings with college $Y(1)$ and earnings without $Y(0)$ (ch. 1). The observed outcome is whichever aligns with the realized treatment, while the unobserved counterfactual stays hidden.
 - The stable unit treatment value assumption (SUTVA) says treatments have one version and no spillovers; break it and you contaminate your counterfactual comparison.
-- The fundamental problem of causal inference is that we never observe both `Y(1)` and `Y(0)` for the same unit, so individual treatment effects remain unidentifiable.
-- Population targets like the average treatment effect `ATE = E[Y(1) - Y(0)]`, the average effect on the treated (ATT), or on the untreated (ATU) give us estimands we can hope to identify.
+- The fundamental problem of causal inference is that we never observe both $Y(1)$ and $Y(0)$ for the same unit, so individual treatment effects remain unidentifiable.
+- Population targets like the average treatment effect $\text{ATE} = E[Y(1) - Y(0)]$, the average effect on the treated (ATT), or on the untreated (ATU) give us estimands we can hope to identify.
 
 ## Randomization as the Benchmark
 
@@ -29,23 +30,23 @@ When experiments are off the table, we lean on structural assumptions that emula
 
 ### Selection on Observables
 
-- Assume `(Y(0), Y(1)) ⟂ D | X`, i.e. once we condition on rich covariates `X`, treatment is as good as random (ch. 2.1).
+- Assume $(Y(0), Y(1)) \perp D | X$, i.e. once we condition on rich covariates $X$, treatment is as good as random (ch. 2.1).
 - Estimation options include:
-  - Matching on `X` to pair treated and control units with similar observed characteristics;
+  - Matching on $X$ to pair treated and control units with similar observed characteristics;
   - Inverse propensity score weighting to balance treatment groups;
-  - Flexible regressions that control for `X`, watching out for functional-form misspecification.
-- The payoff is direct identification of conditional average treatment effects `m(1, x) - m(0, x)`, but the curse of dimensionality and omitted variables are ever-present risks.
+  - Flexible regressions that control for $X$, watching out for functional-form misspecification.
+- The payoff is direct identification of conditional average treatment effects $m(1, x) - m(0, x)$, but the curse of dimensionality and omitted variables are ever-present risks.
 
 ### Instrumental Variables
 
-- Use an instrument `Z` that shifts treatment but is independent of unobservables affecting the outcome (ch. 4.1).
-- Valid instruments satisfy relevance (`Cov(Z, D) ≠ 0`) and the exclusion restriction (they affect `Y` only through `D`); failure on either front breaks identification.
-- With a binary instrument, the Wald ratio `β = [E[Y|Z=1] - E[Y|Z=0]] / [E[D|Z=1] - E[D|Z=0]]` captures the causal effect under homogeneous responses; more generally the estimand becomes a local average treatment effect for compliers (ch. 4.2).
+- Use an instrument $Z$ that shifts treatment but is independent of unobservables affecting the outcome (ch. 4.1).
+- Valid instruments satisfy relevance ($\text{Cov}(Z, D) \neq 0$) and the exclusion restriction (they affect $Y$ only through $D$); failure on either front breaks identification.
+- With a binary instrument, the Wald ratio $\beta = [E[Y|Z=1] - E[Y|Z=0]] / [E[D|Z=1] - E[D|Z=0]]$ captures the causal effect under homogeneous responses; more generally the estimand becomes a local average treatment effect for compliers (ch. 4.2).
 
 ### Regression Discontinuity
 
-- Leverages a deterministic rule `D = 1(X ≥ c)` so units just above and below a cutoff mimic random assignment (ch. 5.1).
-- Continuity of the untreated and treated conditional expectations at the threshold ensures the jump `lim_{x↓c} E[Y|X=x] - lim_{x↑c} E[Y|X=x]` equals the local treatment effect.
+- Leverages a deterministic rule $D = \mathbb{1}(X \geq c)$ so units just above and below a cutoff mimic random assignment (ch. 5.1).
+- Continuity of the untreated and treated conditional expectations at the threshold ensures the jump $\lim_{x \downarrow c} E[Y|X=x] - \lim_{x \uparrow c} E[Y|X=x]$ equals the local treatment effect.
 - Practical work focuses on bandwidth choice, checking for manipulation of the running variable, and interpreting the inherently local estimand.
 
 ### Difference-in-Differences
@@ -66,7 +67,7 @@ When experiments are off the table, we lean on structural assumptions that emula
 
 - Violations of SUTVA or interference can bias any design; consider clustered or network-aware approaches when spillovers loom.
 - Weak instruments, manipulated running variables, or diverging trends signal that your quasi-experiment is failing its core assumption.
-- Remember that many methods identify local or group-specific effects (LATE, `τ(c)`, ATT). Communicate external validity limits explicitly.
+- Remember that many methods identify local or group-specific effects (LATE, $\tau(c)$, ATT). Communicate external validity limits explicitly.
 
 ## Keep Learning
 
