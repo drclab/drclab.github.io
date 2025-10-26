@@ -1,6 +1,6 @@
 +++
 title = "Tool Calling in Agentic Workflow"
-date = "2025-10-25T12:00:00+00:00"
+date = "2025-10-11T12:00:00+00:00"
 type = "post"
 draft = false
 tags = ["announcement", "agentic_workflow", "LLM"]
