@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 360">
+  <style>
+    .title { font: bold 32px "Arial", sans-serif; fill: #1f2933; }
+    .label { font: 20px "Arial", sans-serif; fill: #1f2933; }
+    .note { font: 16px "Arial", sans-serif; fill: #52606d; }
+    .box { fill: #e0f2f1; stroke: #0f766e; stroke-width: 3; rx: 18; ry: 18; }
+    .arrow { stroke: #2563eb; stroke-width: 4; marker-end: url(#arrowhead); fill: none; }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="40" y="110" width="220" height="120" class="box"/>
+  <rect x="310" y="70" width="220" height="200" class="box"/>
+  <rect x="580" y="110" width="220" height="120" class="box"/>
+  <text x="420" y="40" text-anchor="middle" class="title">Agentic Tool Calling Loop</text>
+  <text x="150" y="170" text-anchor="middle" class="label">Tool Registry</text>
+  <text x="150" y="205" text-anchor="middle" class="note">Schemas · discovery</text>
+  <text x="420" y="135" text-anchor="middle" class="label">Agent Runtime</text>
+  <text x="420" y="170" text-anchor="middle" class="note">Validation · guardrails</text>
+  <text x="420" y="205" text-anchor="middle" class="note">Execution traces</text>
+  <text x="690" y="170" text-anchor="middle" class="label">Tasks & Outcomes</text>
+  <text x="690" y="205" text-anchor="middle" class="note">Datasets · metrics</text>
+  <path d="M260 170 L310 170" class="arrow"/>
+  <path d="M530 170 L580 170" class="arrow"/>
+  <path d="M690 230 C690 280 420 280 420 270 C420 260 310 250 310 230" class="arrow"/>
+</svg>

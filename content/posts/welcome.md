@@ -1,6 +1,6 @@
 +++
 title = "Welcome to DRC Lab"
-date = 2025-10-25T12:00:00Z
+date = 2025-10-03T12:00:00Z
 type = "post"
 tags = ["announcement"]
 image = "/images/my-avatar.jpg"
