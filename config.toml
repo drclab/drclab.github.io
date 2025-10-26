@@ -12,8 +12,8 @@ pygmentsStyle = 'monokai'
   footer = '©DRC Lab'
   showBackToTopButton = true
   accentColor = '#682953ff'
-  avatarURL = '/images/my-avatar.jpg'
-  avatarSize = 'size-m'
+  avatarURL = '/images/my-avatar.png'
+  avatarSize = 'size-l'
   avatarAltText = 'DRC Lab logo'
   socialIcons = [
     {name = 'github', url = 'https://github.com/hublun'},
@@ -23,13 +23,13 @@ pygmentsStyle = 'monokai'
 
 [menu]
   [[menu.main]]
-    name = 'Home'
+    name = 'C.J. Duan'
     pre = "<span data-feather='home'></span>"
     url = '/'
     weight = 1
 
   [[menu.main]]
-    name = 'Posts'
+    name = 'Research Notes'
     pre = "<span data-feather='book'></span>"
     url = '/posts/'
     weight = 2
