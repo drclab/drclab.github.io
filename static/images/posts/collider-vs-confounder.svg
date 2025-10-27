@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 360">
+  <style>
+    .title { font: bold 30px "Arial", sans-serif; fill: #1f2933; }
+    .subtitle { font: 22px "Arial", sans-serif; fill: #1f2933; }
+    .label { font: bold 20px "Arial", sans-serif; fill: #1f2933; }
+    .note { font: 16px "Arial", sans-serif; fill: #52606d; }
+    .panel { fill: #f8fafc; stroke: #cbd5f5; stroke-width: 3; rx: 18; ry: 18; }
+    .node { fill: #ffffff; stroke: #1f2933; stroke-width: 3; }
+    .arrow { stroke: #2563eb; stroke-width: 4; marker-end: url(#arrowhead); fill: none; }
+    .dashed { stroke: #ef4444; stroke-width: 3; stroke-dasharray: 8 6; fill: none; }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <text x="440" y="48" text-anchor="middle" class="title">Collider vs Confounder</text>
+
+  <!-- Collider panel -->
+  <rect x="40" y="80" width="360" height="220" class="panel"/>
+  <text x="220" y="110" text-anchor="middle" class="subtitle">Collider structure</text>
+  <circle cx="140" cy="170" r="32" class="node"/>
+  <circle cx="140" cy="230" r="32" class="node"/>
+  <circle cx="320" cy="200" r="32" class="node"/>
+  <text x="140" y="177" text-anchor="middle" class="label">A</text>
+  <text x="140" y="237" text-anchor="middle" class="label">B</text>
+  <text x="320" y="207" text-anchor="middle" class="label">C</text>
+  <path d="M172 178 L288 192" class="arrow"/>
+  <path d="M172 222 L288 208" class="arrow"/>
+  <path d="M130 140 Q220 110 320 130" class="dashed"/>
+
+  <!-- Confounder panel -->
+  <rect x="480" y="80" width="360" height="220" class="panel"/>
+  <text x="660" y="110" text-anchor="middle" class="subtitle">Confounder structure</text>
+  <circle cx="660" cy="200" r="32" class="node"/>
+  <circle cx="540" cy="150" r="32" class="node"/>
+  <circle cx="540" cy="250" r="32" class="node"/>
+  <text x="660" y="207" text-anchor="middle" class="label">C</text>
+  <text x="540" y="157" text-anchor="middle" class="label">A</text>
+  <text x="540" y="257" text-anchor="middle" class="label">B</text>
+  <path d="M628 188 L572 162" class="arrow"/>
+  <path d="M628 212 L572 238" class="arrow"/>
+  <path d="M670 140 Q760 120 780 200 Q760 280 670 260" class="dashed"/>
+</svg>

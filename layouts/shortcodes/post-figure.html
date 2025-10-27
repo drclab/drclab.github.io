@@ -1,9 +1,11 @@
 {{- $src := .Get "src" -}}
 {{- $alt := .Get "alt" | default "" -}}
 {{- $caption := .Get "caption" -}}
-<figure>
-  <img src="{{ $src | relURL }}" alt="{{ $alt }}">
+<figure style="margin: 2rem 0;">
+  <img src="{{ $src | relURL }}" alt="{{ $alt }}" style="width: 100%; height: auto; display: block; margin-bottom: 1rem;">
   {{- with $caption }}
-  <figcaption><p>{{ . }}</p></figcaption>
+  <figcaption style="margin-top: 1rem; text-align: center; color: #52606d; font-size: 0.95rem;">
+    {{- . | markdownify -}}
+  </figcaption>
   {{- end }}
 </figure>

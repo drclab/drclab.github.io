@@ -26,6 +26,8 @@ When sifting through a DAG, separate controls into two buckets:
 - **Confounders** sit on open backdoor paths without colliders. Conditioning on them closes the path and removes bias.
 - **Colliders** (or their descendants) sit on converging arrows. Conditioning on them opens the path and introduces collider bias—sometimes called M-bias in the epidemiology literature.
 
+{{< post-figure src="images/posts/collider-vs-confounder.svg" alt="Side-by-side DAGs showing a collider with converging arrows and a confounder with diverging arrows." caption="**Collider structure** (left): Arrows converge at C, blocking the A-B path. Conditioning on C opens the path and induces collider bias. **Confounder structure** (right): Arrows diverge from C, creating an open backdoor path. Conditioning on C blocks confounding and helps identify causal effects." >}}
+
 The key operational rule from the [Effect Book](https://theeffectbook.net) and applied guides is simple: only condition on variables that help satisfy the backdoor criterion. That means every backdoor path from treatment to outcome should be blocked, and none of the blocked paths should rely on conditioning on a collider.
 
 ## Practical checklist
