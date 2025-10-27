@@ -1,0 +1,66 @@
+<svg width="640" height="280" viewBox="0 0 640 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Instrumental variable DAG</title>
+  <desc id="desc">Diagram showing instrument Z pointing to treatment X which points to outcome Y. An unobserved confounder U affects both X and Y but is not connected to Z.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="4" markerHeight="4" refX="4" refY="2" orient="auto" markerUnits="strokeWidth">
+      <!-- Hollow arrowhead: no fill, stroke matches arrow color -->
+      <path d="M0,0 L4,2 L0,4 z" fill="none" stroke="#2b8cff" stroke-width="0.8"/>
+    </marker>
+    <style>
+      text {
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        font-size: 18px;
+        fill: #1a1a1a;
+      }
+      rect {
+        stroke: #1a1a1a;
+        stroke-width: 2;
+        rx: 12;
+        ry: 12;
+      }
+      .instrument {
+        fill: #d7eaff;
+      }
+      .treatment {
+        fill: #ffe6cc;
+      }
+      .outcome {
+        fill: #e4f7e1;
+      }
+      .latent {
+        fill: #f1f1f1;
+        stroke-dasharray: 6 4;
+      }
+      .subtitle {
+        font-size: 14px;
+        fill: #555;
+      }
+      line, path {
+        stroke: #2b8cff;
+        stroke-width: 2;
+        fill: none;
+        marker-end: url(#arrow);
+      }
+    </style>
+  </defs>
+  <rect class="instrument" x="60" y="110" width="140" height="80"/>
+  <text x="130" y="155" text-anchor="middle">Instrument</text>
+  <text x="130" y="176" text-anchor="middle" class="subtitle">Z</text>
+
+  <rect class="treatment" x="260" y="40" width="140" height="80"/>
+  <text x="330" y="85" text-anchor="middle">Treatment</text>
+  <text x="330" y="106" text-anchor="middle" class="subtitle">X</text>
+
+  <rect class="outcome" x="460" y="110" width="140" height="80"/>
+  <text x="530" y="155" text-anchor="middle">Outcome</text>
+  <text x="530" y="176" text-anchor="middle" class="subtitle">Y</text>
+
+  <rect class="latent" x="260" y="190" width="140" height="80"/>
+  <text x="330" y="235" text-anchor="middle">Unobserved</text>
+  <text x="330" y="256" text-anchor="middle" class="subtitle">U</text>
+
+  <line x1="200" y1="150" x2="260" y2="100"/>
+  <line x1="400" y1="80" x2="460" y2="140"/>
+  <line x1="330" y1="190" x2="330" y2="120"/>
+  <path d="M370,230 C430,220 470,210 520,190"/>
+</svg>

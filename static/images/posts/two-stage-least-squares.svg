@@ -1,0 +1,81 @@
+<svg width="640" height="280" viewBox="0 0 640 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Two-stage least squares workflow</title>
+  <desc id="desc">Diagram showing stage one regressing treatment on instrument, producing predicted treatment, followed by stage two regressing outcome on predicted treatment.</desc>
+  <defs>
+    <marker id="arrow-solid" markerWidth="4" markerHeight="4" refX="4" refY="2" orient="auto" markerUnits="strokeWidth">
+      <!-- Hollow solid arrowhead: no fill, stroked outline -->
+      <path d="M0,0 L4,2 L0,4 z" fill="none" stroke="#2b8cff" stroke-width="0.8"/>
+    </marker>
+    <marker id="arrow-dashed" markerWidth="4" markerHeight="4" refX="4" refY="2" orient="auto" markerUnits="strokeWidth">
+      <!-- Hollow dashed arrowhead: no fill, stroked outline -->
+      <path d="M0,0 L4,2 L0,4 z" fill="none" stroke="#2b8cff" stroke-width="0.8"/>
+    </marker>
+    <style>
+      text {
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        font-size: 18px;
+        fill: #1a1a1a;
+      }
+      rect {
+        stroke: #1a1a1a;
+        stroke-width: 2;
+        rx: 12;
+        ry: 12;
+      }
+      .stage {
+        fill: #f5f5f5;
+      }
+      .node-primary {
+        fill: #d7eaff;
+      }
+      .node-secondary {
+        fill: #ffe6cc;
+      }
+      .node-outcome {
+        fill: #e4f7e1;
+      }
+      .subtitle {
+        font-size: 14px;
+        fill: #555;
+      }
+      .arrow {
+        stroke: #2b8cff;
+        stroke-width: 2;
+        fill: none;
+        marker-end: url(#arrow-solid);
+      }
+      .arrow-dashed {
+        stroke: #2b8cff;
+        stroke-width: 2;
+        fill: none;
+        stroke-dasharray: 8 6;
+        marker-end: url(#arrow-dashed);
+      }
+    </style>
+  </defs>
+
+  <rect class="stage" x="40" y="40" width="260" height="200"/>
+  <text x="170" y="80" text-anchor="middle">Stage 1: First Stage</text>
+  <rect class="node-primary" x="70" y="110" width="120" height="80"/>
+  <text x="130" y="150" text-anchor="middle">Instrument</text>
+  <text x="130" y="171" text-anchor="middle" class="subtitle">Z</text>
+  <rect class="node-secondary" x="200" y="110" width="80" height="80"/>
+  <text x="240" y="150" text-anchor="middle">X̂</text>
+  <text x="240" y="171" text-anchor="middle" class="subtitle">Predicted</text>
+  <line class="arrow" x1="190" y1="150" x2="200" y2="150"/>
+  <text x="170" y="200" text-anchor="middle" class="subtitle">fit: X ~ Z + controls</text>
+
+  <rect class="stage" x="340" y="40" width="260" height="200"/>
+  <text x="470" y="80" text-anchor="middle">Stage 2: Structural</text>
+  <rect class="node-secondary" x="370" y="110" width="80" height="80"/>
+  <text x="410" y="150" text-anchor="middle">X̂</text>
+  <text x="410" y="171" text-anchor="middle" class="subtitle">Fitted</text>
+  <rect class="node-outcome" x="500" y="110" width="80" height="80"/>
+  <text x="540" y="150" text-anchor="middle">Outcome</text>
+  <text x="540" y="171" text-anchor="middle" class="subtitle">Y</text>
+  <line class="arrow" x1="450" y1="150" x2="500" y2="150"/>
+  <text x="470" y="200" text-anchor="middle" class="subtitle">estimate: Y ~ X̂ + controls</text>
+
+  <line class="arrow-dashed" x1="280" y1="150" x2="340" y2="150"/>
+  <text x="310" y="120" text-anchor="middle" class="subtitle">pass fitted values</text>
+</svg>
