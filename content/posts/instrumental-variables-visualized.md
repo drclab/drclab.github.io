@@ -4,7 +4,7 @@ type = "post"
 date = 2025-10-27
 draft = false
 summary = "A guided tour of instrumental variables with diagrams that highlight the identifying assumptions, 2SLS workflow, and pitfalls to watch before trusting an instrument."
-tags = ["causal-inference", "instrumental-variables", "dags"]
+tags = ["causal-inference", "instrumental-variables", "dag"]
 +++
 
 Instrumental variables (IVs) are the workhorses of causal inference when randomized experiments are out of reach and confounding blocks the backdoor path. Yet the identifying assumptions often feel abstract until you see how instruments reshape the causal graph and estimation steps. This post mirrors the collider walkthrough with fresh diagrams to emphasize what the instrument must—and must not—do.
