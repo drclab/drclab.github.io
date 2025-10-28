@@ -1,6 +1,6 @@
 +++
 title = "Causal Inference 101"
-date = "2025-10-22T00:00:00Z"
+date = "2025-10-12T00:00:00Z"
 type = "post"
 draft = false
 math = true

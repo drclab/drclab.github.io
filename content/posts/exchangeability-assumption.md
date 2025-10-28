@@ -1,6 +1,6 @@
 +++
 title = "Demystifying the Exchangeability Assumption"
-date = "2025-10-25T00:00:00Z"
+date = "2025-10-13T00:00:00Z"
 type = "post"
 draft = false
 math = true

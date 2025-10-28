@@ -1,7 +1,7 @@
 +++
 title = "Understanding Collider Structures in DAGs"
 type = "post"
-date = 2025-10-26
+date = 2025-10-16
 draft = false
 summary = "How collider nodes shape backdoor paths, why conditioning on them can backfire, and a checklist for working with causal DAGs."
 tags = ["causal-inference", "dag", "colliders"]

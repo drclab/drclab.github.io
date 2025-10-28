@@ -1,7 +1,7 @@
 +++
 title = "Instrumental Variables, Visualized"
 type = "post"
-date = 2025-10-27
+date = 2025-10-17
 draft = false
 summary = "A guided tour of instrumental variables with diagrams that highlight the identifying assumptions, 2SLS workflow, and pitfalls to watch before trusting an instrument."
 tags = ["causal-inference", "instrumental-variables", "dag"]

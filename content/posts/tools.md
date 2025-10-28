@@ -1,154 +1,70 @@
 +++
-title = "Tool Calling in Agentic Workflow"
-date = "2025-10-11T12:00:00+00:00"
+title = "MCP 101"
+date = "2025-10-04T12:00:00+00:00"
 type = "post"
 draft = false
-tags = ["announcement", "agentic_workflow", "LLM"]
+tags = ["guide", "mcp", "agentic_workflow"]
 categories = ["posts"]
-description = "Walk through porting the email assistant workflow onto Google’s Agent ADK with tool registration and Gemini 2.0 examples."
+description = "Primer on the Model Context Protocol (MCP), why it matters, and how to try it inside the lab’s agent stack."
 +++
 
-Welcome back — this update dives into how we're approaching **tool calling in agentic workflows** and what it unlocks for the lab. We've been experimenting with giving our agents programmable interfaces so they can pull the right levers (search, run code, update data) without human babysitting.
+Curious about the **Model Context Protocol (MCP)** and what it unlocks for autonomous agents? This primer covers the core ideas, how it differs from ad-hoc tool APIs, and the first steps to integrate it into our lab workflows.
 
-{{< post-figure src="images/posts/stone.png" alt="Diagram of the tool registry feeding the agent runtime, which loops outcomes back into future tasks." caption="The agent runtime validates tool calls, executes actions, and feeds results back into the registry loop." >}}
+## What Is MCP?
 
-## Why Google's Agent ADK
+- Shared protocol that lets large language models discover, describe, and call tools in a predictable way.
+- Standardizes the contract between the model runtime and external capabilities such as vector stores, automations, and databases.
+- Built to keep the transport layer agnostic—use HTTP, WebSockets, or a message bus without rewriting your agent.
 
-- Ship agent workflows on Google’s Agent Developer Kit (ADK) so we can reuse policy, auth, and telemetry out of the box.
-- Keep every tool contract discoverable through the ADK Tool Registry, which mirrors our HuggingFace schemas.
-- Let the runtime gatekeep API access with ADK’s native argument validation and cooldown policies.
+At its core, MCP decouples model prompting from tool orchestration. Instead of hard-coding Python functions or SDK calls, you expose capabilities through MCP schemas that any compliant agent can understand.
 
-The rest of this post walks through the notebook and shows how we implement the email-assistant workflow onto the Agent ADK runtime. Everything below runs against the same simulated inbox that the ungraded lab ships with; the only difference is the platform glue.
+## Protocol Building Blocks
 
-## 1. Bootstrap the ADK runtime
+- **Resources**: Long-lived data the agent can inspect (e.g., documents, calendars). They are addressable and include metadata for filtering.
+- **Prompts**: Reusable prompt templates exposed over MCP so agents can parameterize them at runtime.
+- **Tools**: The actionable endpoints. Each describes accepted arguments, expected return types, and failure shapes.
+- **Events**: Optional streaming channel that surfaces state changes (tool completed, resource updated) back to the agent.
 
-The lab still starts by loading environment variables and instantiating the client, but we now make the ADK target explicit. The `aisuite` SDK already bundles an opinionated wrapper for Google’s ADK, so migrating was as simple as passing the `platform="google-agent-adk"` flag.
+These primitives share the same schema language, which keeps discovery and validation consistent across the stack.
 
-```python
-# ================================
-# Imports
-# ================================
-from dotenv import load_dotenv
-import aisuite as ai
+## Why the Lab Cares
 
-import json
-import utils
-import display_functions
-import email_tools
+- **Portability**: We can swap between hosted LLM providers or local inference without re-plumbing tool wiring.
+- **Governance**: Every tool call is schema-validated, logged, and traceable—key for compliance reviews.
+- **Velocity**: New automations only require an MCP descriptor, not a bespoke SDK integration.
+- **Collaboration**: Teams can publish reusable MCP manifests so agents across projects share the same capabilities.
 
-# ================================
-# Environment & Client
-# ================================
-load_dotenv()
-client = ai.Client(platform="google-agent-adk")
-```
+## MCP vs. Traditional Tool Calling
 
-Behind the scenes ADK provisions a dedicated agent runtime, handles service account credentials, and exposes observability hooks straight into Cloud Logging. No extra scaffolding required.
+| Topic | Traditional Implementations | MCP Approach |
+| ----- | --------------------------- | ------------ |
+| Discovery | Hard-coded in prompts or code | Agents fetch manifests at runtime |
+| Validation | Custom argument checks per tool | JSON schema enforced by the protocol |
+| Transport | Tied to the client SDK | Pluggable (HTTP, gRPC, message queues) |
+| Observability | Often bespoke logging | Standard event stream with typed payloads |
 
-## 2. Keep the simulated email backend handy
+Adopting MCP turns tool calling into a contract-driven interface rather than a pile of glue code.
 
-The utilities from the notebook still work unchanged. We lean on them during local runs to reset the inbox or pull deterministic fixtures when iterating on tool contracts.
+## Getting Started in the Lab
 
-```python
-new_email = email_tools.send_email("test@example.com", "Lunch plans", "Shall we meet at noon?")
-email_tools.get_email(new_email["id"])
-# email_tools.list_all_emails()
-# email_tools.search_emails("lunch")
-# email_tools.reset_database()
-```
+1. **Model a capability** – Describe inputs, outputs, and error cases for the automation you want to expose.
+2. **Author a manifest** – Use the MCP schema (YAML or JSON) to publish the tool, resource, or prompt.
+3. **Host the server** – Most teams start with a lightweight FastAPI or Node service that serves descriptors and handles requests.
+4. **Register with the agent** – Point the agent runtime at the MCP endpoint; it will negotiate capabilities during startup.
+5. **Test flows** – Run through happy paths and failure modes with `hugo server` to confirm prompts render correctly and logs capture MCP events.
 
-These helpers give us fast feedback before we hand control to the agent runtime.
+Keep the manifests versioned in `data/mcp/` so updates ship alongside code reviews.
 
-## 3. Register tools with Agent ADK
+## Tooling Tips
 
-With ADK, every callable is declared up front. We mirror the notebook’s tool surface—searching, marking read, sending, and deleting mail—but now the registry is managed by the platform.
+- Use the OpenAPI-to-MCP converter when wrapping existing REST automations; it generates starter manifests with schemas populated.
+- Leverage the protocol’s `callTool` simulation mode to check payloads before running destructive operations.
+- Record traces in our observability stack—MCP payloads are JSON, so dashboards and alerting remain straightforward.
 
-```python
-TOOLS = [
-    email_tools.search_unread_from_sender,
-    email_tools.list_unread_emails,
-    email_tools.search_emails,
-    email_tools.get_email,
-    email_tools.mark_email_as_read,
-    email_tools.send_email,
-    email_tools.delete_email,
-]
+## Roadmap
 
-agent = client.agents.register(
-    display_name="InboxOps",
-    instructions="Manage email end-to-end without human confirmation.",
-    tools=TOOLS,
-)
-```
+- Bundle starter manifests for our most-used research automations.
+- Add a Hugo shortcode to render MCP manifests for documentation.
+- Pilot an MCP gateway that proxies to legacy tools while we migrate natively.
 
-Each function carries the docstring and JSON schema that ADK uses for argument validation. The runtime blocks malformed invocations before they hit the simulated backend, which keeps the lab deterministic.
-
-## 4. Shape the prompt the same way
-
-Prompt construction stays identical. We wrap the user request in a system-style preamble so the agent knows it can act autonomously. This snippet is a direct lift from the notebook.
-
-```python
-def build_prompt(request_: str) -> str:
-    return f"""
-    - You are an AI assistant specialized in managing emails.
-    - You can perform various actions such as listing, searching, filtering, and manipulating emails.
-    - Use the provided tools to interact with the email system.
-    - Never ask the user for confirmation before performing an action.
-    - If needed, my email address is "you@email.com" so you can use it to send emails or perform actions related to my account.
-    {request_.strip()}
-    """
-```
-
-You can preview the wrapped prompt exactly like in the notebook by triggering `utils.print_html`.
-
-## 5. Run the scenario through ADK
-
-Switching to ADK doesn’t impact the high-level flow: we send a request, ADK routes tool calls, and we inspect the trace.
-
-```python
-prompt_ = build_prompt("Check for unread emails from boss@email.com, mark them as read, and send a polite follow-up.")
-
-session = client.chat.completions.create(
-    agent=agent,
-    model="google/generativeai/gemini-2.0-pro-exp",
-    messages=[{"role": "user", "content": prompt_}],
-    max_turns=5,
-)
-
-display_functions.pretty_print_chat_completion(session)
-```
-
-Notice the `model` swap: we now default to the Gemini 2.0 experimental checkpoints that ship with ADK. Tool traces stream in alongside the text response, which makes verification instantaneous.
-
-## 6. Spot the missing tool (and fix it)
-
-The notebook highlights what happens when `delete_email` is absent. ADK’s validator surfaces the same failure mode with a structured error, so the agent gracefully degrades instead of hallucinating success:
-
-```python
-prompt_ = build_prompt("Delete alice@work.com email")
-client.chat.completions.create(
-    agent=agent.with_tools(TOOLS[:-1]),  # drop delete_email
-    model="google/generativeai/gemini-2.0-pro-exp",
-    messages=[{"role": "user", "content": prompt_}],
-    max_turns=3,
-)
-```
-
-Re-enable the tool and the agent completes the task end-to-end:
-
-```python
-prompt_ = build_prompt("Delete the happy hour email")
-client.chat.completions.create(
-    agent=agent,
-    model="google/generativeai/gemini-2.0-pro-exp",
-    messages=[{"role": "user", "content": prompt_}],
-    max_turns=3,
-)
-```
-
-## 7. Takeaways
-
-- The lab’s email assistant ports cleanly onto Google’s Agent ADK with only minor client changes.
-- ADK’s registry enforces tool contracts, preventing silent failures like the missing `delete_email` call.
-- Using Gemini 2.0 inside ADK lets the agent chain multiple email operations without extra glue code.
-- The simulated backend plus `utils.reset_database()` keeps experiments reproducible as you iterate on tool coverage.
+Have a workflow that could benefit from MCP? Drop a note in the #agent-infra channel or open an issue with your proposed manifest so we can help wire it up.

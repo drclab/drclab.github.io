@@ -1,6 +1,6 @@
 +++
 title = "Stan 101 with Logistic Regression"
-date = "2025-10-28T00:00:00Z"
+date = "2025-10-22T00:00:00Z"
 type = "post"
 draft = false
 math = true

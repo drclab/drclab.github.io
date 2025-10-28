@@ -1,6 +1,6 @@
 +++
 title = "Demystifying the Stable Unit Treatment Value Assumption"
-date = "2025-10-23T00:00:00Z"
+date = "2025-10-15T00:00:00Z"
 type = "post"
 draft = false
 math = true
