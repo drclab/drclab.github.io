@@ -126,6 +126,10 @@ Stan surfaces rich diagnostics—treat them as required reading, not optional.
 
 - `fit.diagnose()` flags divergences or treedepth saturations that mean the sampler struggled; address them with better priors or reparameterization.
 - Trace plots (`fit.draws()`) reassure you that chains mix and explore the posterior rather than sticking to a single mode.
+
+![Trace plot showing mixing across four chains for alpha and beta parameters](/images/posts/trace_plot.png)
+
+![Posterior distributions for model parameters](/images/posts/posterior_plot.png)
 - Posterior predictive checks compare `y_hat` draws to the observed admissions. If the simulated acceptance rates miss the observed rate completely, revisit the model.
 - Leave-one-out cross-validation becomes trivial with the `log_lik` vector: `arviz.loo(fit.to_inference_data())` ranks competing specifications.
 
