@@ -105,6 +105,8 @@ def joint_log_prob(x, y, tau, lamb, beta):
     return lp
 ```
 
+TensorFlow Probability’s JAX substrate gives us numerically robust density evaluations out of the box—exactly why the Hoffman et al. chapter leans on it. The distribution implementations carry stable special-function code (crucial for the half-shape Gamma prior and Bernoulli logits), they vectorize cleanly across parameters and observations, and they stay compatible with `jax.grad` so we do not have to hand-roll derivatives. That means we get the chapter’s “write it once, run it fast on accelerators” workflow without re-deriving log-density formulas or worrying about underflow.
+
 Like the authors, we transform constrained variables (the positive scales) to an unconstrained vector before sampling. The log-determinant of the transform is the Jacobian correction the paper calls out in Equation (3.1).
 
 ```python
