@@ -4,7 +4,7 @@ date = "2025-10-27T00:00:00Z"
 type = "post"
 draft = false
 math = true
-tags = ["mcmc", "hamiltonian-monte-carlo", "jax"]
+tags = ["mcmc", "leapfrog", "jax"]
 categories = ["posts"]
 description = "Hands-on tour of the leapfrog integrator behind Hamiltonian Monte Carlo with a Google Colab notebook you can run end-to-end."
 +++
