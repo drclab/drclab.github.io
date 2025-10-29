@@ -2,7 +2,7 @@
 title = "MCMC on Accelerators"
 date = "2025-10-29T00:00:00Z"
 type = "post"
-draft = false
+draft = true
 math = true
 tags = ["mcmc", "jax", "bayesian-inference"]
 categories = ["posts"]
