@@ -1,0 +1,1358 @@
+Running Markov Chain Monte Carlo on Modern
+
+arXiv:2411.04260v1 [stat.CO] 6 Nov 2024
+
+Hardware and Software
+Pavel Sountsov
+Google DeepMind
+
+Colin Carroll
+Google DeepMind
+
+Matthew D. Hoffman
+Google DeepMind
+
+Abstract
+Today, cheap numerical hardware offers huge amounts of parallel computing power, much of which is
+used for the task of fitting neural networks to data. Adoption of this hardware to accelerate statistical
+Markov chain Monte Carlo (MCMC) applications has been much slower. In this chapter, we suggest
+some patterns for speeding up MCMC workloads using the hardware (e.g., GPUs, TPUs) and software
+(e.g., PyTorch, JAX) that have driven progress in deep learning over the last fifteen years or so. We offer
+some intuitions for why these new systems are so well suited to MCMC, and show some examples (with
+code) where we use them to achieve dramatic speedups over a CPU-based workflow. Finally, we discuss
+some potential pitfalls to watch out for.
+
+1
+
+Introduction
+
+Markov chain Monte Carlo (MCMC) methods first came to be widely used for statistical
+applications in the 1990s, following the pioneering work of Gelfand and Smith (1990). Over
+the next couple of decades, the statistics and machine-learning communities developed some
+standard MCMC workflows, and single-processor computers got faster at an exponential rate
+by increasing clock rates and cache sizes. Then, around 2005–2010, computer architecture
+took a left turn: while Moore’s law (Moore, 1965) continued to hold for transistor density,
+power and heat-dissipation requirements forced chip makers to increase throughput by also
+giving processors more parallel-processing power. Among other things, this led to the broad
+adoption of Graphics Processing Units (GPUs, originally solely used to accelerate computergraphics applications) for general-purpose numerical computing. A consumer-grade GPU
+1
+
+that one might find in a typical mid-level computer configuration can perform tens of trillions
+of floating-point operations (FLOPs) per second; a typical CPU can do a small fraction of
+that. Elsewhere, specialized parallel hardware has been developed to accelerate deep-learning
+applications; for example, the Tensor Processing Unit (TPU; Jouppi and et al., 2017; Jouppi
+et al., 2023), can be even more efficient than a GPU for appropriate workloads. GPUs
+and TPUs can both be rented for a couple of dollars per chip-hour from cloud-computing
+providers. “Parallel accelerators” such as GPUs and TPUs have changed the landscape of
+computing—particularly for deep learning—but they are often under-utilized in statistical
+workloads like MCMC. This is although such workloads are a good fit for this new world of
+specialized parallel accelerators; MCMC computations often offer opportunities to parallelize
+computation across data, model parameters, and chains.
+Cheap parallel accelerators are only part of the picture; a program’s computations may
+need to be radically reorganized to take advantage of parallel hardware. Fortunately, there
+is a vibrant ecosystem of open-source software frameworks (mostly developed to support the
+deep-learning community) that dramatically simplify the task of writing numerical code that
+runs efficiently on parallel acceleration. Today, two of the most popular of these libraries
+are PyTorch (Paszke et al., 2019), and JAX (Bradbury et al., 2018). JAX conveniently
+exposes an interface that closely resembles NumPy (Harris et al., 2020), which is widely
+used for scientific computing in the Python ecosystem. For this chapter, we assume some
+basic knowledge of NumPy and Python and will point out where there are JAX-specific
+extensions and limitations. Most of the considerations we discuss apply equally to other
+Python deep-learning libraries, and other languages as the underlying hardware restrictions
+of parallel accelerators remain the same.
+Writing numerical code in these frameworks is a lot like writing code for more CPUoriented numerical computing environments like MATLAB (The MathWorks Inc., 2012), R
+(R Core Team, 2021), and NumPy. There is a library of numerical functions that accept
+and return multidimensional arrays (e.g., a vector is a one-dimensional array, a matrix is
+a two-dimensional array, etc.). The dimensions are often referred to as “axes” (e.g. a 2D
+matrix with n rows and d columns representing a dataset of features could be said to have
+an “examples” axis with size n and a “feature” axis with size d). There are vectorized
+operations which operate over one or more axes: for example, a mean function can compute
+the mean of the entire 2D matrix, or the per-feature or per-example mean by operating over
+the feature or example axis, respectively.
+The framework is responsible for figuring out the low-level implementation details of these
+vectorized computations, and in particular for ensuring that they are run efficiently on whatever specialized hardware (e.g., a GPU) is available. These frameworks also offer facilities
+for automatic program transformations, notably automatic-differentiation and vectorizedmap operations; the former makes it much easier to use gradient-based MCMC methods
+based on Hamiltonian Monte Carlo (HMC; Betancourt, 2018; Neal, 2011), and the latter
+2
+
+enables simple and efficient chain-level parallelism.
+In this chapter, we will offer some patterns for accelerating MCMC workflows using these
+software frameworks running on modern hardware, and show the benefits of doing so. We
+will also highlight some challenges that can come up.
+
+2
+
+Background: The classical workflow for probabilistic modeling
+and Markov chain Monte Carlo
+
+Probabilistic inference in statistical models has often followed a similar pattern since at
+least 2013 (Carpenter et al., 2017): CPU-based, with a single MCMC run per core, which
+historically meant running 4–8 chains. A typical MCMC-based workflow for probabilistic
+modeling involves many steps (Gelman et al., 2020), but we focus on two parts: defining
+a model, and fitting the model. Defining a model typically involves specifying the model
+parameters θ, priors over them, p(θ), as well as the likelihood p(y | θ) where y is a random
+variable corresponding to observed quantities.
+To fit the model, we try to generate samples θt from the posterior p(θ | y), for the purpose
+of evaluating expectations of some test function f , E[f (θ)]1 , using Monte-Carlo averaging
+T
+
+1X
+f (θt ).
+θ̂f =
+T t=1
+
+(2.1)
+
+Markov Chain Monte Carlo (MCMC) is a class of methods for generating samples which can
+scale well with the dimension of the space in terms of compute and memory usage. MCMC
+typically simulates an ergodic Markov chain whose equilibrium distribution is the desired
+distribution (Bishop, 2006).
+There are many flavors of MCMC, some tailored to specific model classes. Early software
+(e.g., Lunn et al., 2000) focused primarily on Gibbs samplers, but as automatic-differentiation
+capabilities became more widely available, gradient-based MCMC became more popular
+(Carpenter et al., 2017; Štrumbelj et al., 2023). A particularly efficient choice is Hamiltonian
+Monte Carlo (HMC; Betancourt, 2018; Duane et al., 1987; Hoffman and Gelman, 2014; Neal,
+2011). HMC only requires access to the log-density (up to a normalizing constant) of the
+posterior and its gradient, both of which are readily available when using a dedicated library
+to define the model. HMC exploits gradient information of the log-density to efficiently
+generate samples. An implementation is provided in Section 3.2.
+1 All the expectations we consider in this section are conditional on y, but we drop this dependence for notational clarity.
+
+3
+
+2.1
+
+Measuring efficiency of MCMC
+
+There are two sources of error in MCMC estimates of expectations: bias and variance. For
+geometrically ergodic Markov chains, bias becomes exponentially small in the number of
+initial “warmup” samples that are excluded from the final estimate. Variance, on the other
+hand, shrinks as the reciprocal of the effective sample size (ESS; Vehtari et al., 2021); for
+the estimator in Equation (2.1), the variance is
+VarMCMC [θ̂f ] =
+
+Varp(θ|y) [f (θ)]
+.
+ESSf
+
+Note that ESS depends on the function f whose expectation we want to estimate. If we
+run warmup long enough that variance dominates bias, then maximizing ESS / second minimizes the “time to acceptable error”. This suggests adapting hyperparameters to maximize
+ESS, but ESS is difficult to estimate directly from a small number of samples. Instead, a
+related quantity, Expected Squared Jump Distance (ESJD; Pasarica and Gelman, 2010), is
+sometimes used:
+
+
+ESJDf = E ∥f (θ′ ) − f (θ)∥2 .
+ESJD only uses only the current state θ′ and previous state θ, so is easy to compute during
+hyperparameter adaptation. When f is the identity function Id(x) = x, maximizing ESJDId
+minimizes the first-order autocorrelation of the MCMC chain, which is closely related to ESS.
+The popular No-U-Turn Sampler (NUTS; Hoffman and Gelman, 2014) uses this principle to
+construct its proposal.
+
+2.2
+
+Automatic differentiation for gradients of the density
+
+All modern deep-learning-oriented frameworks provide a higher-order function grad that
+transforms a function f : Rd → R to its gradient ∇f : Rd → Rd (Bradbury et al., 2018;
+Paszke et al., 2019) when an appropriate gradient exists. There are situations where a
+gradient calculation will not make sense, e.g., with discrete variables, but the requirement
+is somewhat weaker than “continuously differentiable”; for example, the log-density of the
+Laplace distribution may differentiated despite being only differentiable almost everywhere.
+The transformed function ∇f implements reverse-mode automatic differentiation (Griewank
+and Walther, 2008), which, unlike naı̈ve methods like finite differences, is numerically accurate and only incurs a compute cost directly proportional to the cost of the original function
+f . This means that, at the very least, an implementation of HMC no longer requires the
+user to provide an implementation of the gradient of the log-density.
+
+4
+
+2.3
+
+Automatic differentiation and changes of variables
+
+Somewhat more subtly, a robust implementation of HMC will allow for densities whose
+support is not all of Rd . For example, a scale parameter is typically only supported on the
+positive reals. If π(θ) is supported on Ω, we may use a bijective, differentiable T : Rd → Ω,
+and enforce the support constraint by the change-of-variables formula:
+z ≜ T −1 (θ),
+
+π(z) = π(θ)
+
+∂T
+(z) ,
+∂z
+
+(2.2)
+
+where |∂T /∂z|, the determinant of the Jacobian of the transformation, is computable automatically (Vikram, 2022), through a curated collection of implementations (Carpenter et al.,
+2017; Dillon et al., 2017), or some combination of the two. The benefit of considering π(z)
+instead of π(θ) is that we do not need to require an algorithm that works on supports more
+complicated than Rd .
+Note that the choice of transformation is not unique—both softplus (that is, θ 7→ log(1 +
+e )) and exp are bijective maps from R → R+ . Indeed the choice may be important to inference: the transformation may interact with the density and create challenging geometries.
+Conversely, a transformation may make a density particularly easy to sample from (e.g.,
+Hoffman et al., 2019).
+x
+
+3
+
+Running example: Hamiltonian Monte Carlo on a sparse Bayesian
+logistic-regression model in JAX
+
+We illustrate the process of using accelerators to do MCMC inference by setting up a simple
+Bayesian logistic-regression model with a sparsity-inducing prior on the coefficients, and
+then running HMC on it in JAX. For pedagogical purposes, we provide the implementations
+using as much raw JAX as possible. In real-world scenarios it is often preferable to use a
+probabilistic-programming library (e.g., NumPyro (Phan et al., 2019), Pyro (Bingham et al.,
+2019), PyMC (Abril-Pla et al., 2023), or TensorFlow Probability (Dillon et al., 2017)), and
+standalone inference libraries such as FunMC (Sountsov et al., 2021) and BlackJAX (Cabezas
+et al., 2024) to define the probabilistic models and perform the inference.
+
+5
+
+3.1
+
+Probabilistic model and posterior density
+
+We consider the following model:
+τ ∼ Gamma(0.5, 0.5)
+λd ∼ Gamma(0.5, 0.5)
+βd ∼ N (0, 1)
+yn ∼ Bernoulli(σ((τ λ ⊙ β)T xn ))),
+where τ is a scalar global coefficient scale, λ is a vector of local scales, β is the vector of
+unscaled coefficients, x are the features and y are the labels. d indexes the feature dimensions,
+while n indexes the examples dimension. σ is the logistic function and ⊙ is the Hadamard
+product. For HMC, we only need to evaluate the joint log-density pointwise, so let us
+implement this in JAX as a function that takes in the random variable values and returns
+the log-density:
+1
+
+import tensorflow_probability.substrates.jax as tfp
+
+2
+
+tfd = tfp.distributions
+
+3
+4
+
+def joint_log_prob(x, y, tau, lamb, beta):
+
+5
+
+lp = tfd.Gamma(0.5, 0.5).log_prob(tau)
+
+6
+
+lp += tfd.Gamma(0.5, 0.5).log_prob(lamb).sum()
+
+7
+
+lp += tfd.Normal(0., 1.).log_prob(beta).sum()
+
+8
+
+logits = x @ (tau * lamb * beta)
+
+9
+
+lp += tfd.Bernoulli(logits).log_prob(y).sum()
+
+10
+
+return lp
+
+We use the JAX port of the TensorFlow Probability distributions library (Dillon et al.,
+2017) to implement the primitive log-density computations as that implementation has high
+numerical precision even when using single-precision floating-point arithmetic (see Section 5.1
+for further discussion on floating-point precision concerns). We evaluate the log densities on
+vector-valued inputs, and then sum them (as the relevant random variables are conditionally
+independent). Efficient implementations (such as TensorFlow Probability’s) will perform this
+computation in parallel. The computation of the log-density of λ exhibits model parallelism,
+as the computation scales with the model size (the number of features in this case). Similarly, the computation of the log-probability of y exhibits both model parallelism and data
+parallelism, as the computation scales with the data size (the number of training examples
+in this case). See Section 4 for more details.
+Before we move on, it is convenient to re-express the model in terms of a single vector
+of latent parameters that are supported on Rd (the gamma-distributed scale parameters as
+written above are only supported on R+ ). This involves some simple array manipulation exposed by JAX, and applying the standard change-of-variables formula. Taking the logarithm
+6
+
+of both sides of Equation (2.2), we get
+log π(z) = log π(θ) + log
+
+∂T
+(z)
+∂z
+
+(3.1)
+
+While there are many possible choices of T , in this case a log-transform is a good choice for the
+scale parameters (i.e., T (z) = ez , and log | ∂T
+(z)| = z). Here is the complete implementation
+∂z
+of the unconstrained joint log-density function:
+1
+
+import jax.numpy as jnp
+
+2
+3
+4
+
+def unconstrained_joint_log_prob(x, y, z):
+ndims = x.shape[-1]
+
+5
+
+unc_tau, unc_lamb, beta = jnp.split(z, [1, 1 + ndims])
+
+6
+
+unc_tau = unc_tau.reshape([])
+
+7
+
+tau = jnp.exp(unc_tau)
+
+8
+
+ldj = unc_tau
+
+# Make unc_tau a scalar
+
+9
+
+lamb = jnp.exp(unc_lamb)
+
+10
+
+ldj += unc_lamb.sum()
+
+11
+
+return joint_log_prob(x, y, tau, lamb, beta) + ldj
+
+Lastly, since we’re interested in just the posterior of this model, we can condition it via
+partially applying the x and y arguments with some data. For this example, we’ll use the
+German Credit dataset (Hofmann, 1994), Nobservations = 1000, Nfeatures = 24:
+1
+
+from functools import partial
+
+2
+3
+
+target_log_prob = partial(unconstrained_joint_log_prob, x_data, y_data)
+
+The resulting target_log_prob function represents an unnormalized version of the posterior
+p(z | x, y); it is a function only of z.
+So far, the model code does not look so different from R or plain NumPy code. Now,
+we will show capabilities which are more unique to JAX and similar toolkits. First, since
+HMC requires the gradient of the log-density, we will use JAX to compute it using automatic
+differentiation. JAX exposes this feature as a one-line program transformation:
+1
+
+import jax
+
+2
+3
+
+target_log_prob_and_grad = jax.value_and_grad(target_log_prob)
+
+4
+
+tlp, tlp_grad = target_log_prob_and_grad(z)
+
+In the last line, we evaluate target_log_prob_and_grad to compute both the log-density and
+its gradient with respect to z. Recall from Section 2.2 that the target_log_prob_and_grad uses
+automatic differentiation to compute an accurate, efficient gradient, as well as computing
+the log-density for free, as it is a byproduct of computing the gradient.
+7
+
+3.2
+
+Hamiltonian Monte Carlo
+
+Now we are ready to move on to using HMC. Below, we implement a simple version of
+HMC using JAX. In particular, this implementation does not accept or adapt a mass matrix
+(Betancourt, 2018; Neal, 2011) (it is implicitly an identity matrix of the appropriate size),
+nor does it adapt the step size or number of leapfrog steps. We use the variable z for the
+parameters, and m for the momentum.
+1
+
+def leapfrog_step(target_log_prob_and_grad, step_size, i, leapfrog_state):
+
+2
+
+z, m, tlp, tlp_grad = leapfrog_state
+
+3
+
+m += 0.5 * step_size * tlp_grad
+
+4
+
+z += step_size * m
+
+5
+
+tlp, tlp_grad = target_log_prob_and_grad(z)
+
+6
+
+m += 0.5 * step_size * tlp_grad
+
+7
+
+return z, m, tlp, tlp_grad
+
+8
+9
+
+def hmc_step(target_log_prob_and_grad, num_leapfrog_steps, step_size, z, seed):
+
+10
+
+m_seed, mh_seed = jax.random.split(seed)
+
+11
+
+tlp, tlp_grad = target_log_prob_and_grad(z)
+
+12
+
+m = jax.random.normal(m_seed, z.shape)
+
+13
+
+energy = 0.5 * jnp.square(m).sum() - tlp
+
+14
+
+new_z, new_m, new_tlp, _ = jax.lax.fori_loop(
+
+15
+
+0,
+
+16
+
+num_leapfrog_steps,
+
+17
+
+partial(leapfrog_step, target_log_prob_and_grad, step_size),
+
+18
+
+(z, m, tlp, tlp_grad))
+
+19
+
+new_energy = 0.5 * jnp.square(new_m).sum() - new_tlp
+
+20
+
+log_accept_ratio = energy - new_energy
+
+21
+
+is_accepted = jnp.log(jax.random.uniform(mh_seed, [])) < log_accept_ratio
+
+22
+
+# select the proposed state if accepted
+
+23
+
+z = jnp.where(is_accepted, new_z, z)
+
+24
+
+hmc_output = {"z": z,
+"is_accepted": is_accepted,
+
+25
+
+"log_accept_ratio": log_accept_ratio}
+
+26
+27
+
+# hmc_output["z"] has shape [num_dimensions]
+
+28
+
+return z, hmc_output
+
+29
+30
+31
+
+def hmc(target_log_prob_and_grad, num_leapfrog_steps, step_size, num_steps, z,
+seed):
+
+32
+
+# create a seed for each step
+
+33
+
+seeds = jax.random.split(seed, num_steps)
+
+34
+
+# this will repeatedly run hmc_step and accumulate the outputs
+
+35
+
+_, hmc_output = jax.lax.scan(
+
+36
+
+partial(hmc_step, target_log_prob_and_grad, num_leapfrog_steps, step_size),
+
+37
+
+z, seeds)
+
+8
+
+38
+
+# hmc_output["z"] now has shape [num_steps, num_dimensions]
+
+39
+
+return hmc_output
+
+The only unusual part of this implementation is that we eschewed the use of Python control
+flow (if, else, for etc), and instead used API calls like jnp.where for conditionals and jax
+.lax.scan and jax.lax.fori_loop for for-loops. jax.lax.scan is roughly equivalent to this
+code:
+1
+
+def scan(f, state, xs):
+
+2
+
+output = []
+
+3
+
+for x in xs:
+
+4
+
+state, y = f(state, x)
+
+5
+
+output.append(y)
+
+6
+
+return state, jnp.stack(output)
+
+The use of these functional forms of control flow is a JAX-specific limitation, and is required
+for the compiler to generate efficient low-level code.
+We can now pass target_log_prob_and_grad into our HMC implementation and generate
+an MCMC chain and simple diagnostics:
+1
+2
+
+hmc_output = hmc(target_log_prob_and_grad, num_leapfrog_steps, step_size,
+num_samples, z_init, seed)
+
+To properly diagnose the success or failure of the HMC sampling process we generally need
+to run multiple independent chains. This is an opportunity for chain parallelism; we can
+parallelize the independent computations needed to advance the multiple chains. One way to
+do this would be to rewrite the hmc function to accept multiple z_init values in a batch, but
+this would make the code more complex; most arrays would get saddled with an additional
+leading (i.e. first) axis corresponding to the multiple chains simulated in parallel. JAX
+provides an alternative: an automatic-vectorization program transformation:
+1
+2
+
+vhmc = jax.vmap(
+partial(hmc, target_log_prob_and_grad, num_leapfrog_steps, step_size, num_steps)
+)
+
+3
+
+# z_inits has shape [num_chains, num_dimensions], seeds has shape [num_chains]
+
+4
+
+hmc_output = vhmc(z_inits, seeds)
+
+5
+
+# hmc_output["z"] now has shape [num_chains, num_steps, num_dimensions]
+
+This transformation, called the vectorized map, automatically and efficiently transforms existing single-chain HMC implementation to run multiple HMC chains in parallel. jax.vmap,
+in this basic usage, requires that the function arguments have a leading chain axis and it will
+add that same axis to the function outputs. Note that we make sure that each chain gets
+its own starting location and its own seed, so that the chains are statistically independent.
+9
+
+3.3
+
+Experiments
+
+To demonstrate the performance characteristics of a GPU on a model like this, we can run
+NUTS and HMC on the German Credit dataset from the previous section. We use the HMC
+and NUTS implementations from BlackJAX (Cabezas et al., 2024), the data and log-density
+from Inference Gym (Sountsov et al., 2020), compute diagnostics with ArviZ (Kumar et al.,
+2019) and use an Nvidia P100 GPU. We run for 1000 MCMC steps in each case, and use a
+pre-tuned step size, mass matrix, and number of leapfrog steps. We focus on the estimation
+of the global scale parameter, τ . We run the same experiments using a 28-core Intel Xeon
+Platinum 8273CL CPU.
+Chains
+
+Draws
+
+64
+
+64,000
+
+Device
+GPU
+CPU
+
+Method
+HMC
+NUTS
+HMC
+NUTS
+
+time (s)
+2.4
+4.3
+27.0
+54.4
+
+ESS
+24,041
+16,005
+24,131
+16,048
+
+ESS / s
+10,017
+3,731
+894
+295
+
+Table 1:
+Comparing NUTS and HMC speeds on the sparse logistic regression example
+with no adaption, using a pre-determined mass matrix, step size, initialization, and trajectory
+length (for HMC). Note that, taken together with Figure 1 and Figure 2, this table depends
+on the choice of number of chains: the performance comparison would look better for the
+GPU with more chains, and worse with fewer chains.
+Table 1 shows the relative wall time and effective sample size of HMC and NUTS. As
+discussed, the control flow overhead from NUTS (see also Figure 4 and discussion), along
+with subsampling from the trajectory to maintain detailed balance with a dynamic trajectory
+length, means that NUTS takes longer on both measurements. We emphasize that this
+benchmark is not realistic: we hand-tuned the hyperparameters for HMC so that it would
+perform well, and this tuning time is not reflected in the benchmark. However, we can
+consider the promise of being able to automatically tune HMC and see similar gains.
+We also look at the speed of fitting HMC as we vary the number of chains. Note that the
+wall time goes up as the number of parallel chains goes up, but this increase is more than
+offset by the number of draws. In the case of the GPU benchmark in Figure 1, we in fact
+see the number of draws per second continuing upwards, as we have failed to exhaust the
+parallelism offered by the accelerator. The CPU benchmark in Figure 2 shows the sampling
+rate levelling off below 2000 draws per second, a small fraction of the number of draws per
+second on the P100 GPU.
+
+10
+
+Figure 1: Wall time to run 1000 draws per chain of HMC on a P100 GPU with various
+numbers of chains, as well as the number of chains per second.
+
+4
+
+Parallelism opportunities for MCMC workflows
+
+As we saw in the example above, there are (at least) three kinds of parallelization with
+suitable hardware which come about in a typical MCMC workload:
+• Chain Parallelism: This may be the most obvious opportunity for parallelism in
+MCMC workloads. Multiple chains can run in parallel either completely independently,
+or with (usually minimal) communication to share adaptation signals.
+• Data Parallelism: We often must compute and sum the log likelihood of many data
+points, and these computations can often be done in parallel.
+• Model Parallelism: Our models may include conditional-independence structures
+that allow for some log densities to be computed in parallel. Also, the state of our
+Markov chains may be high dimensional, and computations involving different parameters may often be parallelized. Model parallelism can be present even when there are
+no conditional-independence structures in the likelihood.
+The value of reducing wall-clock time per step by exploiting data- and model-level parallelism
+is obvious. The value of running many chains in parallel is subtler, but very significant. It
+enables diagnostics (e.g., Gelman and Rubin, 1992; Margossian et al., 2024), offers opportunities for hyperparameter adaptation (e.g., Gilks et al., 1994; Hoffman and Sountsov, 2022),
+reduces variance, and reduces bias for some estimands such as quantiles. See Margossian and
+Gelman (2023) for an excellent discussion of the virtues (and challenges) of running many
+short chains instead of a few long ones.
+11
+
+Figure 2: Wall time to run 1000 draws per chain of HMC on a CPU with various numbers
+of chains, as well as the number of chains. Note that the draws per second flattens out as
+all available parallelism becomes exhausted, but does not degrade.
+The Bayesian logistic regression above includes all three kinds of parallelism. We run
+many chains (chain parallelism); the dataset contains 1000 observations, each of whose likelihoods can be computed in parallel (data parallelism); and the model has dozens of parameters, whose contributions to the likelihood and prior can be evaluated in parallel (model
+parallelism).
+
+4.1
+
+How to trade off different kinds of parallelism
+
+There may be tensions between these kinds of parallelism. For example, we may not be able
+to implement a computation in parallel along both the data and model axis, or we may have
+a limited budget of parallel computation, and need to decide how best to allocate it. How
+to navigate these tradeoffs?
+Our answer, at least when working on a single device, is simple: let the numerical framework decide. Frameworks will commonly attempt to take multidimensional arrays and take
+one or more axes and use multiple threads to perform some computation in parallel. Thus,
+the mere act of aggregating values (e.g. the MCMC chain state) into arrays with chain, data
+and model axes is an avenue to parallelization. Some frameworks require use of a compilation step (e.g. JAX traces the program in Python to produce a compiled XLA function
+(Frostig et al., 2018)) to unlock other opportunities, such as running multiple independent
+computations in parallel.
+For example, in the Bayesian logistic regression example above, the bulk of the log-density
+12
+
+computation (Nchains × Ndimensions × Nobservations multiplications and additions) is naturally
+implemented as a matrix multiplication. The authors of frameworks like JAX and PyTorch
+work very hard to make large matrix multiplications efficient, since these operations dominate
+the cost of neural-network training and evaluation. There is no need for us to reinvent that
+wheel.
+That said, cloud-computing providers now offer the ability to run computations on multiple devices networked together by very high-speed connections. To use these multi-device
+setups, the user must take a more active role in sharding data and computation across
+devices. A full discussion of multi-device sharding is beyond the scope of this chapter,
+but generally frameworks will have tools to simplify the process. Whenever feasible, we
+recommend sharding by chain, since this is simplest to implement and involves the least
+cross-device communication. Frameworks like JAX support sharding along multiple axes at
+once, which enables sharding along data and model axes as well, in which case sharding on
+the data axis is common next choice. Sharding along the model axis is typically reserved for
+largest of models, such as large Bayesian Neural Nets (BNNs), where a single model might
+not fit into memory of a single device.
+As an example of of multi-device MCMC consider the large study by Izmailov et al. (2021)
+used 512 TPUs to perform full-batch HMC inference on a BNN. In that work the datasets
+were not excessively large, but the problem required 10,000 to 20,000 leapfrog iterations. To
+manage the compute cost, the data axis was sharded across devices. The chain axis was
+not used (multiple chains were run sequentially) and the neural net was not large enough to
+warrant sharding along the model axis.
+In addition to exact MCMC, there are also “divide-and-conquer” style methods which
+perform MCMC on shards of the whole dataset and then combine the resultant posteriors,
+typically by first estimating the posterior density for each shard and then multiplying them
+(see Bardenet et al. (2017) for a review). Such methods also benefit from framework support,
+while also enjoying a reduced cross-device-communication cost compared to exact MCMC
+in exchange for some bias.
+
+4.2
+
+Advances in many-chain MCMC
+
+Access to a large number of MCMC chains enables new convergence diagnostics and hyperparameter adaptation techniques. We refer to the work by Margossian and Gelman (2023)
+for a helpful discussion on this, and provide some highlights here.
+There have been recent advances in making HMC more efficient on parallel accelerators.
+Recall that in order to run HMC, the mass matrix, step size, and trajectory length must be
+chosen as hyperparameters.
+13
+
+For step-size and mass-matrix adaptation, it is straightforward to extend the commonly
+used stochastic-optimization algorithms by computing the relevant empirical averages across
+chains in addition to across time. This is not without caveats, however. For step size, it is
+common for an HMC chain to get “stuck”, meaning that nearly all proposals are rejected due
+to difficult local geometry of the log-density, and a small step size is required for the chain
+to escape that bad region. If an arithmetic mean is used to estimate the current acceptance
+rate, and only a few chains are stuck, the step size will not get small enough. Instead of the
+arithmetic mean, Hoffman et al. (2021) propose using the harmonic mean to compute the
+empirical cross-chain acceptance probability. The harmonic mean of a set of positive values
+will be far closer to its smallest member, causing the ensemble of chains to “slow down” for
+the stragglers.
+For trajectory length, NUTS has implementation and hardware drawbacks discussed in
+Section 5.2 and Section 3.3, which motivates a search for alternatives. The many-chain
+regime enables the use of gradient-based estimators that target the gradient of ESJDId with
+respect to the trajectory length. Algorithms maximizing ESJDId are good at estimating
+means, but not necessarily at estimating variances. The Change in the Estimator of the
+Expected Square (ChEES; Hoffman, 2020), is invariant to shifts and rotations, relatively
+insensitive to directions of low posterior variance (since the work done in high-variance
+directions will address those), and focused on estimating the variance:
+2 i 1
+1 h
+ChEES = E ∥θ′ − E[θ]∥)2 − ∥θ − E[θ]∥2
+= ESJD∥z∥2 ,
+4
+4
+where z := θ − E[θ]. Using more chains allows expectations to be calculated across chains
+during an adaptation phase, and ChEES takes a gradient through this objective function
+with respect to the trajectory length in order to optimize it. Further improvements to
+the metric improved its robustness and efficiency (Riou-Durand et al., 2023; Sountsov and
+Hoffman, 2021), all relying on multi-chain estimators.
+When the amount of chain parallelism available is very large it is possible to avoid stochastic optimization altogether. Hoffman and Sountsov (2022) introduce an ensemble-chain adaptation (ECA) scheme, which allows updating one chain using statistics that depend on other
+chains. This can be done without violating detailed balance, unlike the adaptation schemes
+described previously which change the stationary distribution (Andrieu and Thoms, 2008).
+ECA is also amenable to a K-fold version, which may further take advantage of hardware
+batching, illustrated in Figure 3.
+It is important to verify that the MCMC chain has converged to its stationary distribution before using its generated samples for downstream analysis. R̂ is a popular family of
+diagnostics for this purpose which compares within- and across-chain variances (Gelman and
+Rubin, 1992; Vehtari et al., 2021). While the across-chain variance computation works well
+in the many-chain regime, computation of within-chain variance is an inherently sequential
+14
+
+t=0
+
+t=1
+
+t=2
+
+t=3
+
+t=4
+
+θ1,2,3,4
+θ5,6,7,8
+θ9,10,11,12
+θ13,14,15,16
+
+Figure 3: Graphical model illustrating K-fold ECA. The states are split into K folds of N
+states each, and each fold k is updated using parameters computed from its neighbor fold
+k +1 mod K. Each iteration we skip the update for a different fold. Solid black lines denote
+MCMC updates, dashed blue lines denote dependence through kernel parameters, dashed
+gray lines denote skipping an update.
+task. Margossian et al. (2024) propose nested-R̂ which carefully partitions chains into superchains, and then compares within- and across-superchain variance, both of which can be
+computed in parallel.
+
+5
+
+Challenges
+
+MCMC workflows can map very well to parallel accelerators, but there are some pitfalls
+unique to these devices that have to be kept in mind to fully exploit their performance. Not
+every MCMC application will run into these issues, and some of these issues have readymade solutions (see Section 4.2) or affect only researchers who wish to develop new methods.
+That said, this section provides a mental model for these issues, some ways to realize they
+are present, and recommendations for how to address them in case relying on the numerical
+frameworks’ built-in parallelization behavior is not enough.
+
+5.1
+
+Numerics
+
+The accelerators we have considered in this chapter (GPUs, TPUs) do not prioritize doubleprecision floating point performance, and are more efficient when using single- and halfprecision (and below) numerics. This can have catastrophic interactions with naı̈ve MCMC
+implementations that take numerical precision for granted.
+
+15
+
+We already encountered this when we were implementing the example regression problem
+Section 3.1, where we used log-space computation to preserve precision. For example, many
+frameworks parameterize the Bernoulli distribution via the probability parameter. This can
+easily cause issues in single-precision due to underflow for probabilities near zero, so it is
+preferable to parameterize it via the logit-transformed probability.
+Another common issue is roundoff error when computing large sums of log densities of
+random variables to compute the joint log-density. The roundoff error interacts poorly with
+MCMC that uses a Metropolis-Hastings accept-reject step, as that requires comparing the
+log-density evaluated at two points (Hoffman, 2020). The single-precision floating point
+format uses 24 bits to represent the mantissa, which means that when the absolute value
+of the log-density exceeds 224 = 16777216, the absolute errors start to become ≥ 1. This
+causes problems with Metropolis-Hastings accept-reject step, as errors on that order are
+appreciable. Worse, if the roundoff error causes the MCMC chain to find a state where the
+error makes the log-density too high, MCMC will have trouble moving away from that state,
+unless it finds, by chance, a state where the error is similarly high. States where the roundoff
+error is low will be rejected, even if they would have been accepted if double precision were
+used. This not only introduces bias to the MCMC results, but also makes the chain struggle
+to make progress.
+The first step in addressing numerics problems is verifying that this is the problem in
+the first place. Low MCMC acceptance rates can be caused by a multitude of problems
+unrelated to numerics, e.g. poorly set hyperparameters, poor conditioning of the log-density
+function, bad choice of parameterization, etc. The simplest method is to attempt to run the
+MCMC inference in double-precision. On GPUs, double-precision comes at a performance
+and memory use penalty, but oftentimes this can be a good tradeoff if it identifies the issue.
+In general, if the MCMC diagnostics look fine after switching to double-precision, then
+precision-related numerics are a likely culprit.
+Roundoff errors in Metropolis-Hastings accept-reject steps can be detected by either looking at the absolute magnitude of the log-densities involved, or by checking for signs of low
+precision in the logarithms of the accept ratios (e.g., log_accept_ratio in Section 3.2); for
+example, log-ratios ending in exactly .0, .5, or .25 should arouse suspicion. One solution to
+this problem is to rewrite the computation of the log-acceptance probability to perform a
+sum of differences of the log densities. For example, for the likelihood term, we can do the
+following rewrite:
+N
+X
+i=1
+
+log p(yi | θ′ ) −
+
+N
+X
+
+log p(yi | θ) =
+
+i=1
+
+N
+X
+
+log p(yi | θ′ ) − log p(yi | θ).
+
+(5.1)
+
+i=1
+
+The Python implementation is straightforward, if a bit tedious to write. Here is a snippet
+of the function to compute a numerically stable log-density ratio:
+16
+
+1
+
+def joint_log_prob_ratio(x, y, tau_1, tau_2, lamb_1, lamb_2, beta_1, beta_2):
+
+2
+
+tau_dist = tfd.Gamma(0.5, 0.5)
+
+3
+
+lpr = tau_dist.log_prob(tau_1) - tau_dist.log_prob(tau_2)
+
+4
+
+lamb_dist = tfd.Gamma(0.5, 0.5)
+
+5
+
+lpr += (lamb_dist.log_prob(lamb_1) - lamb_dist.log_prob(lamb_2)).sum()
+
+6
+
+beta_dist = tfd.Normal(0., 1.)
+
+7
+
+lpr += (beta_dist.log_prob(beta_1) - beta_dist.log_prob(beta_2)).sum()
+
+8
+
+logits_1 = x @ (tau_1 * lamb_1 * beta_1)
+
+9
+
+logits_2 = x @ (tau_2 * lamb_2 * beta_2)
+
+10
+
+lpr += (tfd.Bernoulli(logits_1).log_prob(y) - tfd.Bernoulli(logits_2)).sum()
+
+11
+
+return lpr
+
+Using a fully-featured probabilistic programming language can simplify the construction of
+such a function. After repeating the unconstraining and conditioning steps we performed
+in Section 3.1 for this function as well, we can use it inside the HMC implementation in
+Section 3.2 to compute the log-density ratio:
+19
+
+log_accept_prob = (0.5 * (jnp.square(m) - jnp.square(new_m)).sum()
++ target_log_prob_ratio(new_z, z))
+
+20
+
+Other precision-related problems tend to be harder to discover. A reasonable strategy
+is to run small parts of the model in higher precision to isolate the problem areas: it is
+common that only a small part of a model needs to be run at higher precision for the end-toend inference procedure to succeed. After the problem area is identified, it is usually possible
+to rewrite it in a way that fully utilizes single-precision computation by utilizing log-space
+computation, analytic simplification, and other techniques from numerical analysis.
+
+5.2
+
+SIMD
+
+Hardware accelerators derive much of their performance from using “wide” Single-InstructionMultiple-Data (SIMD) instructions which operate on arrays of floats in parallel. The “Multiple” in SIMD implies a certain minimum level of parallel computation that efficiently uses
+the hardware. On CPUs, it is typical for SIMD instructions to handle 4 to 8 floats in parallel.
+Code utilizing such SIMD instructions is relatively difficult to write, so in practice SIMD
+is relegated to highly efficient implementations of primitive matrix-vector operations. The
+main parallelism avenue on CPUs that is accessible to practitioners is via multiple threads,
+each of which can run separate instances of computation in parallel. For floating-point-heavy
+code it is typical to place one thread per core, and CPUs typically have anywhere from 4 to
+64 cores.
+By contrast, GPUs use a type of SIMD execution model called the Single-InstructionMultiple-Threads (SIMT) which groups computation into blocks (called “warps” or “wave17
+
+fronts” depending on the manufacturer) which execute 32 or 64 threads in parallel (Lindholm
+et al., 2008) and lockstep. Modern GPUs support multiple warps and can execute thousands
+of threads in parallel. Additionally, writing code under the SIMT model is typically simpler
+than SIMD or multi-threaded CPU due to the lockstep execution.
+TPUs do not use SIMT, but instead use very wide SIMD matrix-matrix multiply instructions (Jouppi and et al., 2017; Jouppi et al., 2023). As a result, TPUs are best used for
+matrix-multiplication-heavy models such as hierarchical linear models or Bayesian neural
+networks.
+Accelerators typically run at slower clock speeds than a contemporaneous CPU which
+makes them prefer massively parallelizable code with few sequential operations. In this
+regime, accelerators can perform orders of magnitude more FLOPs than running on a CPU.
+When running many-chain MCMC, it often makes sense to place individual chains onto
+the individual threads. On a GPU this means means that running 32 to 64 threads can be
+effectively “free” as fewer threads would not fill up the minimum computation size. However,
+due to the lockstep execution requirement, this only works well when separate MCMC chains
+perform the same computation at the same time across all threads (Lao et al., 2020). This
+can be violated for algorithms which have control flow or are adaptive in a way that makes
+the chains differ in the amount of computation they perform. This phenomenon is called
+“warp divergence”.
+For example, consider a pair of chains that use HMC, one of which intends to take one
+leapfrog step, and the other which intends to take two. The SIMD execution model would
+parallelize this by running both chains for two leapfrog steps, but then discarding the result
+of the second leapfrog step from the chain that intended to take only one. It is clear that this
+approach wastes computation, and sometimes can turn a parallel algorithm into a sequential
+one.
+To take advantage of parallel hardware efficiently we need to adapt algorithms to respect
+these restrictions, and sometimes we need to choose a different algorithm altogether. For
+example, in Section 3.1 we implemented a simple version of HMC. Amongst many issues
+with that implementation, a glaring one is that it takes the same number of leapfrog steps in
+each HMC iteration. This is known to cause problems due to resonance of the Hamiltonian
+dynamics (Hoffman et al., 2021; Neal, 1996). A simple solution to this that does not affect
+the integration accuracy (and thus the acceptance probability of the proposal) is to jitter
+the number of leapfrog steps taken in each HMC step. A straightforward way to implement
+this, would be to alter the following lines (changes highlighted in red):
+30
+
+def hmc_step(target_log_prob_and_grad, num_leapfrog_steps, step_size, z, seed):
+
+31
+
+m_seed, jitter_seed, mh_seed = jax.random.split(seed, 3)
+
+32
+
+num_leapfrog_steps = jax.random.randint(
+
+33
+
+jitter_seed, [], minval=1, maxval=1 + 2 * num_leapfrog_steps)
+
+18
+
+34
+
+tlp, tlp_grad = target_log_prob_and_grad(z)
+
+When transformed via jax.vmap, however, this produces warp divergence when using chain
+parallelism. Different chains may choose a different number of leapfrog steps, while the
+computation will always run for the largest number of leapfrog steps chosen by any chain.
+The solution to this issue is to make every chain use the same random seed for the
+jittered value. In terms of implementation, one option is to add another seed argument that
+we deliberately make equal across chains. An example implementation might be:
+30
+
+def hmc_step(target_log_prob_and_grad, num_leapfrog_steps, step_size, z,
+seed_and_jitter_seed):
+
+31
+32
+
+seed, jitter_seed = seed_and_jitter_seed
+
+33
+
+m_seed, mh_seed = jax.random.split(seed)
+
+34
+
+num_leapfrog_steps = jax.random.randint(
+jitter_seed, [], minval=1, maxval=1 + 2 * num_leapfrog_steps)
+
+35
+36
+
+tlp, tlp_grad = target_log_prob_and_grad(z)
+
+37
+
+...
+
+38
+39
+40
+
+def hmc(target_log_prob_and_grad, num_leapfrog_steps, step_size, num_steps, z,
+seed, jitter_seed):
+
+41
+
+seeds = jax.random.split(seed, num_steps)
+
+42
+
+jitter_seeds = jax.random.split(jitter_seed, num_steps)
+
+43
+
+_, hmc_output = jax.lax.scan(
+
+44
+45
+46
+
+partial(hmc_step, target_log_prob_and_grad, num_leapfrog_steps, step_size),
+z, (seeds, jitter_seeds))
+return hmc_output
+
+47
+48
+49
+50
+51
+52
+
+vhmc = jax.vmap(
+partial(hmc, target_log_prob_and_grad, num_leapfrog_steps, step_size,
+num_steps),
+in_axes=(0, 0, None))
+
+# None means that each chain gets the same jitter_seed
+
+hmc_output = vhmc(z_inits, seeds, jitter_seed)
+
+Sometimes the changes necessary to make an algorithm SIMD-friendly are more involved.
+As discussed earlier, NUTS is a variant of HMC that automatically chooses how many
+leapfrog steps to take based on the local log-density geometry (Hoffman and Gelman, 2014).
+This procedure makes NUTS very robust to different probabilistic models, as it can adapt
+to the local scale of the log-density. Even for well-behaved distributions, NUTS saves the
+practitioner from having to tune the number of leapfrog steps. All this has caused a lot of
+effort to be spent making NUTS work on parallel hardware (Lao et al., 2020; Phan et al., 2019;
+Radul et al., 2020). Warp divergence is a given with NUTS by the nature of the algorithm:
+different chains typically use proposals with different numbers of leapfrog steps, meaning that
+chains that use fewer than the maximum number will waste some computation evaluating the
+19
+
+One log-density + gradient evaluation
+
+HMC step (16 leapfrog steps)
+
+HMC
+NUTS
+Tree depth = 0
+
+0
+
+Tree depth = 1
+
+1
+
+Time (ms)
+
+Tree depth = 2
+
+2
+
+Figure 4: Profiling traces of HMC and NUTS when sampling from the sparse logistic
+regression model. The green rectangles indicate the time spent evaluating the log-density
+and its gradient. The remaining time is taken up by the leapfrog integration, storage of the
+samples in the output buffer, and, in case of NUTS managing the internal tree proposal stack
+memory and making tree doubling decisions. Overall, NUTS spends a lot of time managing
+its internal state, reducing the number of leapfrog steps it can do per second compared to
+HMC.
+leapfrog steps up to that maximum and then discarding them. Even discounting this issue,
+NUTS requires a lot of control flow and maintenance of a stack to generate its proposal. The
+control flow and the additional memory usage, as well as memory copies to read/write from
+the stack are slow in simple implementations and are complex to optimize. In many cases,
+it has been found that a well-tuned HMC, akin to what we implemented in Section 3.2, will
+outperform NUTS in wall-clock time due to these issues (Table 1, and Hoffman et al., 2021).
+For example, we profiled a JAX implementation of NUTS and HMC in Figure 4. NUTS has
+to spend an appreciable amount of time managing its state. HMC does not have as much
+state management, and can spend a majority of its time evaluating the log-density function
+and its gradients. In general, sometimes it is not possible to fully adapt an algorithm to be
+efficient on parallel hardware, and a different algorithm is required.
+
+5.3
+
+Memory
+
+An important component of maximizing the performance of accelerators is to avoid transferring data between the accelerator’s memory and the main CPU memory. In particular,
+a common technique for managing the memory requirements of storing MCMC iterates is
+to stream them to disk. While keeping things in memory is much faster than offloading to
+disk, this typically is not a huge problem thanks to considerable operating system support
+to make this happen reasonably asynchronously (via careful software and hardware caching,
+memory-mapped files, and other related techniques). This becomes less favorable when using accelerators, and often deep-learning frameworks do not automate this process even if
+20
+
+the relevant hardware support exists (e.g. via RDMA). As a result, it becomes more attractive to attempt to perform the analysis, such as computing statistics about the posterior
+distribution, wholly on the accelerator.
+Unfortunately, parallel accelerators typically have less memory (termed VRAM in the
+context of GPUs) than a CPU, especially a CPU on a workstation computer, meaning that
+naı̈vely storing all the MCMC iterates may fail. Fortunately, developments in streaming
+statistics (typically coming from online and database contexts) can be used to relieve these
+memory pressures. For example, Welford’s scheme (Welford, 1962) can be used to compute
+first and second moments, which conveniently extends to the downstream convergence diagnostics such as R̂. Even more advanced variants such as split-R̂ are amenable to this by
+selectively choosing which segments of the MCMC chain to incorporate into the variance
+estimates. Quantiles can be estimated using approximate techniques from Chen and Zhang
+(2020), some of which are amenable to GPUs (Govindaraju et al., 2005).
+
+6
+
+A recipe for effective utilization of parallel hardware and frameworks
+
+In this chapter we discussed how HMC, a popular MCMC method, maps naturally to modern
+parallel hardware and deep-learning libraries thanks to the latter’s support for automatic
+vectorization and parallelization, as well as automatic differentiation. We presented the
+following general recipe for the effective use of MCMC on parallel hardware:
+Use a framework that helps. (Section 2) Specifically, one that integrates with automatic differentiation and accelerators. These frameworks help by facilitating or getting out of the way of chain/data/model-parallelism, and allow interoperability with a
+broader ecosystem.
+Given a choice, prefer HMC. (Section 2) While there are certainly situations where a
+custom sampler, or even random-walk Metropolis, might be the most efficient sampler,
+the easy access to automatic differentiation makes it easy to try a gradient-based sampler
+right from the start. Many pre-built inference libraries also include the latest advances,
+either in new algorithms, adaptation and convergence diagnostics.
+Let the framework parallelize the computation (Section 4) Modern software frameworks like JAX and PyTorch are very good at figuring out how to efficiently run numerical computations on a single GPU or TPU. Vectorized-map transformations can automatically transform single-chain MCMC implementations into efficiently parallelized
+multi-chain MCMC implementations.
+
+21
+
+Be mindful of numerical precision. (Section 5.1) Since single-or-less-precision is the
+norm on GPUs and TPUs, it is especially important to work in log space—which a
+reasonable framework will do by default. If the magnitude of the target log-density gets
+very large, watch out for roundoff error. Enable double-precision for debugging.
+Be mindful of SIMD. (Section 5.2) Prefer inference algorithms with little control flow
+(like non-NUTS variants of HMC). For models with control flow, consider alternate
+parameterizations that are more amenable to the hardware constraints.
+Be mindful of memory use. (Section 5.3) When scaling to hundreds of chains, memory use may also be scaled hundreds of times. Streaming algorithms (for example,
+Welford when computing mass matrices) may be used to reduce the footprint of a
+program.
+Even without using a dedicated probabilistic modeling and inference software library,
+deep-learning libraries provide enough tools to quickly get started and make efficient use of
+the available hardware. The greatest benefit is obtained, however, when taking advantage of
+software written with the parallel hardware in mind, as it will often surface recent algorithmic
+and methodological research. While additional research will no doubt improve the ease-ofuse, robustness and efficiency of MCMC algorithms running on parallel hardware, the state
+of support for such a configuration is already quite good: if a practitioner has access to such
+hardware and a problem that can be solved by HMC, there are no further real roadblocks
+to the practical and efficient exploitation of parallel computation.
+
+7
+
+Acknowledgments
+
+We thank Bob Carpenter, Charles C. Margossian, and Du Phan for helpful comments.
+
+References
+Abril-Pla, O., Andreani, V., Carroll, C., Dong, L., Fonnesbeck, C. J., Kochurov, M., Kumar, R., Lao, J., Luhmann, C. C., Martin, O. A., et al. (2023). Pymc: a modern, and
+comprehensive probabilistic programming framework in python. PeerJ Computer Science,
+9:e1516.
+Andrieu, C. and Thoms, J. (2008). A tutorial on adaptive MCMC. Statistics and Computing,
+18:343–376.
+Bardenet, R., Doucet, A., and Holmes, C. (2017). On markov chain monte carlo methods
+for tall data. Journal of Machine Learning Research, 18(47):1–43.
+22
+
+Betancourt, M. (2018).
+arXiv:1701.02434v1.
+
+A conceptual introduction to Hamiltonian Monte Carlo.
+
+Bingham, E., Chen, J. P., Jankowiak, M., Obermeyer, F., Pradhan, N., Karaletsos, T.,
+Singh, R., Szerlip, P., Horsfall, P., and Goodman, N. D. (2019). Pyro: Deep universal
+probabilistic programming. Journal of machine learning research, 20(28):1–6.
+Bishop, C. M. (2006). Pattern recognition and machine learning. Springer.
+Bradbury, J., Frostig, R., Hawkins, P., Johnson, M. J., Leary, C., Maclaurin, D., Necula, G.,
+Paszke, A., VanderPlas, J., Wanderman-Milne, S., and Zhang, Q. (2018). JAX: composable
+transformations of Python+NumPy programs.
+Cabezas, A., Corenflos, A., Lao, J., and Louf, R. (2024). BlackJAX: Composable Bayesian
+inference in JAX.
+Carpenter, B., Gelman, A., Hoffman, M., Lee, D., Goodrich, B., Betancourt, M., Brubaker,
+M. A., Guo, J., Li, P., and Riddel, A. (2017). Stan: A probabilistic programming language.
+Journal of Statistical Software, 76:1–32.
+Chen, Z. and Zhang, A. (2020). A survey of approximate quantile computation on large-scale
+data. IEEE Access, 8:34585–34597.
+Dillon, J. V., Langmore, I., Tran, D., Brevdo, E., Vasudevan, S., Moore, D., Patton, B.,
+Alemi, A., Hoffman, M., and Saurous, R. A. (2017). Tensorflow distributions. arXiv
+preprint arXiv:1711.10604.
+Duane, S., Kennedy, A. D., Pendleton, B. J., and Roweth, D. (1987). Hybrid monte carlo.
+Physics letters B, 195(2):216–222.
+Frostig, R., Johnson, M. J., and Leary, C. (2018). Compiling machine learning programs via
+high-level tracing. Systems for Machine Learning, 4(9).
+Gelfand, A. E. and Smith, A. F. (1990). Sampling-based approaches to calculating marginal
+densities. Journal of the American statistical association, 85(410):398–409.
+Gelman, A. and Rubin, D. B. (1992). Inference from Iterative Simulation Using Multiple
+Sequences. Statistical Science, 7(4):457 – 472.
+Gelman, A., Vehtari, A., Simpson, D., Margossian, C. C., Carpenter, B., Yao, Y.,
+Kennedy, L., Gabry, J., Bürkner, P.-C., and Modrák, M. (2020). Bayesian workflow.
+arXiv:2011.01808.
+Gilks, W. R., Roberts, G. O., and George, E. I. (1994). Adaptive direction sampling. Journal
+of the Royal Statistical Society: Series D, 43:179–189.
+Govindaraju, N. K., Raghuvanshi, N., and Manocha, D. (2005). Fast and approximate
+stream mining of quantiles and frequencies using graphics processors. In Proceedings of
+23
+
+the 2005 ACM SIGMOD International Conference on Management of Data, SIGMOD ’05,
+page 611–622, New York, NY, USA. Association for Computing Machinery.
+Griewank, A. and Walther, A. (2008). Evaluating derivatives: principles and techniques of
+algorithmic differentiation. SIAM.
+Harris, C. R., Millman, K. J., Van Der Walt, S. J., Gommers, R., Virtanen, P., Cournapeau,
+D., Wieser, E., Taylor, J., Berg, S., Smith, N. J., et al. (2020). Array programming with
+numpy. Nature, 585(7825):357–362.
+Hoffman, M. and Sountsov, P. (2022). Tuning-free generalized Hamiltonian Monte Carlo.
+Artificial Intelligence and Statistics.
+Hoffman, M., Sountsov, P., Dillon, J. V., Langmore, I., Tran, D., and Vasudevan, S. (2019).
+Neutra-lizing bad geometry in hamiltonian monte carlo using neural transport. arXiv
+preprint arXiv:1903.03704.
+Hoffman, M. D. (2020). Roundoff error in metropolis-hastings accept-reject steps. Advances
+in Approximate Bayesian Inference.
+Hoffman, M. D. and Gelman, A. (2014). The no-U-turn sampler: Adaptively setting path
+lengths in Hamiltonian Monte Carlo. Journal of Machine Learning Research, 15:1593–1623.
+Hoffman, M. D., Radul, A., and Sountsov, P. (2021). An adaptive MCMC scheme for setting
+trajectory lengths in Hamiltonian Monte Carlo. Artificial Intelligence and Statistics.
+Hofmann, H. (1994). Statlog (German Credit Data). UCI Machine Learning Repository.
+DOI: https://doi.org/10.24432/C5NC77.
+Izmailov, P., Vikram, S., Hoffman, M. D., and Wilson, A. G. (2021). What are Bayesian
+neural network posteriors really like? International Conference on Machine Learning.
+Jouppi, N. P. and et al. (2017). In-datacenter performance analysis of a tensor processing
+unit.
+Jouppi, N. P., Kurian, G., Li, S., Ma, P., Nagarajan, R., Nai, L., Patil, N., Subramanian, S.,
+Swing, A., Towles, B., Young, C., Zhou, X., Zhou, Z., and Patterson, D. (2023). Tpu v4:
+An optically reconfigurable supercomputer for machine learning with hardware support
+for embeddings.
+Kumar, R., Carrol, C., Hartikainen, A., and Martin, O. (2019). ArviZ a unified library for
+exploratory analysis of Bayesian models in Python. Journal of Open Source Software, 4.
+Lao, J., Suter, C., Langmore, I., Chimisov, C., Saxena, A., Sountsov, P., Moore, D., Saurous,
+R. A., Hoffman, M. D., and Dillon, J. V. (2020). tfp.mcmc: Modern Markov chain Monte
+Carlo tools built for modern hardware. arXiv:2002.01184.
+Lindholm, E., Nickolls, J., Oberman, S., and Montrym, J. (2008). Nvidia tesla: A unified
+graphics and computing architecture. IEEE Micro, 28:39–55.
+24
+
+Lunn, D., Thomas, A., Best, N., and Spiegelhalter, D. (2000). WinBUGS — a Bayesian
+modelling framework: Concepts, structure, and extensibility. Statistics and Computing,
+10:325–337.
+Margossian, C. C. and Gelman, A. (2023). For how many iterations should we run markov
+chain monte carlo? arXiv:2311.02726.
+Margossian, C. C., Hoffman, M. D., Sountsov, P., Riou-Durand, L., Vehtari, A., and Gelman,
+b Assessing the convergence of Markov chain Monte Carlo when
+A. (2024). Nested R:
+running many short chains. arXiv:2110.13017.
+Moore, G. E. (1965). Cramming more components onto integrated circuits. Electronics,
+38(8).
+Neal, R. M. (1996). Bayesian Learning for Neural Networks. Springer.
+Neal, R. M. (2011). MCMC using Hamiltonian dynamics. In Handbook of Markov Chain
+Monte Carlo. CRC Press.
+Pasarica, C. and Gelman, A. (2010). Adaptively scaling the Metropolis algorithm using
+expected squared jumped distance. Statistica Sinica, 20:343–364.
+Paszke, A., Gross, S., Massa, F., Lerer, A., Bradbury, J., Chanan, G., Killeen, T., Lin, Z.,
+Gimelshein, N., Antiga, L., et al. (2019). Pytorch: An imperative style, high-performance
+deep learning library. Advances in neural information processing systems, 32.
+Phan, D., Pradhan, N., and Jankowiak, M. (2019). Composable effects for flexible and
+accelerated probabilistic programming in numpyro. arXiv preprint arXiv:1912.11554.
+R Core Team (2021). R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna, Austria.
+Radul, A., Patton, B., Maclaurin, D., Hoffman, M. D., and Saurous, R. A. (2020). Automatically batching control-intensive programs for modern accelerators.
+Riou-Durand, L., Sountsov, P., Vogrinc, J., Margossian, C. C., and Power, S. (2023). Adaptive tuning for Metropolis adjusted Langevin trajectories. Artificial Intelligence and Statistics.
+Sountsov, P. and Hoffman, M. D. (2021). Focusing on difficult directions for learning HMC
+trajectory lengths. arXiv:2110.11576.
+Sountsov, P., Radul, A., and contributors (2020). Inference gym.
+Sountsov, P., Radul, A., and Vasudevan, S. (2021). Funmc: A functional api for building
+markov chains.
+The MathWorks Inc. (2012). Matlab.
+25
+
+Vehtari, A., Gelman, A., Simpson, D., Carpenter, B., and Bürkner, P.-C. (2021). Rankb for Assessing Convergence of
+Normalization, Folding, and Localization: An Improved R
+MCMC (with Discussion). Bayesian Analysis, 16(2):667 – 718.
+Vikram, S. (2022). Oryx: A library for probabilistic programming and deep learning built
+on top of JAX.
+Štrumbelj, E., Bouchard-Côté, A., Corander, J., Gelman, A., Hȧvard, R., Murray, L., Pesonen, H., Plummer, M., and Vehtari, A. (2023). Past, present, and future of software for
+Bayesian inference. Statistical Science.
+Welford, B. P. (1962). Note on a method for calculating corrected sums of squares and
+products. Technometrics, 4(3):419–420.
+
+26
+
+
