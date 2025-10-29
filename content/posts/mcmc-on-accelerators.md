@@ -17,38 +17,40 @@ Along the way we will:
 - surface the three axes of parallelism the authors emphasize—chains, data, and parameters,
 - and finish with diagnostics that confirm the accelerator actually bought us better effective sample sizes per second.
 
+## Hierarchical Logistic Regression in Math
+
+Let $\{(x_i, y_i)\}_{i=1}^N$ be covariate/label pairs with $y_i \in \{0, 1\}$ and $x_i \in \mathbb{R}^p$. A hierarchical logistic regression expresses each binary outcome through a Bernoulli likelihood with a logit that shares information across predictors via global and local shrinkage scales:
+
+$$
+\begin{aligned}
+  y_i \mid \beta, \lambda, \tau &\sim \text{Bernoulli}(\sigma(\eta_i)), \\
+  \eta_i &= x_i^\top (\tau\, \lambda \odot \beta), \\
+  \beta_j &\sim \mathcal{N}(0, 1), \\
+  \lambda_j &\sim \text{Gamma}(\alpha_\lambda, \beta_\lambda), \\
+  \tau &\sim \text{Gamma}(\alpha_\tau, \beta_\tau),
+\end{aligned}
+$$
+
+where $\sigma(z) = 1 / (1 + e^{-z})$ is the logistic link and $\odot$ denotes elementwise multiplication.
+
+### Understanding the linear predictor
+
+The key expression $\eta_i = x_i^\top (\tau\, \lambda \odot \beta)$ deserves unpacking because it encodes the hierarchical shrinkage structure:
+
+- **$\beta \in \mathbb{R}^p$** are raw regression coefficients drawn independently from standard normals. On their own they carry no shrinkage.
+- **$\lambda \in \mathbb{R}^p_+$** are *local* scale parameters (one per feature) drawn from Gamma priors. When $\lambda_j$ is small, feature $j$ gets shrunk aggressively toward zero; when $\lambda_j$ is large, that feature escapes regularization. This lets different predictors have different degrees of influence.
+- **$\tau \in \mathbb{R}_+$** is the *global* scale parameter that controls overall sparsity. A small $\tau$ shrinks the entire coefficient vector uniformly, while a large $\tau$ lets the local scales dominate.
+- **$\lambda \odot \beta$** is the Hadamard (elementwise) product, yielding $(\lambda_1 \beta_1, \lambda_2 \beta_2, \ldots, \lambda_p \beta_p)^\top$. Each coefficient gets modulated by its own local scale.
+- **$\tau (\lambda \odot \beta)$** applies the global scale to every modulated coefficient, producing the final effective regression weights.
+- **$x_i^\top (\tau\, \lambda \odot \beta)$** is the standard linear predictor $\sum_{j=1}^p x_{ij} \cdot \tau \lambda_j \beta_j$, but now each term in the sum carries both local and global regularization.
+
+This factorization—standard normal base weights times local scales times a global scale—yields a *horseshoe-like* prior that concentrates mass near zero yet admits heavy tails. When a predictor is truly relevant, the posterior for its $\lambda_j$ will drift away from zero, letting the signal through. Irrelevant predictors stay pinned near zero by small $\lambda_j$ values and the global $\tau$. The Gamma priors on $\lambda$ and $\tau$ ensure positivity and provide flexible tail behavior, making the model robust to high-dimensional binary classification settings where most features are noise.
+
+The rest of this post maps that model into differentiable code that runs efficiently on accelerators.
+
 ## 1. Launch a Colab runtime
 
-Open a new [Google Colab notebook](https://colab.research.google.com/), optionally switch the runtime to GPU (`Runtime → Change runtime type → GPU`), and install the libraries we need. Restart the runtime once the `%pip` cell finishes so JAX can load the right `jaxlib`.
-
-```python
-%pip install -q -U "jax[cpu]" blackjax tensorflow-probability arviz scikit-learn matplotlib
-```
-
-If you grabbed a GPU runtime, a quick `nvidia-smi` check verifies Colab handed you an accelerator:
-
-```python
-!nvidia-smi
-```
-
-```text
-Wed Jan 15 18:42:07 2025
-+-----------------------------------------------------------------------------------------+
-| NVIDIA-SMI 550.54.15              Driver Version: 550.54.15      CUDA Version: 12.4     |
-|-----------------------------------------+------------------------+----------------------|
-| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
-| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
-|                                         |                        |               MIG M. |
-|=========================================+========================+======================|
-|   0  Tesla T4                       Off |   00000000:00:04.0 Off |                    0 |
-| N/A   38C    P8              9W /   70W |       0MiB /  15360MiB |      0%      Default |
-+-----------------------------------------------------------------------------------------+
-| Processes:                                                                              |
-|  No running processes found                                                             |
-+-----------------------------------------------------------------------------------------+
-```
-
-Confirm that JAX sees the hardware:
+Open a new [Google Colab notebook](https://colab.research.google.com/), optionally switch the runtime to GPU (`Runtime → Change runtime type → GPU`), and run the first cell to confirm JAX sees the accelerator-bound backend:
 
 ```python
 import jax
@@ -59,11 +61,38 @@ print("Devices:", jax.devices())
 ```
 
 ```text
-JAX version: 0.7.2
+JAX version: 0.8.0
 Backend: gpu
 Devices: [CudaDevice(id=0)]
 ```
 
+If you grabbed a GPU runtime, a quick `nvidia-smi` check verifies Colab handed you an accelerator:
+
+```bash
+!nvidia-smi
+```
+
+```text
+Wed Oct 29 15:59:42 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.54.15              Driver Version: 550.54.15      CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla T4                       Off |   00000000:00:04.0 Off |                    0 |
+| N/A   43C    P0             27W /   70W |     110MiB /  15360MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
++-----------------------------------------------------------------------------------------+
+```
 If you stay on CPU, the same notebook still runs—it just takes a bit longer to finish the sampling section.
 
 ## 2. Load data and express the posterior
@@ -72,11 +101,11 @@ Hoffman et al. showcase a sparse logistic regression with global and local shrin
 
 ```python
 import jax.numpy as jnp
-import tensorflow_probability.substrates.jax as tfp
+import numpyro
 from sklearn.datasets import load_breast_cancer
 from sklearn.preprocessing import StandardScaler
 
-tfd = tfp.distributions
+tfd = numpyro.distributions
 
 dataset = load_breast_cancer()
 scaler = StandardScaler()
@@ -93,6 +122,9 @@ print("Dataset shape:", X.shape, y.shape)
 Dataset shape: (569, 30) (569,)
 ```
 
+
+
+
 We code the hierarchical prior the chapter uses: a global Gamma scale `τ`, per-feature Gamma scales `λ`, and standard normal weights `β`. Combining them yields sparse logistic regression coefficients through a Hadamard product.
 
 ```python
@@ -105,7 +137,35 @@ def joint_log_prob(x, y, tau, lamb, beta):
     return lp
 ```
 
-TensorFlow Probability’s JAX substrate gives us numerically robust density evaluations out of the box—exactly why the Hoffman et al. chapter leans on it. The distribution implementations carry stable special-function code (crucial for the half-shape Gamma prior and Bernoulli logits), they vectorize cleanly across parameters and observations, and they stay compatible with `jax.grad` so we do not have to hand-roll derivatives. That means we get the chapter’s “write it once, run it fast on accelerators” workflow without re-deriving log-density formulas or worrying about underflow.
+
+NumPyro’s distribution library keeps the log-density numerically robust while staying up to date with modern JAX releases. The Hoffman et al. chapter originally leans on TensorFlow Probability, but that substrate lags behind the current JAX version, so NumPyro serves as a compatible drop-in: its distributions carry stable special-function code, vectorize cleanly across parameters and observations, and remain differentiable via `jax.grad`. That means we get the chapter’s “write it once, run it fast on accelerators” workflow without re-deriving log-density formulas or worrying about underflow.
+
+To keep the walkthrough concrete, the notebook draws a random coefficient vector before evaluating the joint density:
+
+```python
+from jax import random
+
+key = random.key(0)           # initialize PRNG key
+beta = random.uniform(key, (30,), minval=0.0, maxval=1.0)
+
+print(beta)
+```
+
+```text
+[0.947667   0.9785799  0.33229148 0.46866846 0.5698887  0.16550303
+ 0.3101946  0.68948054 0.74676657 0.17101455 0.9853538  0.02528262
+ 0.6400418  0.56269085 0.8992138  0.93453753 0.8341402  0.7256162
+ 0.5098531  0.02765214 0.03148878 0.9580188  0.5188192  0.79221416
+ 0.5522419  0.6113529  0.8931755  0.75499094 0.21164179 0.22934973]
+```
+
+```python
+joint_log_prob(X, y, 1.0, 1.0, beta)
+```
+
+```text
+Array(-4869.8623, dtype=float32)
+```
 
 Like the authors, we transform constrained variables (the positive scales) to an unconstrained vector before sampling. The log-determinant of the transform is the Jacobian correction the paper calls out in Equation (3.1).
 
@@ -122,13 +182,16 @@ def unconstrained_joint_log_prob(x, y, z):
 target_log_prob = lambda z: unconstrained_joint_log_prob(X, y, z)
 ```
 
+The call to `jnp.split(z, [1, 1 + ndims])` slices the flattened parameter vector into the three blocks we need for the model: the first index `[0]` holds the single unconstrained scalar for `τ`, the next `ndims` entries `[1:1+ndims]` capture the per-feature unconstrained scales `λ`, and everything past that index `1 + ndims` becomes the unconstrained regression coefficients `β`. Working with this packed vector simplifies the HMC implementation because the integrator only has to advance one array while we retain the ability to recover each parameter by segment.
+
+Immediately after the split, `unc_tau` still has shape `(1,)`. Calling `unc_tau.reshape([])` collapses that single-element array into a true scalar, which keeps downstream algebra cleaner: exponentiating it with `jnp.exp` returns a scalar `tau`, and broadcasting into expressions like `tau * lamb * beta` behaves exactly like the theoretical derivation rather than relying on implicit length-one dimensions.
+
+
 ## 3. Automatic gradients for Hamiltonian dynamics
 
 One line of `jax.value_and_grad` gives us both the log-density and its gradient, exactly how Section 3.1 suggests accelerating HMC development.
 
 ```python
-import jax
-
 target_log_prob_and_grad = jax.value_and_grad(target_log_prob)
 
 dim = 1 + n_features + n_features  # tau + lamb + beta
@@ -140,135 +203,32 @@ print("Gradient L2 norm:", float(jnp.linalg.norm(grad)))
 ```
 
 ```text
-Initial log-density: -861.8076782226562
-Gradient L2 norm: 111.2842025756836
+Initial log-density: -465.95599365234375
+Gradient L2 norm: 803.6372680664062
 ```
-
 ## 4. Implement and JIT-compile HMC
 
 The chapter’s HMC pseudocode swaps Python loops for `jax.lax.fori_loop` and `jax.lax.scan` so XLA can stage everything for accelerators. We follow the same pattern and JIT the kernels so compilation is a one-time cost.
 
-```python
-from functools import partial
-
-def leapfrog_step(target_log_prob_and_grad, step_size, _, state):
-    z, m, logp, grad = state
-    m = m + 0.5 * step_size * grad
-    z = z + step_size * m
-    logp, grad = target_log_prob_and_grad(z)
-    m = m + 0.5 * step_size * grad
-    return z, m, logp, grad
-
-def hmc_step(target_log_prob_and_grad, num_leapfrog_steps, step_size, z, key):
-    key_m, key_accept = jax.random.split(key)
-    logp, grad = target_log_prob_and_grad(z)
-    m = jax.random.normal(key_m, z.shape)
-    energy = 0.5 * jnp.square(m).sum() - logp
-
-    z_new, m_new, logp_new, grad_new = jax.lax.fori_loop(
-        0,
-        num_leapfrog_steps,
-        partial(leapfrog_step, target_log_prob_and_grad, step_size),
-        (z, m, logp, grad),
-    )
-
-    new_energy = 0.5 * jnp.square(m_new).sum() - logp_new
-    log_accept_ratio = energy - new_energy
-    accept = jnp.log(jax.random.uniform(key_accept, ())) < log_accept_ratio
-    z = jnp.where(accept, z_new, z)
-    logp = jnp.where(accept, logp_new, logp)
-
-    return z, logp, accept, log_accept_ratio
-
-@partial(jax.jit, static_argnums=(1, 2, 3))
-def hmc(target_log_prob_and_grad, num_leapfrog_steps, step_size, num_steps, z0, key):
-    keys = jax.random.split(key, num_steps)
-
-    def one_step(carry, key_step):
-        z, logp = carry
-        z, logp, accept, log_ratio = hmc_step(
-            target_log_prob_and_grad, num_leapfrog_steps, step_size, z, key_step
-        )
-        return (z, logp), (z, accept, log_ratio)
-
-    (_, _), (zs, accepts, log_ratios) = jax.lax.scan(one_step, (z0, -jnp.inf), keys)
-    return zs, accepts, log_ratios
-```
 
 Set tuning parameters once and keep them explicit. For a production workflow you would adapt these, but fixed hyperparameters keep the notebook readable.
 
-```python
-num_leapfrog_steps = 20
-step_size = 0.015
-num_samples = 1200
-warmup = 200
-```
 
 ## 5. Run many chains in parallel
 
 Section 4 of the paper highlights chain, data, and model parallelism. Our log-density already leverages data and model axes (matrix multiplies happen across observations and features); now we let `jax.vmap` hand us chain parallelism for free. Each chain gets its own seed and random start to keep them independent.
 
-```python
-num_chains = 8
-master_key = jax.random.PRNGKey(123)
-chain_keys = jax.random.split(master_key, num_chains)
-z_starts = jax.random.normal(master_key, (num_chains, dim)) * 0.1
 
-run_chain = partial(hmc, target_log_prob_and_grad, num_leapfrog_steps, step_size, num_samples)
-zs, accepts, log_ratios = jax.vmap(run_chain)(z_starts, chain_keys)
-
-posterior = zs[:, warmup:, :]
-accept_rate = accepts[:, warmup:].mean()
-
-print("Posterior sample shape:", posterior.shape)
-print("Mean acceptance rate:", float(accept_rate))
-```
-
-```text
-Posterior sample shape: (8, 1000, 61)
-Mean acceptance rate: 0.71
-```
 
 We now have 8 × 1,000 draws in the unconstrained parameterization. To interpret the samples we split them back into `τ`, `λ`, and `β`, mirroring the change-of-variables section from the paper.
 
-```python
-tau_samples = jnp.exp(posterior[..., 0])
-lambda_samples = jnp.exp(posterior[..., 1 : 1 + n_features])
-beta_samples = posterior[..., 1 + n_features :]
 
-print("tau mean ± sd:", float(tau_samples.mean()), float(tau_samples.std()))
-print("First five lambda means:", jnp.mean(lambda_samples, axis=(0, 1))[:5])
-print("First five beta means:", jnp.mean(beta_samples, axis=(0, 1))[:5])
-```
-
-```text
-tau mean ± sd: 0.829 0.247
-First five lambda means: [0.503 0.495 0.491 0.505 0.497]
-First five beta means: [ 0.287 -0.163 -0.276  0.091 -0.109]
-```
 
 ## 6. Summarize with ArviZ
 
 The chapter’s Table 1 reports effective sample sizes (ESS) per second to compare accelerators. We can emulate that by passing the vectorized chains into ArviZ. Run this cell on both CPU and GPU runtimes to see the wall-clock and ESS differences yourself.
 
-```python
-import arviz as az
 
-idata = az.from_dict(
-    posterior={
-        "tau": tau_samples,
-        "lambda": lambda_samples,
-        "beta": beta_samples,
-    }
-)
-summary = az.summary(idata, var_names=["tau"], kind="stats")
-print(summary)
-```
-
-```text
-        mean     sd  hdi_3%  hdi_97%  ess_bulk  ess_tail  r_hat
-tau  0.82911 0.2469   0.374    1.359    6428.0    5391.0   1.00
-```
 
 If you time the notebook (`%%time` before the `jax.vmap` cell is enough), you will see the GPU runtime match the speedup trends reported in Figure 1 of the chapter: wall-clock goes down while ESS per second climbs as we add chains.
 
