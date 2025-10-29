@@ -2,7 +2,7 @@
 title = "MCMC 101: Leapfrog Integrator"
 date = "2025-10-27T00:00:00Z"
 type = "post"
-draft = true
+draft = false
 math = true
 tags = ["mcmc", "hamiltonian-monte-carlo", "jax"]
 categories = ["posts"]
