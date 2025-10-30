@@ -1,5 +1,7 @@
 +++
 title = "MCMC 101: Leapfrog Integrator"
+slug = "mcmc-101"
+aliases = ["mcmc101"]
 date = "2025-10-27T00:00:00Z"
 type = "post"
 draft = false
@@ -41,6 +43,14 @@ where $\pi(q)$ is the target density, $\mu$ is its mean, $\Lambda$ is the precis
 - Time reversibility makes detailed balance trivial: flip the momentum sign and replay the same steps in reverse.
 - Volume preservation means the proposal density equals the reverse density, avoiding Jacobian corrections.
 - Piecewise constant gradients match how autodiff frameworks (like JAX) batch gradient evaluations, giving you excellent GPU utilisation in Colab.
+
+### Digging into the volume-preserving kernel
+
+Volume preservation is not just a nice geometric story—it is the reason the leapfrog proposal kernel integrates cleanly with Metropolis-Hastings. Each leapfrog sub-step is a shear with unit determinant: the half-kick `p ← p - (ε/2)∇U(q)` only shifts momentum, so its Jacobian is the identity in $(q, p)$ space; the drift `q ← q + ε p` keeps momentum fixed while translating position, again with determinant one. Because determinants multiply, the full trajectory has Jacobian determinant exactly one, so the map $(q_t, p_t) → (q_{t+1}, p_{t+1})$ preserves phase-space volume.
+
+In practice this means the forward transition density equals the reverse density once you negate the momentum, leaving the Metropolis acceptance probability to depend solely on the Hamiltonian difference. No extra Jacobian terms sneak into the log-acceptance ratio, and there is no need for an auxiliary correction factor as you would have with a non-volume-preserving integrator. That mathematical guarantee is what lets HMC operate with large step sizes—numerical errors show up only as tiny Hamiltonian drift, not as systematic shrinkage or stretching of probability mass.
+
+When you eventually wrap this leapfrog core in a full HMC transition kernel, you can treat the numerical integrator as a deterministic, volume-preserving map sandwiched between two momentum draws. The momentum resampling restores ergodicity, while the leapfrog path moves proposals across level sets without introducing density distortions. Together they yield a Markov kernel that obeys detailed balance by construction and makes high-dimensional exploration practical.
 
 ## 1. Launch a Colab runtime
 
@@ -153,12 +163,16 @@ so the marginal variances are $\sigma_1^2 \approx 0.83$ and $\sigma_2^2 \approx 
 
 ## 3. Implement the leapfrog integrator
 
-With $U(q)$ in hand, code the leapfrog updates. JIT compiling the integrator ensures Colab fuses the small matrix multiplies into a single XLA kernel.
+With $U(q)$ in hand, code the leapfrog updates. JIT compiling the integrator ensures Colab fuses the small matrix multiplies into a single XLA kernel. Start by importing the helpers you need:
 
 ```python
 from functools import partial
 from jax import lax, random, jit
+```
 
+Place the leapfrog integrator in its own executable cell:
+
+```python
 @jit
 def leapfrog(position, momentum, step_size, num_steps):
     """One leapfrog trajectory consisting of num_steps full updates."""
@@ -177,7 +191,11 @@ def leapfrog(position, momentum, step_size, num_steps):
     momentum = momentum - 0.5 * step_size * grad_U(position)
 
     return position, -momentum  # flip momentum to make trajectories reversible
+```
 
+Kick the tires with a quick sanity check:
+
+```python
 test_q = jnp.array([3.0, 3.0], dtype=jnp.float32)
 test_p = jnp.array([0.2, -0.4], dtype=jnp.float32)
 proposal_q, proposal_p = leapfrog(test_q, test_p, 0.3, 5)
@@ -196,119 +214,8 @@ Proposed p: [-0.4858557 -0.2677084]
 
 Notice how the momentum flip happens automatically. If you ran the same call again with `proposal_q` and `-proposal_p`, the integrator would retrace every step and land exactly back on the original `(q, p)`.
 
-## 4. Run Hamiltonian Monte Carlo
+## What's next
 
-Wrap leapfrog with a Metropolis acceptance step, then scan over random keys to build a full chain. We will collect 2,000 iterations, drop the first 500 as warm-up, and summarise the posterior draws.
+At this point you have a reversible, volume-preserving leapfrog core that mirrors the textbook presentation of Hamiltonian dynamics. In the next instalment we will wrap it in a full Hamiltonian Monte Carlo transition kernel, run end-to-end chains, and visualise diagnostics so you can judge step sizes, trajectory lengths, and effective sample sizes with confidence.
 
-```python
-@partial(jit, static_argnames=("num_steps",))
-def hmc_step(rng_key, position, step_size, num_steps):
-    """Single HMC transition using fresh momentum."""
-    key_momentum, key_accept = random.split(rng_key)
-    momentum = random.normal(key_momentum, shape=position.shape)
-
-    proposal_q, proposal_p = leapfrog(position, momentum, step_size, num_steps)
-
-    current_U = potential_energy(position)
-    current_K = 0.5 * jnp.dot(momentum, momentum)
-    proposed_U = potential_energy(proposal_q)
-    proposed_K = 0.5 * jnp.dot(proposal_p, proposal_p)
-
-    log_accept = current_U + current_K - proposed_U - proposed_K
-    accept_prob = jnp.minimum(1.0, jnp.exp(log_accept))
-
-    next_position = lax.cond(
-        random.uniform(key_accept) < accept_prob,
-        lambda _: proposal_q,
-        lambda _: position,
-        operand=None,
-    )
-
-    return next_position, accept_prob
-
-@partial(jit, static_argnames=("num_samples", "num_steps"))
-def run_chain(rng_key, initial_position, num_samples, step_size, num_steps):
-    def transition(position, key):
-        next_position, accept_prob = hmc_step(key, position, step_size, num_steps)
-        return next_position, (next_position, accept_prob)
-
-    keys = random.split(rng_key, num_samples)
-    final_position, (positions, accept_probs) = lax.scan(
-        transition, initial_position, keys
-    )
-    return positions, accept_probs
-
-num_samples = 2000
-num_warmup = 500
-step_size = 0.28
-num_steps = 5
-
-rng_key = random.PRNGKey(8)
-initial_position = jnp.array([3.0, 3.0], dtype=jnp.float32)
-
-trajectory, accept_probs = run_chain(
-    rng_key, initial_position, num_samples, step_size, num_steps
-)
-
-samples = np.array(trajectory[num_warmup:])
-accept_rate = float(np.array(accept_probs[num_warmup:]).mean())
-posterior_mean = samples.mean(axis=0)
-posterior_cov = np.cov(samples, rowvar=False)
-
-print("Acceptance rate:", round(accept_rate, 3))
-print("Posterior mean:", posterior_mean)
-print("Posterior covariance:\\n", posterior_cov)
-```
-
-```text
-Acceptance rate: 0.887
-Posterior mean: [ 0.995 -1.006]
-Posterior covariance:
- [[ 0.834 -0.279]
- [-0.279  0.649]]
-```
-
-The empirical mean sits on top of the analytical target mean `[1.0, -1.0]`, and the covariance is close to the true inverse precision matrix
-
-$$
-\Sigma =
-\begin{bmatrix}
-0.833 & -0.278 \\
--0.278 & 0.648
-\end{bmatrix}.
-$$
-
-An acceptance rate around 0.85–0.9 signals that the leapfrog step size and trajectory length are well matched to the curvature of the Gaussian.
-
-## 5. Visualise the trajectory
-
-Plot the joint samples and coordinate traces to make sure the chain explores the ellipsoid without getting stuck. The helper below uses Matplotlib, which Colab already ships with.
-
-```python
-import matplotlib.pyplot as plt
-
-fig, axes = plt.subplots(1, 2, figsize=(11, 4))
-
-axes[0].plot(samples[:, 0], samples[:, 1], ".", alpha=0.25, markersize=2)
-axes[0].set_xlabel("q[0]")
-axes[0].set_ylabel("q[1]")
-axes[0].set_title("Joint samples")
-
-axes[1].plot(samples[:, 0], label="q[0]")
-axes[1].plot(samples[:, 1], label="q[1]")
-axes[1].set_xlabel("Iteration")
-axes[1].set_ylabel("Value")
-axes[1].set_title("Trace plot")
-axes[1].legend()
-
-fig.tight_layout()
-plt.show()
-```
-
-You should see a dense cloud that hugs a tilted ellipse plus well-mixed trace lines. If either coordinate shows long flat segments or the acceptance rate collapses, revisit `step_size` or `num_steps`.
-
-## Where to go next
-
-- Swap the Gaussian for a banana-shaped target to test how trajectory length affects acceptance.
-- Use `arviz.ess` to estimate effective sample sizes and confirm the leapfrog settings deliver enough independent draws.
-- Replace the hand-written kernel with `blackjax.hmc` or `numpyro.infer.HMC` and compare diagnostics—your integrator should match their acceptance and autocorrelation profiles.
+[Continue to MCMC 102 →]({{< relref "mcmc-102.md" >}})
