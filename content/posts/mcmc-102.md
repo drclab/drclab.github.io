@@ -4,17 +4,35 @@ slug = "mcmc-102"
 aliases = ["mcmc102"]
 date = "2025-10-28T00:00:00Z"
 type = "post"
-draft = true
+draft = false
 math = true
 tags = ["mcmc", "hmc", "jax"]
 categories = ["posts"]
-description = "Turn the leapfrog integrator into a full Hamiltonian Monte Carlo sampler, collect diagnostics, and visualise the resulting chains."
+description = "Guide to turning the leapfrog integrator into a full Hamiltonian Monte Carlo sampler and interpreting the resulting chains."
 +++
-Welcome back to the MCMC mini-series. In [MCMC 101: Leapfrog Integrator]({{< relref "mcmc-101.md" >}}) we built a reversible, volume-preserving leapfrog core in JAX. Now we will wrap it in a full Hamiltonian Monte Carlo (HMC) transition kernel, generate draws, and inspect the resulting chains. Pick up the same Colab notebook and make sure the definitions for `potential_energy`, `grad_U`, and `leapfrog` are still in scope. If you are starting fresh, run through the import and setup cells from part 1 before continuing.
+
+Welcome back to the MCMC mini-series. In [MCMC 101: Leapfrog Integrator]({{< relref "mcmc-101.md" >}}) we built the leapfrog updates and explained each symbol. This second part is written for undergraduate students who want to see how that integrator becomes a full Hamiltonian Monte Carlo (HMC) sampler. We will introduce every new term, keep the math light, and show runnable Colab code for sampling and diagnostics.
+
+The plan for part 2:
+- review the new vocabulary that appears once we add the Metropolis correction,
+- wrap the leapfrog function in a complete HMC transition,
+- run a short chain, compute acceptance statistics, and compare them with ground truth, and
+- draw quick plots that help you tell whether the sampler is mixing well.
+
+## Key vocabulary refresher
+
+- **Metropolis-Hastings correction**: the accept/reject step that keeps the Markov chain targeting the correct distribution by comparing the Hamiltonian before and after the trajectory.
+- **Acceptance probability**: the probability that we keep the proposed state. Values near 1 mean the integrator is faithful to the Hamiltonian; values near 0 mean the step size or trajectory length needs adjustment.
+- **Warm-up (burn-in)**: the initial group of samples we drop because the chain is still moving from the starting guess toward the high-probability region.
+- **PRNG key**: JAX's handle for pseudorandom number generation. Splitting a key gives independent streams so momentum draws and accept/reject decisions stay uncorrelated.
+- **Diagnostic**: any summary (mean, covariance, acceptance rate) that helps you judge whether the chain has converged and is exploring the target distribution.
+- **Trace plot**: a line plot of each coordinate across iterations. Healthy traces bounce around the typical set without long flat segments.
+
+Keep the definitions from part 1 nearby as well (Hamiltonian, potential energy, gradient, step size, and precision matrix).
 
 ## 1. Build the HMC transition
 
-The first step is to wrap the leapfrog integrator with a Metropolis correction so proposals respect detailed balance. We sample fresh Gaussian momentum, integrate forward with leapfrog, and then accept or reject based on the change in Hamiltonian energy. Keeping `num_steps` static during compilation lets XLA specialise each trajectory length.
+To move from leapfrog trajectories to a complete HMC transition we add three ingredients: a fresh momentum draw, a Hamiltonian energy calculation, and the Metropolis accept/reject decision. Making `num_steps` a static argument lets XLA compile a specialised loop for that trajectory length only once.
 
 ```python
 from functools import partial
@@ -47,17 +65,16 @@ def hmc_step(rng_key, position, step_size, num_steps):
     return next_position, accept_prob
 ```
 
-Line-by-line rundown:
+What each block is doing:
+- `random.split` creates two independent keys so the momentum draw and the uniform accept/reject draw cannot influence each other.
+- `random.normal` samples the momentum from a standard Gaussian. Because our kinetic energy is $\frac{1}{2} p^\top p$, this choice keeps the Hamiltonian in balance.
+- `leapfrog(...)` produces the tentative next position and the corresponding flipped momentum from part 1.
+- `current_U + current_K - proposed_U - proposed_K` measures how much the Hamiltonian changed because of discretisation error.
+- `lax.cond` executes the accept/reject branch entirely inside compiled XLA code so we do not bounce back to Python on every iteration.
 
-1. `random.split` keeps the momentum draw and accept/reject decision independent.
-2. `random.normal` samples the kinetic energy term from a standard Gaussian with the right dimensionality.
-3. `leapfrog(...)` proposes a new position–momentum pair using the integration scheme from part 1.
-4. The Hamiltonian difference `current_U + current_K - proposed_U - proposed_K` drives the Metropolis acceptance ratio.
-5. `lax.cond` switches between the proposal and the current position without leaving compiled XLA code.
+## 2. Run the chain and collect diagnostics
 
-## 2. Generate draws and diagnostics
-
-To collect a full chain, scan over independent random keys, discard a warm-up window, and compute basic diagnostics. We will reuse the 2D correlated Gaussian from part 1 so we can compare estimates with the analytical mean and covariance.
+Next we loop this transition many times. The helper `run_chain` below applies `hmc_step` using `lax.scan`, records every visited position, and stores the acceptance probability for later summarising. We continue working with the same two-dimensional correlated Gaussian from part 1 so that analytical answers are available.
 
 ```python
 import numpy as np
@@ -93,21 +110,25 @@ posterior_cov = np.cov(samples, rowvar=False)
 
 print("Acceptance rate:", round(accept_rate, 3))
 print("Posterior mean:", posterior_mean)
-print("Posterior covariance:\\n", posterior_cov)
+print("Posterior covariance:")
+print(posterior_cov)
 ```
-
-You should see diagnostics like:
 
 ```text
-Acceptance rate: 0.887
-Posterior mean: [ 0.995 -1.006]
+Acceptance rate: 0.986
+Posterior mean: [ 1.0221523 -1.0131464]
 Posterior covariance:
- [[ 0.834 -0.279]
- [-0.279  0.649]]
+[[ 0.82281824 -0.2810567 ]
+ [-0.2810567   0.65564375]]
 ```
 
-The empirical mean aligns with the analytical target `[1.0, -1.0]`, and the covariance hugs the inverse precision matrix from part 1:
+Key ideas in this block:
+- `num_samples` counts how many HMC transitions we run, and `num_warmup` tells us how many early draws to discard as warm-up.
+- `random.split(rng_key, num_samples)` generates a fresh PRNG key for every iteration, guaranteeing independent momentum draws.
+- `lax.scan` keeps the loop on device and returns a stack of positions and acceptance probabilities without Python overhead.
+- Moving the arrays to NumPy after sampling lets us compute basic diagnostics (mean, covariance, acceptance rate) with familiar functions.
 
+The empirical mean lands on the target mean `[1.0, -1.0]`, and the covariance estimates stay within Monte Carlo error of the inverse precision matrix from part 1:
 $$
 \Sigma =
 \begin{bmatrix}
@@ -115,12 +136,11 @@ $$
 -0.278 & 0.648
 \end{bmatrix}.
 $$
-
-An acceptance rate near 0.85–0.9 indicates the step size and trajectory length are well matched to the curvature of the target distribution.
+An acceptance rate near $0.99$ signals that the step size (`0.28`) and trajectory length (`5` leapfrog steps) strike a good balance between accuracy and long-distance exploration for this problem.
 
 ## 3. Visualise the trajectory
 
-Plot joint samples and coordinate traces to confirm the chain explores the ellipsoid without sticking. Look for dense coverage of the tilted ellipse and quickly mixing traces.
+Plots make it easier to spot problems. The joint scatter plot checks whether the chain fills the tilted ellipse implied by the covariance, while the trace plot shows how each coordinate evolves through time.
 
 ```python
 import matplotlib.pyplot as plt
@@ -143,11 +163,17 @@ fig.tight_layout()
 plt.show()
 ```
 
-Well-mixed traces without long flat segments signal healthy exploration. If acceptance rates collapse or one coordinate sticks, revisit `step_size` or the number of leapfrog steps before moving on.
+![Trace plot for both coordinates of the HMC trajectory](/images/posts/mcmc-leapfrog-trace.png)
+
+What to look for:
+- The joint scatter should produce a dense cloud that follows the elliptical contours. Large gaps, narrow streaks, or isolated clusters hint that the chain is getting stuck.
+- The traces should wander around the target mean without long flat stretches. Flat segments often mean the step size is too large (causing rejections) or too small (making moves that are barely noticeable).
+
+If diagnostics look poor, revisit `step_size` or `num_steps`, rerun the chain, and compare the updated acceptance rate and plots before moving on.
 
 ## Where to go next
 
-- Swap the correlated Gaussian for a banana-shaped target to see how trajectory length shapes acceptance rates.
-- Feed the samples through `arviz.ess` and `arviz.rhat` to quantify mixing.
-- Replace the hand-written kernel with `blackjax.hmc` or `numpyro.infer.HMC` and compare trace plots and acceptance probabilities.
-- Try dual averaging or the No-U-Turn Sampler (NUTS) to automate step-size and path-length adaptation.
+- Replace the correlated Gaussian with a curved (banana-shaped) target and see how trajectory length affects the acceptance rate.
+- Use `arviz.ess` and `arviz.rhat` to compute effective sample size and convergence diagnostics on the collected draws.
+- Swap the hand-written kernel for `blackjax.hmc` or `numpyro.infer.HMC` and compare how those libraries package the same ideas.
+- Experiment with adaptive methods such as dual averaging or the No-U-Turn Sampler (NUTS) to automate the choice of step size and path length.
