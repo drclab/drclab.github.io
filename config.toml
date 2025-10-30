@@ -1,6 +1,6 @@
 baseURL = '/'
 languageCode = 'en-us'
-title = 'DRC Lab'
+title = 'Dr. Codex Laborer'
 theme = 'gokarna'
 defaultContentLanguage = 'en'
 enableEmoji = true
