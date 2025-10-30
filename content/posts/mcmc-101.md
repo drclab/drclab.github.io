@@ -2,7 +2,7 @@
 title = "MCMC 101: Leapfrog Integrator"
 slug = "mcmc-101"
 aliases = ["mcmc101"]
-date = "2025-10-27T00:00:00Z"
+date = "2025-10-28T00:00:00Z"
 type = "post"
 draft = false
 math = true

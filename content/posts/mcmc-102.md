@@ -2,7 +2,7 @@
 title = "MCMC 102: Hamiltonian Monte Carlo Chains"
 slug = "mcmc-102"
 aliases = ["mcmc102"]
-date = "2025-10-28T00:00:00Z"
+date = "2025-10-29T00:00:00Z"
 type = "post"
 draft = false
 math = true
