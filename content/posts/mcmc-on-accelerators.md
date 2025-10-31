@@ -1,6 +1,6 @@
 +++
 title = "MCMC on Accelerators"
-date = "2025-10-29T00:00:00Z"
+date = "2025-11-01T00:00:00Z"
 type = "post"
 draft = true
 math = true
