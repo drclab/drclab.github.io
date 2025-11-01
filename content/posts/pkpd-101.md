@@ -2,7 +2,7 @@
 title = "PKPD 101: Deriving the One-Compartment Oral Model"
 date = "2025-11-01T01:00:00Z"
 type = "post"
-draft = true
+draft = false
 math = true
 tags = ["pkpd", "pharmacology", "modeling", "pharmacokinetics"]
 categories = ["posts"]
@@ -149,7 +149,11 @@ Even small tweaks to parameters like clearance or volume shift the whole concent
 
 ## Multiple dosing and steady state
 
-The single-dose solution extends cleanly to repeat dosing by **superposition**: add the contribution from each prior dose shifted by its dosing interval. After roughly $4$ to $5$ half-lives the peaks and troughs stop drifting and the system reaches **steady state**. The peak-to-trough swing hinges on the relationship between the dosing interval $\tau$ and the elimination rate constant:
+The single-dose solution extends cleanly to repeat dosing by **superposition**: add the contribution from each prior dose shifted by its dosing interval. Figure&nbsp;2 shows how stacking exponential decays from successive doses builds the total profile.
+
+{{< figure src="/img/pkpd/multiple-dosing-steady-state.svg" alt="Time series chart showing individual dose contributions and the total concentration curve converging to steady state after repeated 12-hour dosing." caption="Figure 2. Repeated 12-hour dosing rapidly converges to steady state: the faded curves show individual dose contributions while the red composite plateaus once the 4–5 half-life band is reached." >}}
+
+After roughly $4$ to $5$ half-lives the peaks and troughs stop drifting and the system reaches **steady state**. The peak-to-trough swing hinges on the relationship between the dosing interval $\tau$ and the elimination rate constant:
 
 $$
 R_{acc} = \frac{1}{1 - e^{-k_{el} \tau}}, \qquad C_{\text{trough,ss}} \approx C_{\text{max,ss}} e^{-k_{el} \tau}.
@@ -164,6 +168,8 @@ Not every milligram swallowed reaches systemic circulation. Oral bioavailability
 $$
 F = F_{\text{abs}} \times (1 - E_H), \qquad E_H = \frac{CL_H}{Q_H + CL_H}.
 $$
+
+Here $F_{\text{abs}}$ is the portion of the dose that crosses the intestinal lumen into the portal vein (it is shaped by disintegration, dissolution, permeability, and any gut-wall metabolism), while $E_H$ is the hepatic extraction ratio governed by the well-stirred model. $CL_H$ represents hepatic intrinsic clearance (drug-metabolizing enzymes and transporters, often scaled from microsomes or hepatocytes) and $Q_H$ is effective hepatic blood flow (typically $1.5$–$1.8$ L/min in adults). High $E_H$ values indicate the liver removes most of the drug on its first pass—reducing $F$ even when absorption is efficient. Conversely, a low extraction compound (small $CL_H$ relative to $Q_H$) delivers nearly all absorbed drug to systemic circulation.
 
 Comparing oral and intravenous AUC values normalizes away clearance and reveals incomplete absorption or intense first-pass metabolism. Formulation scientists modulate $F_{\text{abs}}$ with solubility enhancers, while medicinal chemists target hepatic extraction by tuning lipophilicity or metabolic stability.
 
