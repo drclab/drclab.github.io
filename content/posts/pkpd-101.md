@@ -1,15 +1,15 @@
 +++
-title = "PKPD 101"
-date = "2025-10-01T00:00:00Z"
+title = "PKPD 101: Deriving the One-Compartment Oral Model"
+date = "2025-11-01T01:00:00Z"
 type = "post"
 draft = true
 math = true
-tags = ["pkpd", "pharmacology", "modeling"]
+tags = ["pkpd", "pharmacology", "modeling", "pharmacokinetics"]
 categories = ["posts"]
-description = "Introductory primer on pharmacokinetic and pharmacodynamic modeling, from compartment models to linking PK exposures with pharmacological effects."
+description = "Step-by-step derivation of the concentration-time profile for oral dosing, from compartment ODEs to the closed-form solution, with visual guides to clearance and absorption ratios."
 +++
 
-Welcome to PKPD 101! This primer walks through the essential vocabulary and modeling moves that tie drug exposure (pharmacokinetics) to drug effect (pharmacodynamics). By the end you should recognize the standard equations, know where nonlinear mixed effects (NLME) models come in, and understand how simulations support dose selection.
+This post walks through the one-compartment oral pharmacokinetic model from first principles: setting up the differential equations, solving them step-by-step using the integrating factor method, and interpreting the resulting concentration-time profile. By the end you will understand how absorption and elimination compete to shape plasma curves, recognize the key parameter ratios that control curve shape, and be ready to move on to pharmacodynamic models in [PKPD 102](/posts/pkpd-102).
 
 ## Why pharmacometrics matters
 
@@ -48,7 +48,86 @@ $$
 C(t) = \frac{D \, k_a}{V(k_a - k_{el})} \left(e^{-k_{el} t} - e^{-k_a t}\right),\quad k_{el} = \frac{CL}{V}.
 $$
 
-Two ratios govern how the profile bends: $k_{el} = CL/V$ tells you how aggressively the body clears drug relative to the “space” it has to dilute into, and the absorption-to-elimination ratio $k_a/k_{el}$ determines the curvature in the rising limb. When $k_a \gg k_{el}$ the gut empties quickly, so concentration shoots up and the elimination phase looks like a clean mono-exponential decay. When $k_a \approx k_{el}$, absorption and clearance compete, stretching the peak and flattening $t_{\max}$. If $k_a < k_{el}$ you are in **flip-flop kinetics** territory: elimination is so quick that the terminal slope reflects the slower absorption process, which can mislead you into overestimating half-life unless you recognize the ratio is inverted. Checking these ratios early keeps you from chasing spurious covariates when the shape of the curve is rate-limited by formulation or gastrointestinal transit.
+### Deriving the concentration-time profile
+
+This closed-form solution deserves a careful walkthrough because it reveals how absorption and elimination compete to shape the plasma curve. Starting from the differential equations for the gut and central compartments:
+
+$$
+\frac{dA_g}{dt} = -k_a A_g,\qquad
+\frac{dC}{dt} = \frac{k_a}{V} A_g - k_{el} C.
+$$
+
+**Step 1: Solve the gut compartment.** The first equation is a simple exponential decay with initial condition $A_g(0) = D$ (the entire dose sits in the gut at time zero):
+
+$$
+A_g(t) = D e^{-k_a t}.
+$$
+
+This tells us the amount of drug remaining in the gut falls exponentially at rate $k_a$.
+
+**Step 2: Substitute into the plasma equation.** Now we plug $A_g(t)$ into the second differential equation:
+
+$$
+\frac{dC}{dt} = \frac{k_a D}{V} e^{-k_a t} - k_{el} C.
+$$
+
+This is a first-order linear ordinary differential equation (ODE) with a time-dependent forcing term. The general structure is $\frac{dC}{dt} + k_{el} C = \frac{k_a D}{V} e^{-k_a t}$.
+
+**Step 3: Apply the integrating factor method.** Multiply both sides by $e^{k_{el} t}$:
+
+$$
+e^{k_{el} t} \frac{dC}{dt} + k_{el} e^{k_{el} t} C = \frac{k_a D}{V} e^{(k_{el} - k_a) t}.
+$$
+
+The left-hand side is now the derivative of $C(t) e^{k_{el} t}$, so we can write:
+
+$$
+\frac{d}{dt}\left(C(t) e^{k_{el} t}\right) = \frac{k_a D}{V} e^{(k_{el} - k_a) t}.
+$$
+
+**Step 4: Integrate both sides.** Starting from $t=0$ where $C(0)=0$ (no drug in plasma initially):
+
+$$
+C(t) e^{k_{el} t} - C(0) e^{0} = \frac{k_a D}{V} \int_0^t e^{(k_{el} - k_a) s} ds.
+$$
+
+Since $C(0)=0$, the left side simplifies to $C(t) e^{k_{el} t}$. The integral evaluates to:
+
+$$
+\int_0^t e^{(k_{el} - k_a) s} ds = \frac{e^{(k_{el} - k_a) t} - 1}{k_{el} - k_a}.
+$$
+
+Putting it together:
+
+$$
+C(t) e^{k_{el} t} = \frac{k_a D}{V(k_{el} - k_a)} \left(e^{(k_{el} - k_a) t} - 1\right).
+$$
+
+**Step 5: Solve for $C(t)$.** Multiply both sides by $e^{-k_{el} t}$:
+
+$$
+C(t) = \frac{k_a D}{V(k_{el} - k_a)} \left(e^{-k_a t} - e^{-k_{el} t}\right).
+$$
+
+Rearranging the order of terms in the parentheses and flipping the sign of the denominator gives the canonical form:
+
+$$
+C(t) = \frac{D \, k_a}{V(k_a - k_{el})} \left(e^{-k_{el} t} - e^{-k_a t}\right).
+$$
+
+**Why this form is useful:** The factor $\frac{D \, k_a}{V(k_a - k_{el})}$ scales the entire curve, while the difference of exponentials $\left(e^{-k_{el} t} - e^{-k_a t}\right)$ creates the characteristic rise-and-fall shape. At $t=0$, both exponentials equal 1 so $C(0)=0$ as expected. As $t \to \infty$, both exponentials vanish and $C(t) \to 0$. In between, the competition between absorption (driven by $k_a$) and elimination (driven by $k_{el}$) determines the peak time and height.
+
+### Visualizing the key ratios
+
+Two ratios govern how the profile bends: $k_{el} = CL/V$ tells you how aggressively the body clears drug relative to the "space" it has to dilute into, and the absorption-to-elimination ratio $k_a/k_{el}$ determines the curvature in the rising limb.
+
+{{< figure src="/img/pkpd/clearance-volume-ratio.svg" alt="Three concentration-time curves showing a faster decline and lower exposure as the CL/V ratio increases." caption="Figure 2. Higher $CL/V$ (larger elimination rate constant) shortens the half-life and pulls the whole curve downward, while lower $CL/V$ stretches both $t_{1/2}$ and exposure." >}}
+
+Figure 2 isolates the clearance-to-volume ratio. Holding absorption constant, moving from a low to a high $CL/V$ rotates the declining limb downward: the peak arrives earlier, trough concentrations shrink, and overall exposure drops. This is the geometric picture behind dose-adjustment rules of thumb such as “double the clearance, halve the steady-state trough.”
+
+{{< figure src="/img/pkpd/absorption-elimination-ratio.svg" alt="Three concentration-time curves showing how faster, balanced, and slower absorption relative to elimination change the peak shape." caption="Figure 3. The $k_a/k_{el}$ ratio sculpts the rising limb: very fast absorption yields a sharp peak, near-balance broadens the crest, and $k_a < k_{el}$ produces flip-flop kinetics where the terminal slope tracks absorption." >}}
+
+Figure 3 focuses on the absorption-to-elimination ratio. When $k_a \gg k_{el}$ the gut empties quickly, so concentration shoots up and the elimination phase looks like a clean mono-exponential decay. When $k_a \approx k_{el}$, absorption and clearance compete, stretching the peak and flattening $t_{\max}$. If $k_a < k_{el}$ you are in **flip-flop kinetics** territory: elimination is so quick that the terminal slope reflects the slower absorption process, which can mislead you into overestimating half-life unless you recognize the ratio is inverted. Checking these ratios early keeps you from chasing spurious covariates when the shape of the curve is rate-limited by formulation or gastrointestinal transit.
 
 When we talk about plasma concentration in this context, we literally mean “how much drug is dissolved in a given volume of blood plasma at a specific time.” Units are often nanograms per milliliter (ng/mL) or micromoles per liter (µM), but the key idea is a ratio of amount over volume. Higher plasma concentration means more of the drug is circulating and ready to reach its targets; lower concentration means the body has absorbed less or has already cleared a portion away. Because blood sampling is minimally invasive and routinely collected in studies, plasma concentration becomes the practical window into the otherwise hidden compartments of the body.
 
@@ -68,93 +147,56 @@ Even small tweaks to parameters like clearance or volume shift the whole concent
 - **Half-life ($t_{1/2}$)**: time to halve the concentration; $t_{1/2} = \ln 2 / k_{el}$ for one-compartment linear elimination.
 - **Accumulation ratio**: steady-state exposure versus single-dose exposure, driven by the dosing interval relative to $t_{1/2}$.
 
-## PD building blocks
+## Multiple dosing and steady state
 
-Baseline effect $E_0$ and drug-modulated effect $E(t)$ are commonly related through one of three structural forms:
-
-- **Linear**: $E(t) = E_0 + S \cdot C(t)$ when the response is proportional to concentration at therapeutic levels.
-- **Emax (hyperbolic)**: $E(t) = E_0 + \frac{E_{\max} C(t)}{EC_{50} + C(t)}$ saturates as receptors become fully occupied.
-- **Logistic or inhibitory Emax**: used when the effect decreases with concentration (e.g., biomarker suppression).
-
-Indirect response models add turnover dynamics:
+The single-dose solution extends cleanly to repeat dosing by **superposition**: add the contribution from each prior dose shifted by its dosing interval. After roughly $4$ to $5$ half-lives the peaks and troughs stop drifting and the system reaches **steady state**. The peak-to-trough swing hinges on the relationship between the dosing interval $\tau$ and the elimination rate constant:
 
 $$
-\frac{dE}{dt} = k_{in}(1 \pm \text{drug term}) - k_{out} E,
+R_{acc} = \frac{1}{1 - e^{-k_{el} \tau}}, \qquad C_{\text{trough,ss}} \approx C_{\text{max,ss}} e^{-k_{el} \tau}.
 $$
 
-capturing processes like neutrophil recovery or biomarker rebound after the drug effect wanes.
+Shortening $\tau$ or lengthening $t_{1/2}$ increases accumulation; the same math powers dosing adjustments such as extending the interval for renally impaired patients to keep troughs in range.
 
-Here the second critical ratio appears: at baseline (no drug term), $E_0 = k_{in}/k_{out}$. The numerator sets the production or synthesis rate, while the denominator drains the pool. Increasing $k_{in}$ raises the attainable baseline even if elimination stays fixed, whereas boosting $k_{out}$ pulls the system down unless synthesis keeps pace. When a drug stimulates or inhibits $k_{in}$, you can translate the percent change directly into shifts in $E_0$; if it alters $k_{out}$ you instead adjust the time constant that controls how fast the effect equilibrates. Thinking in terms of this ratio helps you diagnose whether observed delays or rebounds come from altered input versus accelerated loss.
+## Oral bioavailability checks
 
-## Linking PK and PD
-
-- **Direct effect models** assume equilibrium between plasma concentration and effect site; $E(t)$ depends on $C(t)$ instantaneously.
-- **Effect compartment (biophase) models** add a hypothetical compartment to capture hysteresis (delay) between concentration and effect:
+Not every milligram swallowed reaches systemic circulation. Oral bioavailability combines **fraction absorbed** from the gut and **first-pass extraction** by the liver:
 
 $$
-\frac{dC_{eff}}{dt} = k_{e0}\left(C(t) - C_{eff}(t)\right), \quad E(t) = f(C_{eff}(t)).
+F = F_{\text{abs}} \times (1 - E_H), \qquad E_H = \frac{CL_H}{Q_H + CL_H}.
 $$
 
-- **Physiologically based PK (PBPK)** models represent tissues explicitly; PD is layered onto relevant compartments (e.g., tumor site, CNS).
-- **Transduction/turnover models** connect PK to downstream biomarkers through cascades of transit compartments.
+Comparing oral and intravenous AUC values normalizes away clearance and reveals incomplete absorption or intense first-pass metabolism. Formulation scientists modulate $F_{\text{abs}}$ with solubility enhancers, while medicinal chemists target hepatic extraction by tuning lipophilicity or metabolic stability.
 
-## Typical PKPD workflow
+## Scaling PK parameters
 
-1. **Explore the data**: spaghetti plots, dose-normalized concentrations, effect versus time, covariate distributions.
-2. **Select structural PK and PD models**: start simple, escalate complexity only when diagnostics demand it.
-3. **Specify variability components**: inter-individual (IIV), inter-occasion (IOV), residual unexplained variability (RUV).
-4. **Estimate parameters**: nonlinear mixed-effects (e.g., NONMEM, Monolix, Stan) or Bayesian hierarchical approaches.
-5. **Diagnose fit**: goodness-of-fit plots, residuals, visual predictive checks (VPCs), posterior predictive checks.
-6. **Simulate scenarios**: alternative doses, regimens, special populations, adherence patterns.
-7. **Communicate results**: translate model outputs into exposure-response narratives, tables, and decision criteria.
+Clearance and volume rarely stay constant across a population. Two common levers are:
 
-## Quick start in code
+- **Allometric scaling**: $CL \propto (\text{weight}/70)^{0.75}$, $V \propto (\text{weight}/70)^{1.0}$ for adult body-size adjustments.
+- **Covariate models**: express clearance as $CL = CL_{\text{typ}} \exp(\theta_{eGFR} \cdot (\text{eGFR} - 90))$ or via power terms to encode organ function, formulation, or genotype effects.
 
-```python
-# Minimal PKPD simulation scaffold (for teaching).
-import numpy as np
-from scipy.integrate import solve_ivp
+Tracking how these parameters vary is the backbone of precision dosing and feeds straight into exposure simulations.
 
-CL, V, ka = 5.0, 50.0, 1.2    # L/h, L, 1/h
-E0, Emax, EC50 = 10, 40, 2.0  # effect units
+## Next steps
 
-def pkpd_rhs(t, y):
-    Ag, C, Ce = y
-    dAg = -ka * Ag
-    dC = ka * Ag / V - (CL / V) * C
-    ke0 = 0.8
-    dCe = ke0 * (C - Ce)
-    return [dAg, dC, dCe]
-
-def effect(Ce):
-    return E0 + (Emax * Ce) / (EC50 + Ce)
-
-dose = 100.0
-sol = solve_ivp(pkpd_rhs, [0, 48], [dose, 0.0, 0.0], dense_output=True)
-t_grid = np.linspace(0, 48, 200)
-Ce = sol.sol(t_grid)[2]
-E = effect(Ce)
-```
-
-Replace the toy parameters with estimates from your study and wire the solver into a plotting or simulation pipeline. The same structure extends to multi-dose schedules by updating `Ag` at dosing times.
+This primer focused on the pharmacokinetic side: how drugs move through the body and how to interpret concentration-time curves. With these PK building blocks in hand, you can now move to [PKPD 102](/posts/pkpd-102), where we explore pharmacodynamic models, link concentration to effect, and walk through the complete PKPD workflow from data exploration to simulation and dose recommendation.
 
 ## Diagnostics you cannot skip
 
-- Overlay individual fits and population predictions; lack of curvature agreement often flags structural issues.
-- Plot conditional weighted residuals (CWRES) versus time and predictions to detect heteroscedasticity or misspecified error models.
-- Run VPCs or prediction-corrected VPCs (pcVPCs); mismatch in median bands suggests bias, while prediction intervals diagnose variability misspecification.
-- Perform parameter uncertainty assessments: covariance matrix, bootstrap, or posterior credible intervals depending on the estimation approach.
+- Overlay observed and model-predicted concentration-time curves for each subject; systematic bias in peaks or tails often signals a misspecified absorption or clearance process.
+- Plot conditional weighted residuals (CWRES) versus time and predictions to catch heteroscedasticity or delayed absorption that the model fails to capture.
+- Examine eta shrinkage on clearance and volume; extreme shrinkage warns that the sampling design cannot support patient-level dosing decisions.
+- Run prediction-corrected visual predictive checks (pcVPCs) focused on concentration quantiles; poor agreement around peaks usually points to formulation or food effects that deserve covariate testing.
 
-## Communicating PKPD findings
+## Communicating PK findings
 
-- Pair equations with visualizations: concentration-time curves, exposure-response plots, and tornado charts for covariate effects.
-- Translate parameter estimates into clinically interpretable statements (e.g., “doubling clearance halves trough concentration, reducing biomarker inhibition by ~20%”).
-- Document model assumptions, estimation settings, and diagnostics alongside any proposed dose modifications.
+- Lead with exposure metrics ($C_{\max}$, trough, AUC) tied to observed safety or efficacy thresholds.
+- Convert parameter changes into practical statements (e.g., “clearance is 40% lower in Child-Pugh B, suggesting a 30% dose reduction to match healthy exposure”).
+- Summarize covariate impacts separately from residual variability so clinicians can distinguish controllable versus random sources of spread.
 
 ## Where to go next
 
-- **Textbook**: “Pharmacokinetic-Pharmacodynamic Modeling and Simulation” by Peter Bonate (3rd ed.) covers theory and case studies.
-- **Software**: Try NONMEM or Monolix for classical NLME; use `stan` or `torsten` for Bayesian workflows; explore `nlmixr` or `mrgsolve` in R for open-source pipelines.
-- **Practice**: Reproduce public PKPD case studies (FDA PMDA clinical pharmacology reviews, CPT:PSP tutorials) to build intuition and confidence.
+- **Textbook**: “Clinical Pharmacokinetics and Pharmacodynamics” by Rowland & Tozer remains the foundational PK reference.
+- **Workflows**: Explore `mrgsolve` or `nlmixr` tutorials to gain hands-on experience implementing one- and two-compartment oral models.
+- **Data sets**: Recreate classic theophylline PK analyses or FDA bioequivalence case studies to practice estimation, diagnostics, and superposition.
 
-PKPD turns dosing questions into data-backed recommendations. With these basics, you can start interrogating new molecules, quantifying uncertainty, and collaborating more effectively across the drug development team.
+Solid PK fluency makes the pharmacodynamic linkage in PKPD 102 far more intuitive—once you trust the exposure profiles, you can focus on how those concentrations translate into clinical effect.
