@@ -87,6 +87,10 @@ effect = E0 - Emax * (Ce**gamma) / (EC50**gamma + Ce**gamma)
 
 This script integrates joint PK and effect-compartment equations through 20 minutes. The effect trace shows maximal EEG suppression several minutes after plasma peaks and a slower recovery—behavior impossible to match with a direct-response model.
 
+![Simulated Cp and Ce time profiles.](/img/posts/pkpd-103/effect-compartment-sim.png)
+
+*Figure: Solving the coupled PK and effect compartments shows the lagging effect-site concentration that drives delayed onset.*
+
 ## Diagnostics for effect-compartment models
 
 - Plot effect versus $C_p$ and versus $C_e$; only the latter should collapse hysteresis if the effect compartment is appropriate.
