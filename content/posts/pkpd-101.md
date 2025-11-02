@@ -4,7 +4,7 @@ date = "2025-11-01T01:00:00Z"
 type = "post"
 draft = false
 math = true
-tags = ["pkpd", "pharmacology", "modeling", "pharmacokinetics"]
+tags = ["pkpd", "pharmacology", "pharmacokinetics"]
 categories = ["posts"]
 description = "Step-by-step derivation of the concentration-time profile for oral dosing, from compartment ODEs to the closed-form solution, with visual guides to clearance and absorption ratios."
 +++
