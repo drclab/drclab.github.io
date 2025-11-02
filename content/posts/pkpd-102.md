@@ -1,8 +1,8 @@
 +++
 title = "PKPD 102: Direct Response PD Models"
-date = "2025-11-02T02:00:00Z"
+date = "2025-11-02T00:00:00Z"
 type = "post"
-draft = true
+draft = false
 math = true
 tags = ["pkpd", "pharmacology", "modeling", "pharmacodynamics"]
 categories = ["posts"]
