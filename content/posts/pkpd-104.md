@@ -1,6 +1,6 @@
 +++
 title = "PKPD 104: Turnover Models for Indirect Response"
-date = "2025-11-02T18:00:00Z"
+date = "2025-11-04T18:00:00Z"
 type = "post"
 draft = true
 math = true
@@ -89,6 +89,12 @@ Cp, cortisol = sol.sol(time)
 ```
 
 This script integrates turnover dynamics over two days after a single oral dose. The cortisol trajectory shows a delayed nadir and gradual recovery consistent with an inhibited-production mechanism.
+
+![Cortisol turnover simulation](/img/pkpd/pkpd-104-turnover.png "Cp and Cortisol vs. Time")
+
+The simulated plasma and biomarker curves emphasize how the pharmacodynamic nadir trails the concentration peak and how recovery is governed by $k_\text{out}$ rather than drug clearance.
+
+> nmol/L denotes nanomoles per liter, the molar concentration unit used for both $C_p$ and cortisol in this example.
 
 ## Diagnostics and model qualification
 
