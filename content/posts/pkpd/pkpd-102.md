@@ -1,6 +1,6 @@
 +++
 title = "PKPD 102: Direct Response PD Models"
-date = "2025-11-02T00:00:00Z"
+date = "2025-12-02T00:00:00Z"
 type = "post"
 draft = false
 math = true

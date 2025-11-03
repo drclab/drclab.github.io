@@ -76,6 +76,10 @@ The Bayesian aggregation strategy relies on simulating individual trajectories u
 - **Supports partial pooling.** Patient-specific $k_{j}^{\text{in}}$ and $k_{j}^{\text{out}}$ parameters can share hierarchical priors, while the drug effect parameters ($E_{\max}$, $EC_{50}$ through $S_j$) remain interpretable across internal and external regimens.
 - **Makes summaries comparable.** Because the inverse logit maps predictions back to 0–100 letters, simulated averages line up directly with published BCVA means, enabling the normal approximation used to fuse aggregate data.
 
+## Separating drug and disease parameters
+
+Gelman et al.'s **drug–disease model** is explicitly anchored on the placebo trajectory. Under placebo ($C_j(t) = 0$), the ODE contracts to $R_j^\ast = k_{j}^{\text{in}}/k_{j}^{\text{out}}$, the same equilibrium that describes untreated disease progression. The moment we introduce exposure, only the terms tied to the drug move: the ocular elimination half-life $t_{1/2}$ determines the PK subsystem that feeds concentration $C_j(t)$, while $E_{\max}$ and $EC_{50}$ govern how that exposure perturbs BCVA on the logit scale. Everything else—baseline acuity, recovery dynamics, measurement noise—is inherited from the placebo description and treated as nondrug-specific. That clean separation lets us reason about **treated patients relative to placebo patients** without re-estimating the entire disease model each time we change dose, formulation, or dosing interval. The drug parameters flex to capture potency and persistence, but the disease parameters continue to describe natural history that future interventions can reuse.
+
 ## Practical takeaways
 
 - Whenever your endpoint is bounded and you transform it (e.g., logit, probit), revisit the turnover equations to ensure production and loss remain well-defined on the new scale.

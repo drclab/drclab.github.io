@@ -1,6 +1,6 @@
 +++
 title = "PKPD 103: Effect Compartment Models"
-date = "2025-11-03T12:00:00Z"
+date = "2025-12-03T12:00:00Z"
 type = "post"
 draft = false
 math = true
