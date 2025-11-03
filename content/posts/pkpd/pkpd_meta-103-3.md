@@ -93,6 +93,107 @@ The resulting single-patient dataset (rounded to two decimals) is what the Stan 
 | 56 | 82.59 | 84.45 |
 | 70 | 84.25 | 83.51 |
 
+The full Stan program that ingests this single-patient dataset mirrors Gelman et al.'s ODE helper but trims away the population hierarchy for clarity:
+
+```stan
+functions {
+  real[] drug_disease_stim_kinL_Et_ode(real t,
+                                       real[] y,
+                                       real[] theta,
+                                       real[] x_r,
+                                       int[] x_i) {
+    real dydt[1];
+    real emax_0 = theta[1];
+    real lec_50 = theta[2];
+    real r180 = theta[3];
+    real beta = theta[4];
+    real k_in = theta[5];
+    real k_out = theta[6];
+    real start_t = x_r[1];
+    real lconc_0 = x_r[2];
+    real K = x_r[3];
+    real hill = x_r[4];
+    real lconcentration = lconc_0 - K * (t - start_t);
+    real emax = emax_0 * (r180 + (1 - r180) * exp(-beta * t / 30.0));
+    real stim = emax * inv_logit(hill * (lconcentration - lec_50));
+    dydt[1] = k_in - k_out * (y[1] - stim);
+    return dydt;
+  }
+}
+
+data {
+  int<lower=1> N;
+  vector[N] time;
+  vector[N] bcva_obs;
+  real start_t;
+  real lconc0;
+  real<lower=0> K;
+  real hill;
+  real<lower=0> r180;
+  real<lower=0> beta;
+  real<lower=0> sigma_prior_scale;
+}
+
+parameters {
+  real<lower=0> k_in;
+  real<lower=0> k_out;
+  real<lower=0> emax0;
+  real lec50;
+  real<lower=0> sigma;
+  real R0;
+}
+
+transformed parameters {
+  vector[N] mu_bcva;
+  {
+    real y0[1];
+    real theta[6];
+    real x_r[4];
+    int x_i[0];
+    y0[1] = R0;
+    theta[1] = emax0;
+    theta[2] = lec50;
+    theta[3] = r180;
+    theta[4] = beta;
+    theta[5] = k_in;
+    theta[6] = k_out;
+    x_r[1] = start_t;
+    x_r[2] = lconc0;
+    x_r[3] = K;
+    x_r[4] = hill;
+    {
+      real y_hat[N, 1] = integrate_ode_rk45(drug_disease_stim_kinL_Et_ode,
+                                            y0,
+                                            0,
+                                            time,
+                                            theta,
+                                            x_r,
+                                            x_i);
+      for (n in 1:N) {
+        mu_bcva[n] = inv_logit(y_hat[n, 1]) * 100;
+      }
+    }
+  }
+}
+
+model {
+  k_in ~ normal(0.05, 0.02);
+  k_out ~ normal(0.04, 0.01);
+  emax0 ~ normal(0.8, 0.3);
+  lec50 ~ normal(log(6), 0.5);
+  sigma ~ normal(0, sigma_prior_scale) T[0,];
+  R0 ~ normal(0, 1);
+  bcva_obs ~ normal(mu_bcva, sigma);
+}
+
+generated quantities {
+  vector[N] bcva_rep;
+  for (n in 1:N) {
+    bcva_rep[n] = normal_rng(mu_bcva[n], sigma);
+  }
+}
+```
+
 Everything above is intentionally limited to **one** subject; there is no pooling or hierarchical shrinkage yet.
 
 ## Step 2 — reuse the Gelman ODE inside a single-patient Stan file
@@ -107,42 +208,42 @@ To estimate the parameters with Stan we can drop the population-level hierarchy 
 
 Because the ODE signature matches Gelman et al., replacing `static/code/pkpd_meta_103_3_single_patient.stan` with the original `ddmodel_baad.stan` would only require reshaping the input data into their subject/event structures.
 
-## Step 3 — fit the single patient with CmdStanR
+## Step 3 — fit the single patient with CmdStanPy
 
-The snippet below converts the simulated table into Stan-friendly structures and launches NUTS. Feel free to drop it into an R console once `cmdstanr` is wired up to CmdStan 2.35+.
+Python users can stay inside the same ecosystem as the simulator by calling Stan through `cmdstanpy`. The snippet below converts the table into numpy arrays, compiles the ODE model, and launches NUTS with four chains. It assumes that CmdStan 2.35+ is already installed via `cmdstanpy.install_cmdstan()`.
 
-```r
-library(cmdstanr)
+```python
+import numpy as np
+from cmdstanpy import CmdStanModel
 
-patient <- data.frame(
-  day = c(0, 7, 14, 28, 42, 56, 70),
-  bcva = c(54.62, 61.86, 68.87, 73.82, 78.24, 84.45, 83.51)
+patient_days = np.array([0, 7, 14, 28, 42, 56, 70], dtype=float)
+patient_bcva = np.array([54.62, 61.86, 68.87, 73.82, 78.24, 84.45, 83.51], dtype=float)
+
+stan_data = {
+    "N": len(patient_days),
+    "time": patient_days,
+    "bcva_obs": patient_bcva,
+    "start_t": np.array([0.0]),
+    "lconc0": np.array([np.log(30.0)]),
+    "K": 0.045,
+    "hill": -1.0,
+    "r180": 0.4,
+    "beta": 0.5,
+    "sigma_prior_scale": 5.0,
+}
+
+model = CmdStanModel(stan_file="static/code/pkpd_meta_103_3_single_patient.stan")
+fit = model.sample(
+    data=stan_data,
+    seed=407,
+    chains=4,
+    parallel_chains=4,
+    iter_warmup=1000,
+    iter_sampling=1000,
+    show_progress=True,
 )
 
-stan_data <- list(
-  N = nrow(patient),
-  time = patient$day,
-  bcva_obs = patient$bcva,
-  start_t = 0,
-  lconc0 = log(30),
-  K = 0.045,
-  hill = -1,
-  r180 = 0.4,
-  beta = 0.5,
-  sigma_prior_scale = 5
-)
-
-mod <- cmdstan_model("static/code/pkpd_meta_103_3_single_patient.stan")
-fit <- mod$sample(
-  data = stan_data,
-  seed = 407,
-  chains = 4,
-  parallel_chains = 4,
-  iter_warmup = 1000,
-  iter_sampling = 1000
-)
-
-fit$summary(variables = c("k_in", "k_out", "emax0", "lec50", "sigma"))
+print(fit.summary(vars=["k_in", "k_out", "emax0", "lec50", "sigma"]))
 ```
 
 On a laptop this run takes a few seconds and recovers the simulated truth (0.05, 0.035, 0.90, $\log 7$, 1.5) within posterior 95 % intervals. `R0` lands near the logit of 55 letters, and the posterior predictive draws in `bcva_rep` line up with the observed trajectory.
