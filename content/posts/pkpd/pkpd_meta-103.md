@@ -52,11 +52,19 @@ Key differences from the standard form:
 
 - **Additive production and loss.** $k_{j}^{\text{in}}$ and $k_{j}^{\text{out}}$ appear linearly, so the restorative drift $-k_{j}^{\text{out}} R_j(t)$ is always proportional to the displacement from baseline and never flips direction when $R_j(t)$ crosses zero. That guarantees a single globally attracting equilibrium at $k_{j}^{\text{in}}/k_{j}^{\text{out}}$ under placebo, keeps the linear ODE stable for large positive or negative logits, and lets stochastic or hierarchical variability in $k_{j}^{\text{in}}$ simply shift the mean rather than rewriting the entire feedback structure.
 - **Additive drug effect.** The exposure term $E_{\max,j} S_j C_j(t)$ is subtracted directly, reflecting that higher intraocular concentrations improve BCVA (higher $R_j$ on the logit scale). The sign convention can flip ($+/-$) depending on whether the drug stimulates or inhibits the measured response.
-- **Hill-type sensitivity.** $S_j$ is a Hill function of the latent concentration, implemented as a logistic transform of $\log C_j(t)$ so that relative changes in concentration drive smooth, saturating modulations just like the $S(C)$ terms in the standard model.
+- **Hill-type sensitivity.** $S_j$ is a Hill function of the latent concentration, implemented as a logistic transform of $\log C_j(t)$ so that relative changes in concentration drive smooth, saturating modulations just like the $S(C)$ terms in the standard model. Written exactly as in Gelman et al., $S_j(C_j(t)) = \operatorname{logit}^{-1}\bigl(\log EC_{50} - \log C_j(t)\bigr)$, so the dose–response follows the canonical Hill curve on the log concentration scale. This choice stabilizes inference when concentrations span several orders of magnitude, because the inverse-logit compresses extreme exposure levels toward 0 or 1 while preserving a symmetric $EC_{50,j}$ pivot.
 
 The structural choices match the semimechanistic turnover logic proposed by \[Jusko and Ko (1994)\], while the ocular context fixes ancillary pharmacokinetic values such as a 4 mL vitreous volume \[Hart (1992)\] and a nine-day elimination half-life \[Xu et al. (2013)\] to reflect biologically plausible bounds.
 
-Set $C_j(t) = 0$ (placebo) and the system collapses to $R_j^\ast = k_{j}^{\text{in}}/k_{j}^{\text{out}}$, exactly mirroring the baseline logic in classical turnover models but now stable on the logit scale.
+The baseline condition $R_j(0)=R_{0,j}$ anchors the logit-scale ODE to each patient's observed acuity at randomization, so simulations start on the placebo trajectory unless explicit perturbations are introduced. When a persistent stimulus is applied—say, a constant exposure scenario with $S_j(t)=s_j$—the ODE integrates to a steady state obtained by setting the derivative to zero:
+
+$$
+R_{j}^{\mathrm{ss}} = \frac{k_{j}^{\text{in}}}{k_{j}^{\text{out}}} + E_{\max,j} s_j.
+$$
+
+This limit illustrates how the additive drug term shifts the mean response without altering the autoregulatory slope $k_{j}^{\text{out}}$. In the absence of treatment ($s_j = 0$) the equilibrium reduces to $k_{j}^{\text{in}}/k_{j}^{\text{out}}$, underscoring why that ratio is the critical disease descriptor: it dictates both the long-run placebo outcome and the target around which treated trajectories oscillate. Consequently, the drug–disease model cleanly separates drug-specific parameters—$t_{1/2}$ via $C_j(t)$, $E_{\max}$, $EC_{50}$—from nondrug parameters that define natural history.
+
+Set $C_j(t) = 0$ (placebo) and the system collapses to $R_j^\ast = k_{j}^{\text{in}}/k_{j}^{\text{out}}$, exactly mirroring the baseline logic in classical turnover models but now stable on the logit scale. For placebo patients, the long-run limit $\lim_{t \to \infty} R_j(t) = k_{j}^{\text{in}}/k_{j}^{\text{out}}$ emerges automatically, so any deviation caused by measurement error or latent variability decays back at rate $k_{j}^{\text{out}}$ without interference from drug-related terms.
 
 ## Linking back to the classical structure
 
