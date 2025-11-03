@@ -1,8 +1,8 @@
 +++
 title = "PKPD 104: Turnover Models for Indirect Response"
-date = "2025-11-04T18:00:00Z"
+date = "2025-11-05T18:00:00Z"
 type = "post"
-draft = true
+draft = false
 math = true
 tags = ["pkpd", "turnover"]
 categories = ["posts"]
