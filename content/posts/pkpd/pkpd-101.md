@@ -1,6 +1,6 @@
 +++
 title = "PKPD 101: Deriving the One-Compartment Oral Model"
-date = "2025-12-01T01:00:00Z"
+date = "2025-11-02T01:00:00Z"
 type = "post"
 draft = false
 math = true

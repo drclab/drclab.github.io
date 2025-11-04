@@ -1,9 +1,9 @@
 functions {
-  vector[1] drug_disease_stim_kinL_Et_ode(real t,
-                                          vector[1] y,
-                                          array[] real theta,
-                                          array[] real x_r,
-                                          array[] int x_i) {
+  vector drug_disease_stim_kinL_Et_ode(real t,
+                                       vector y,
+                                       array[] real theta,
+                                       array[] real x_r,
+                                       array[] int x_i) {
     vector[1] dydt;
     real emax_0 = theta[1];
     real lec_50 = theta[2];
@@ -64,9 +64,10 @@ transformed parameters {
     x_r[3] = K;
     x_r[4] = hill;
     {
+      real t0 = start_t - 1e-6;  // start just before the first observation to satisfy ode_rk45
       array[N] vector[1] y_hat = ode_rk45(drug_disease_stim_kinL_Et_ode,
                                           y0,
-                                          0,
+                                          t0,
                                           to_array_1d(time),
                                           theta,
                                           x_r,

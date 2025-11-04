@@ -1,6 +1,6 @@
 +++
 title = "PKPD 104: Turnover Models for Indirect Response"
-date = "2025-12-04T18:00:00Z"
+date = "2025-11-05T18:00:00Z"
 type = "post"
 draft = false
 math = true
