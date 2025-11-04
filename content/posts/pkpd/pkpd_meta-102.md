@@ -1,6 +1,6 @@
 +++
 title = "PKPD Meta 102: Semimechanistic Turnover Logic"
-date = "2025-12-12T00:00:00Z"
+date = "2025-11-12T00:00:00Z"
 type = "post"
 draft = false
 tags = ["pkpd", "turnover", "systems-pharmacology"]

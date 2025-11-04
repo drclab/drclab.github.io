@@ -1,6 +1,6 @@
 +++
 title = "PKPD Meta 103: Recasting the Drug–Disease Turnover Model"
-date = "2025-12-13T00:00:00Z"
+date = "2025-11-13T00:00:00Z"
 type = "post"
 draft = false
 tags = ["pkpd", "turnover", "meta-analysis"]

@@ -1,13 +1,28 @@
 +++ 
 title = "PKPD Meta 104: Mapping the Gelman ODE into Stan"
-date = "2025-12-20T00:00:00Z"
+date = "2025-11-14T00:00:00Z"
 type = "post"
 draft = false
-tags = ["pkpd", "turnover", "meta-analysis", "stan"]
+tags = ["pkpd", "turnover", "meta-analysis", "stan", "ode", "bayesian", "modeling"]
 categories = ["posts"]
-description = "Shows how the Gelman et al. (2018) drug-disease ODE introduced in PKPD Meta 103 is implemented in Stan, highlighting the parameterization, time-varying stimulus, and link back to bounded BCVA outcomes."
+description = "Implement the Gelman et al. (2018) drug-disease ODE in Stan for Bayesian PKPD modeling, with bounded BCVA predictions, time-varying effects, and adaptive integration."
 math = true
+author = "DRC Lab"
 +++
+
+## Introduction
+
+This post bridges the theoretical drug-disease ordinary differential equation (ODE) from [PKPD Meta 103](/posts/pkpd_meta-103) to its practical implementation in Stan, enabling Bayesian inference on visual acuity data. Pharmacokinetics/Pharmacodynamics (PKPD) modeling quantifies how drug concentrations affect biological responses over time, here applied to best corrected visual acuity (BCVA) measured in ETDRS letters. The model ensures predictions stay bounded between 0 and 100 letters using a logit-scale latent process, incorporating time-varying drug effects and exponential concentration decay.
+
+Key concepts include:
+
+- **ODE**: A mathematical equation describing how the system's state changes over time.
+- **Logit scale**: Transforms bounded outcomes (0-100) to an unbounded scale for easier modeling.
+- **Stan**: A probabilistic programming language for Bayesian inference, using Hamiltonian Monte Carlo (HMC).
+- **BCVA**: Best Corrected Visual Acuity, a clinical measure of vision in eye charts.
+- **ETDRS**: Early Treatment Diabetic Retinopathy Study, the standard for letter scores.
+
+We'll trace the turnover equation into Stan code, covering parameterization, ODE solving, and observation modeling. By the end, you'll see how Stan's adaptive integration handles complex dynamics while maintaining computational efficiency.
 
 [PKPD Meta 103](/posts/pkpd_meta-103) reframed the Gelman et al. (2018) drug-disease model as a turnover equation that lives on a logit scale:
 
@@ -90,43 +105,74 @@ so the Stan function faithfully reproduces every term in PKPD Meta 103.
 
 ## Transformed parameters: wiring the solver
 
-- `stand_ode.stan:51` allocates `y0`, the initial condition vector used by the ODE integrator.
-- `stand_ode.stan:52, stand_ode.stan:53` create `theta` and `x_r`, the parameter and data packs passed into the derivative function.
-- `stand_ode.stan:55` seeds the ODE with `R0`.
-- `stand_ode.stan:56` sets `theta[1] = emax0`, tying the first entry of `theta` to the peak stimulus.
-- `stand_ode.stan:57` sets `theta[2] = lec50`, tying the second entry to the log EC50.
-- `stand_ode.stan:58` sets `theta[3] = r180`, passing the late-time fraction.
-- `stand_ode.stan:59` sets `theta[4] = beta`, passing the decay rate.
-- `stand_ode.stan:60` sets `theta[5] = k_in`, carrying the production rate.
-- `stand_ode.stan:61` sets `theta[6] = k_out`, carrying the loss rate.
-- `stand_ode.stan:62` records `start_t`, the dosing time.
-- `stand_ode.stan:63` records `lconc0`, the initial log concentration `ell_0`.
-- `stand_ode.stan:64` records `K`, the washout slope.
-- `stand_ode.stan:65` records `hill`, the steepness of `S_j(C_j(t))`.
-- `stand_ode.stan:67` defines `t0 = start_t - 1e-6` so the solver starts infinitesimally before the first recorded visit.
+The `transformed_parameters` block bridges the raw parameters to the ODE solution and back to observable BCVA. It packs parameters and data into arrays for the integrator, solves the ODE, and transforms the logit trajectories to the 0-100 scale. This ensures all computations are differentiable for HMC sampling.
 
-The call beginning at `stand_ode.stan:68`,
-
-{{< highlight stan "linenos=true,linenostart=68" >}}
-array[N] vector[1] y_hat = ode_rk45(drug_disease_stim_kinL_Et_ode,
-                                    y0,
-                                    t0,
-                                    to_array_1d(time),
-                                    theta,
-                                    x_r,
-                                    x_i);
+{{< highlight stan "linenos=true" >}}
+transformed parameters {
+  vector[N] mu_bcva;
+  {
+    vector[1] y0;
+    array[6] real theta;
+    array[4] real x_r;
+    array[0] int x_i;
+    y0[1] = R0;
+    theta[1] = emax0;
+    theta[2] = lec50;
+    theta[3] = r180;
+    theta[4] = beta;
+    theta[5] = k_in;
+    theta[6] = k_out;
+    x_r[1] = start_t;
+    x_r[2] = lconc0;
+    x_r[3] = K;
+    x_r[4] = hill;
+    {
+      real t0 = start_t - 1e-6;  // start just before the first observation to satisfy ode_rk45
+      array[N] vector[1] y_hat = ode_rk45(drug_disease_stim_kinL_Et_ode,
+                                          y0,
+                                          t0,
+                                          to_array_1d(time),
+                                          theta,
+                                          x_r,
+                                          x_i);
+      for (n in 1:N) {
+        mu_bcva[n] = inv_logit(y_hat[n][1]) * 100;
+      }
+    }
+  }
+}
 {{< /highlight >}}
 
-requests the solution `R_j(t)` on the visit grid. The loop starting at `stand_ode.stan:75` maps the latent logits back to letters:
+Justifications for these transformations:
+
+- **Parameter packing (`theta` and `x_r`)**: Stan's ODE solvers require parameters and data in fixed-size arrays. `theta` holds the six biological parameters (emax0, lec50, r180, beta, k_in, k_out) passed to the derivative function. `x_r` contains time-invariant data (start_t, lconc0, K, hill) for exposure modeling. This separation allows the ODE function to access only what's needed, improving modularity.
+
+- **Initial condition (`y0`)**: Sets the starting logit acuity `R0` as a vector for the integrator. This unknown baseline is estimated from data, unlike fixed initial conditions in simpler models.
+
+- **ODE integration (`ode_rk45`)**: Solves the system from `t0` (slightly before dosing to avoid edge cases) to the observation times. The adaptive Runge-Kutta method ensures accuracy without manual step sizing, handling the nonlinear stimulus dynamics efficiently.
+
+- **Logit-to-BCVA transformation (`inv_logit(y_hat[n][1]) * 100`)**: Converts the latent logit process back to the clinical scale. The inverse logit maps (-∞, ∞) to (0, 1), and multiplication by 100 yields ETDRS letters. This bounded transformation prevents unrealistic predictions, aligning with PKPD Meta 103's logit framework.
+
+- **Local scoping**: The block uses nested scopes to limit variable lifetimes, reducing memory usage and preventing accidental reuse. The inner block for ODE solving isolates the integration logic.
+
+These transformations make the model computationally tractable while preserving biological interpretability, enabling Bayesian inference on complex time-series data.
+
+The loop maps the latent logits back to letters:
 
 $$
-\mu_{\mathrm{BCVA},jk} = 100 \times \operatorname{logit}^{-1}\bigl(R_j(t_{jk})\bigr).
+\mu_{\mathrm{BCVA},jk} = 100 \times \operatorname{logit}^{-1}(R_j(t_{jk})).
 $$
 
-The mapping comes straight from the definition of the latent state in PKPD Meta 103: $R_j(t) = \operatorname{logit}\bigl(y_{jk} / 100\bigr)$ with $y_{jk}$ measured in ETDRS letters. Solving that relationship for $y_{jk}$ yields
+The mapping comes straight from the definition of the latent state in PKPD Meta 103:
 
 $$
-y_{jk} = 100 \times \frac{1}{1 + \exp\bigl(-R_j(t_{jk})\bigr)} = 100 \times \operatorname{logit}^{-1}\bigl(R_j(t_{jk})\bigr),
+R_j(t) = \operatorname{logit}(y_{jk} / 100)
+$$
+
+with $y_{jk}$ measured in ETDRS letters. Solving that relationship for $y_{jk}$ yields
+
+$$
+y_{jk} = 100 \times \frac{1}{1 + \exp(-R_j(t_{jk}))} = 100 \times \operatorname{logit}^{-1}(R_j(t_{jk})),
 $$
 
 so $\mu_{\mathrm{BCVA},jk}$ is simply the expected letter score implied by the logit-scale trajectory. The inverse-logit brings the latent process back to the unit interval, and the factor of 100 restores the original clinical scale while keeping predictions between 0 and 100.
@@ -143,8 +189,17 @@ R_j(t_{n+1}) = R_j(t_n) + \int_{t_n}^{t_{n+1}} f\bigl(s, R_j(s), \theta\bigr)\,d
 $$
 
 using embedded 4th- and 5th-order polynomials to bound the local truncation error. Step sizes shrink automatically when `stim_j(t)` changes rapidly (early after dosing) and grow when the system settles, ensuring stability without manually tuning step lengths.
+
 - Reverse-mode automatic differentiation threads through every integration step so HMC learns `dR_j(t_jk)/dtheta` alongside the trajectory.
 - The infinitesimal offset at `stand_ode.stan:67` avoids numerical issues when the first observation coincides with the initial time, a standard Stan idiom for ODE models.
+
+## Practical Implications and Validation
+
+This model shines in scenarios where drug effects wane over time, as captured by the time-varying `Emax_j(t)`. Biologically, `k_in` and `k_out` represent baseline production and loss rates of the logit acuity, while `emax0` and `lec50` quantify drug potency and sensitivity. The Hill slope `hill` controls how sharply the response transitions from minimal to maximal effect.
+
+For validation, always run posterior predictive checks using `bcva_rep` to ensure the model captures observed variability. Priors are chosen based on literature (e.g., `lec50` centered at log(6) for typical drug concentrations), but adjust for your data. Limitations include assuming single-compartment PK and no inter-patient variability—extensions in future posts address these.
+
+{{< post-figure src="/img/pkpd/bcva_trajectory.png" alt="Example posterior predictive BCVA trajectories showing model fit and uncertainty" >}}
 
 ## Model and generated quantities
 
@@ -166,3 +221,16 @@ using embedded 4th- and 5th-order polynomials to bound the local truncation erro
 ---
 
 Taken together, `stand_ode.stan` is a faithful computational companion to the turnover derivation in PKPD Meta 103: the ODE block encodes the linear loss and saturating drug stimulus, the transformed parameters perform the logit-to-letters conversion that keeps BCVA bounded, and the likelihood completes the Bayesian update that underpins the Gelman et al. evidence synthesis.
+
+## Conclusion
+
+In summary, this Stan implementation translates the Gelman ODE into a robust Bayesian model for PKPD analysis, ensuring bounded predictions and accounting for time-varying drug effects. Key takeaways include the use of logit scaling for bounded outcomes, adaptive ODE integration for efficiency, and posterior predictive checks for validation.
+
+For practical use, fit the model with informative priors based on prior knowledge, and always perform diagnostics like trace plots and PPCs. This approach enables reliable extrapolation beyond observed data, crucial for clinical decision-making.
+
+Next in the series: [PKPD Meta 105](/posts/pkpd_meta-105) explores extensions to multi-patient models.
+
+## Related Posts
+
+- [PKPD Meta 103: Reframing the Gelman ODE](/posts/pkpd_meta-103)
+- [Tools for Bayesian Modeling](/posts/tools)
