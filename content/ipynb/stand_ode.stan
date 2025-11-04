@@ -1,10 +1,10 @@
 functions {
-  real[] drug_disease_stim_kinL_Et_ode(real t,
-                                       real[] y,
-                                       real[] theta,
-                                       real[] x_r,
-                                       int[] x_i) {
-    real dydt[1];
+  vector[1] drug_disease_stim_kinL_Et_ode(real t,
+                                          vector[1] y,
+                                          array[] real theta,
+                                          array[] real x_r,
+                                          array[] int x_i) {
+    vector[1] dydt;
     real emax_0 = theta[1];
     real lec_50 = theta[2];
     real r180 = theta[3];
@@ -48,10 +48,10 @@ parameters {
 transformed parameters {
   vector[N] mu_bcva;
   {
-    real y0[1];
-    real theta[6];
-    real x_r[4];
-    int x_i[0];
+    vector[1] y0;
+    array[6] real theta;
+    array[4] real x_r;
+    array[0] int x_i;
     y0[1] = R0;
     theta[1] = emax0;
     theta[2] = lec50;
@@ -64,15 +64,15 @@ transformed parameters {
     x_r[3] = K;
     x_r[4] = hill;
     {
-      real y_hat[N, 1] = integrate_ode_rk45(drug_disease_stim_kinL_Et_ode,
-                                            y0,
-                                            0,
-                                            time,
-                                            theta,
-                                            x_r,
-                                            x_i);
+      array[N] vector[1] y_hat = ode_rk45(drug_disease_stim_kinL_Et_ode,
+                                          y0,
+                                          0,
+                                          to_array_1d(time),
+                                          theta,
+                                          x_r,
+                                          x_i);
       for (n in 1:N) {
-        mu_bcva[n] = inv_logit(y_hat[n, 1]) * 100;
+        mu_bcva[n] = inv_logit(y_hat[n][1]) * 100;
       }
     }
   }
