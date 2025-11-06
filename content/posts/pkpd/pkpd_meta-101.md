@@ -1,6 +1,6 @@
 +++
 title = "PKPD Meta 101: Modeling the Modern Drug Discovery Process"
-date = "2025-11-11T00:00:00Z"
+date = "2025-11-06T00:00:00Z"
 type = "post"
 draft = false
 tags = ["pkpd", "meta-analysis", "drug-discovery"]
