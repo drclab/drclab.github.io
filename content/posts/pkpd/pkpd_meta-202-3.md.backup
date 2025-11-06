@@ -1,0 +1,55 @@
++++
+title = "PKPD_META 202.3: Integrated Average Likelihood"
+type = "post"
+date = "2025-12-09"
+math = true
+draft = true
+summary = "Revisit the PKPD_META 202 synthetic datasets with Stan switched to the analytic average-data likelihood so we can see exactly how the external means enter the target"
+tags = ["pkpd", "bayesian", "stan", "likelihood"]
++++
+This third follow-up keeps the simulated cohorts from [PKPD_META 202](../pkpd_meta-202/) and the notebook wiring documented in [PKPD_META 202.1](./pkpd_meta-202-1/) but now mirrors the `integrated` configuration. The only data change from the approximate run is flipping the flags so Stan executes the closed-form likelihood: `fit_local = 0`, `fit_all = -1`. Everything else—internal patient matrix, external visit means, and prior settings—stays identical.
+
+## Stan switchboard for the integrated branch
+
+When the sampler sees `fit_all == -1`, the `transformed parameters` block in `content/ipynb/stan/linear_mvn_approx.stan` bypasses the Monte Carlo helper and calls the multivariate normal log-density directly:
+
+```stan
+} else if (fit_all == -1) {
+  vector[T_prime] y_prime_pred_bar;
+  matrix[T_prime,T_prime] Sigma_y_prime_bar;
+  Sigma_y_prime_bar = (X_prime*diag_matrix(sigma_a .* sigma_a)*X_prime'
+                       + sigma_y^2*identity) / J_prime;
+  for (k in 1:T_prime)
+    y_prime_pred_bar[k] = mu_a[1] + delta[1]
+                        + (mu_a[2] + delta[2]) * x_prime[k]
+                        + beta * x_prime[k]^2;
+
+  y_prime_log = multi_normal_lpdf(y_prime_bar | y_prime_pred_bar,
+                                  Sigma_y_prime_bar);
+}
+```
+
+Two quick observations keep the control flow straight:
+
+- The same `y_prime_bar = colMeans(y_prime)` constructed earlier feeds this branch, so the external information is still only the visit-level averages.
+- The approximate branch’s pseudo-patient draws `xi_tilde` never get touched here; the only randomness comes from the posterior draws of $(\mu_a, \delta, \beta, \sigma_a, \sigma_y)$.
+
+## How the exact likelihood is pieced together
+
+The analytic covariance `Sigma_y_prime_bar` mirrors the textbook result for the mean of correlated Gaussians. The design matrix `X_prime = [1, x_prime]` lifts the intercept and slope effects into visit space, Stan squares the subject-level scales via `diag_matrix(sigma_a .* sigma_a)`, and dividing by `J_prime` accounts for the fact we observe cohort means instead of individual trajectories. Adding `sigma_y^2 * I / J_prime` keeps the residual measurement noise in play, so the external averages retain information about both the shared curvature $\beta$ and the study-specific shift $\delta$.
+
+On the mean side, the loop reconstructs the polynomial trend the same way the approximate branch does, but without sampling noise. Because every posterior draw evaluates the exact Gaussian density, the integrated target is free of the Monte Carlo error that motivated the odd/even `J_tilde` split in the approximate case.
+
+## What to check after flipping the flag
+
+Running the notebook in integrated mode should show three telltale signatures:
+
+- The Stan console prints the same “`Running chain ... with J_tilde_chain = ...`” line as before, but the target contribution `y_prime_log` now comes from the closed-form term rather than the simulated approximation.
+- Posterior summaries (e.g. via `posterior::summarise_draws`) match the approximate run up to Monte Carlo error, echoing the comparison called out in `PKPD_META 202`. Any noticeable discrepancy signals a bug in the data packaging rather than stochastic noise.
+- Diagnostics such as `bayesplot::mcmc_trace()` stop reflecting the extra variability introduced by the simulated averages; chain overlays tighten because the integrated likelihood is deterministic conditional on the parameters.
+
+## PKPD navigation notes
+
+- Treat this branch as the ground truth whenever you can work with linear models or other settings where analytic averaging is available; it is the reference that validates the simulated-likelihood shortcut.
+- If you extend the workflow to nonlinear PKPD models, preserve the option to flip `fit_all` between `-1` and `0` so you can regression-test the simulated average block against the integrated benchmark on simpler submodels.
+- Remember that the data objects emitted by `pkpd_meta-202-sim.ipynb` already include both the approximate and integrated lists; documenting the flag flip keeps the notebooks and posts in sync for future reruns.
