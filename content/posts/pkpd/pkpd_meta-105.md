@@ -1,6 +1,6 @@
 +++
 title = "PKPD Meta 105: Single-Patient Bayesian Workflow"
-date = "2025-11-15T00:00:00Z"
+date = "2025-11-10T00:00:00Z"
 type = "post"
 draft = true
 math = true

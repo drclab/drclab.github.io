@@ -117,7 +117,7 @@ Stay parsimonious—extra shape parameters only help if data clearly demand them
 
 ## Notebook walkthrough: inhibitory Emax simulation
 
-The companion notebook (`content/pdf/pkpd_102.ipynb`) walks through a reproducible simulation that links an IV bolus concentration-time profile to its direct inhibitory pharmacodynamic response. Each cell below mirrors the notebook so you can track both the code and its output inside the article.
+The companion notebook (`content/ipynb/pkpd_102.ipynb`) walks through a reproducible simulation that links an IV bolus concentration-time profile to its direct inhibitory pharmacodynamic response. Each cell below mirrors the notebook so you can track both the code and its output inside the article.
 
 ### Import libraries
 
