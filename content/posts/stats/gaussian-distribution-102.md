@@ -1,6 +1,6 @@
 +++
 title = "Gauss 102: Distribution of the Sample Mean"
-date = "2025-11-12T00:00:00Z"
+date = "2025-11-13T00:00:00Z"
 type = "post"
 draft = true
 math = true

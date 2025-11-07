@@ -1,152 +1,99 @@
 +++
-title = "Gauss 201: Laplace Approximation"
+title = "Gauss 201: Multivariate Gaussian in Two Dimensions"
 date = "2025-12-12T00:00:00Z"
 type = "post"
 draft = true
 math = true
-tags = ["statistics", "probability", "gaussian", "laplace-approximation", "bayesian"]
+tags = ["statistics", "probability", "gaussian", "multivariate"]
 categories = ["posts"]
-description = "Using Gaussian approximations to summarize posterior distributions: mechanics, precision matrices, and when the method breaks down."
+description = "A hands-on guide to the two-dimensional Gaussian, highlighting means, covariance structure, and conditioning in terms of x1 and x2."
 +++
 
-The Laplace approximation turns a peaked, differentiable posterior into a multivariate Gaussian by matching the mode and curvature. It provides a fast analytic summary when MCMC is too slow and variational inference is overkill, making it a go-to tool for prototyping Bayesian models and sanity-checking inference pipelines.
+You'll meet multivariate Gaussians in every probabilistic model, but most practical intuition comes from the two-dimensional case. Limiting the dimensionality to $(x_1, x_2)$ keeps the algebra manageable while still revealing how means, variances, and correlations interact.
 
-## A note on Laplace
+## The 2D density
 
-Pierre-Simon Laplace (1749–1827) was a French mathematician and astronomer who pioneered probability theory and celestial mechanics. His work on the central limit theorem established why sums of random variables converge to the normal distribution. The Laplace approximation—using a Gaussian to approximate a distribution near its mode—exploits this convergence by treating the log-posterior as a quadratic around its peak. This method became essential in Bayesian inference before modern sampling algorithms, and it remains valuable for rapid exploratory analysis.
-
-## The core idea
-
-Given a posterior density $p(\theta \mid y)$ over parameters $\theta \in \mathbb{R}^d$, the Laplace approximation replaces it with a Gaussian centered at the mode:
+A centered two-dimensional Gaussian with mean vector $\mu = (\mu_1, \mu_2)$ and covariance matrix
 
 $$
-p(\theta \mid y) \approx \mathcal{N}(\theta \mid \hat{\theta}, \Sigma),
+\Sigma = 
+\begin{pmatrix}
+\sigma_{1}^2 & \rho \sigma_{1}\sigma_{2} \\
+\rho \sigma_{1}\sigma_{2} & \sigma_{2}^2
+\end{pmatrix}
 $$
 
-where $\hat{\theta} = \arg\max_\theta \log p(\theta \mid y)$ is the maximum a posteriori (MAP) estimate, and $\Sigma$ is the inverse of the negative Hessian (the observed Fisher information):
+has density
 
 $$
-\Sigma = \Big[-\nabla^2 \log p(\theta \mid y)\Big|_{\theta=\hat{\theta}}\Big]^{-1}.
+p(x_1, x_2) = \frac{1}{2\pi |\Sigma|^{1/2}}
+\exp\Bigg(-\frac{1}{2}
+\begin{pmatrix}x_1 - \mu_1 \\ x_2 - \mu_2\end{pmatrix}^\top
+\Sigma^{-1}
+\begin{pmatrix}x_1 - \mu_1 \\ x_2 - \mu_2\end{pmatrix}
+\Bigg),
 $$
 
-This approximation is exact when the log-posterior is quadratic (i.e., when the prior and likelihood are both Gaussian), and it degrades gracefully when the posterior is approximately log-concave.
+where $|\Sigma| = \sigma_1^2\sigma_2^2(1-\rho^2)$ for $|\rho|<1$. Everything you need to evaluate or sample the distribution fits into that $2\times2$ covariance.
 
-## Computing the approximation
+## What $\Sigma$ controls
 
-The workflow has three steps:
+- **Marginal spreads**: $\sigma_1^2$ and $\sigma_2^2$ give the variances of $x_1$ and $x_2$ individually.
+- **Correlation**: $\rho$ determines how the coordinates co-move. $\rho = 0$ yields axis-aligned ellipses; $|\rho| \to 1$ squeezes the ellipses along a line.
+- **Precision**: The inverse $\Lambda = \Sigma^{-1}$ is sometimes easier to estimate. In 2D,
+  $$
+  \Lambda = \frac{1}{1-\rho^2}
+  \begin{pmatrix}
+  \frac{1}{\sigma_1^2} & -\frac{\rho}{\sigma_1\sigma_2} \\
+  -\frac{\rho}{\sigma_1\sigma_2} & \frac{1}{\sigma_2^2}
+  \end{pmatrix}.
+  $$
+  Large diagonal entries mean the corresponding variable is well-constrained.
 
-1. **Find the mode**: Use Newton-Raphson, L-BFGS-B, or another optimizer to locate $\hat{\theta}$ by maximizing $\log p(\theta \mid y)$.
-2. **Evaluate the Hessian**: Compute the second derivative matrix $H = \nabla^2 \log p(\theta \mid y)$ at $\hat{\theta}$, either analytically or via automatic differentiation.
-3. **Invert for the covariance**: Set $\Sigma = -H^{-1}$. The diagonal entries give marginal variances; off-diagonal entries encode posterior correlations.
+## Geometry of contours
 
-For numerical stability, work with the precision matrix $\Lambda = \Sigma^{-1} = -H$ directly when you can, and use Cholesky decomposition for sampling or evaluation.
+Level sets of $p(x_1, x_2)$ are ellipses defined by $(\mathbf{x}-\mu)^\top \Sigma^{-1} (\mathbf{x}-\mu) = c$. The eigenvectors of $\Sigma$ give the ellipse axes; eigenvalues give squared axis lengths. Plotting a few ellipses is the fastest way to sanity-check whether your inferred covariance matches simulated data.
 
-## Example: Logistic regression
+## Marginals and conditionals stay Gaussian
 
-Consider Bayesian logistic regression with a Gaussian prior $\theta \sim \mathcal{N}(0, \tau^2 I)$ and binary observations $y_i \in \{0,1\}$ with likelihood
+Even with only two variables, the closure properties are powerful:
 
-$$
-p(y_i \mid x_i, \theta) = \sigma(x_i^\top \theta)^{y_i} \big[1 - \sigma(x_i^\top \theta)\big]^{1-y_i},
-$$
+- **Marginals**: Integrating out $x_2$ leaves $x_1 \sim \mathcal{N}(\mu_1, \sigma_1^2)$ (and vice versa). You can study each coordinate independently if correlation doesn't matter.
+- **Conditionals**: Conditioning on $x_2$ fixes the mean of $x_1$ to a linear function of the observed value:
+  $$
+  x_1 \mid x_2 = a \sim \mathcal{N}\Big(\mu_1 + \rho \frac{\sigma_1}{\sigma_2}(a - \mu_2),
+  (1-\rho^2)\sigma_1^2\Big).
+  $$
+  This linear/Gaussian structure underlies Kalman filters and Gaussian processes.
 
-where $\sigma(z) = 1/(1 + e^{-z})$ is the logistic function. The log-posterior is
+  When you observe $x_2 = a$, the conditional distribution of $x_1$ remains Gaussian but with an updated mean that shifts linearly with $a$. The slope of this shift is $\rho \frac{\sigma_1}{\sigma_2}$, reflecting how strongly $x_1$ correlates with $x_2$ and their relative scales. The conditional variance $(1-\rho^2)\sigma_1^2$ is always smaller than the marginal $\sigma_1^2$ (unless $\rho=0$), because observing $x_2$ provides information that reduces uncertainty about $x_1$.
 
-$$
-\log p(\theta \mid y, X) = \sum_{i=1}^{n} \Big[y_i \, x_i^\top\theta - \log(1 + e^{x_i^\top\theta})\Big] - \frac{1}{2\tau^2} \|\theta\|^2 + \text{const}.
-$$
+  Intuitively, if $\rho > 0$ and $a > \mu_2$, we expect $x_1$ to be above $\mu_1$ on average. This property makes bivariate Gaussians ideal for prediction: given a value of one variable, you can linearly predict the other with quantifiable uncertainty.
 
-The gradient and Hessian are
+  **Connections to applications:**
+  - **Kalman filters**: These recursively update state estimates (e.g., position and velocity) using linear dynamics and Gaussian noise. Each update conditions on new measurements, adjusting means and variances just like the bivariate conditional formula.
+  - **Gaussian processes**: For regression, predicting function values at unseen points uses the conditional distribution derived from observed data points, assuming a multivariate Gaussian prior over the function.
 
-$$
-\nabla_\theta \log p = \sum_{i=1}^{n} x_i \big(y_i - \sigma(x_i^\top\theta)\big) - \frac{\theta}{\tau^2},
-$$
+  For example, suppose $x_1$ is height and $x_2$ is weight, with $\rho = 0.8$. Observing a weight $a = 70$ kg (above average $\mu_2 = 65$) shifts the expected height to $\mu_1 + 0.8 \cdot (\sigma_1 / \sigma_2) \cdot 5$, with reduced variance compared to the unconditional height distribution.
 
-$$
-\nabla^2_\theta \log p = -\sum_{i=1}^{n} \sigma(x_i^\top\theta) \big[1 - \sigma(x_i^\top\theta)\big] x_i x_i^\top - \frac{I}{\tau^2}.
-$$
-
-Optimize to find $\hat{\theta}$, evaluate the Hessian, invert, and you have a Gaussian approximation for the posterior distribution of regression coefficients.
-
-## When the approximation works
-
-Laplace approximations excel when:
-
-- **The posterior is unimodal and roughly symmetric** around the mode, with light tails.
-- **Sample size is moderate to large**, so the likelihood dominates prior curvature and the central limit theorem kicks in.
-- **You need quick uncertainty estimates** for model comparison, sensitivity analysis, or prototyping.
-- **Gradient and Hessian evaluations are cheap**, making optimization faster than sampling.
-
-In these settings, the Laplace approximation delivers posterior means, variances, and credible intervals with minimal computational overhead.
-
-## When it breaks down
-
-The method fails in several common scenarios:
-
-1. **Multimodality**: If the posterior has multiple peaks, the Laplace approximation captures only one mode and underestimates uncertainty.
-2. **Heavy tails**: Cauchy-like tails or mixture models produce non-Gaussian posteriors; the approximation understates extreme quantiles.
-3. **Boundary constraints**: Parameters on $(0, \infty)$ or simplexes require reparameterization (e.g., log or logit transforms) before applying the approximation.
-4. **Small sample sizes**: When the prior dominates, non-Gaussian prior shapes propagate into the posterior, and quadratic approximations are too crude.
-5. **High correlations**: Strong posterior correlations amplify errors in the Hessian inversion, leading to overconfident intervals.
-
-Always validate the approximation with posterior predictive checks or a few MCMC chains to catch gross mismatches.
-
-## Implementation checklist
-
-1. **Transform constrained parameters**: Apply log, logit, or other bijections to map constrained spaces to $\mathbb{R}^d$ before optimization.
-2. **Use numerical Hessians cautiously**: Finite-difference Hessians are fragile; prefer automatic differentiation (JAX, PyTorch, Stan's `optimizing()` mode).
-3. **Check the Hessian is negative definite**: If eigenvalues are positive, the "mode" is a saddle point or boundary solution—revisit the model or add regularization.
-4. **Compare with MCMC on a subset**: Run a short MCMC chain to verify marginal variances and correlations roughly match the Laplace covariance.
-5. **Report the approximation**: Document that intervals come from a Laplace approximation, not full posterior sampling, to manage user expectations.
-
-## Code snippet in Python
+## Quick sampling recipe
 
 ```python
 import numpy as np
-from scipy.optimize import minimize
-from scipy.stats import multivariate_normal
 
-def log_posterior(theta, X, y, tau):
-    """Log-posterior for logistic regression with Gaussian prior."""
-    logits = X @ theta
-    log_lik = y * logits - np.log(1 + np.exp(logits))
-    log_prior = -0.5 * np.sum(theta**2) / tau**2
-    return np.sum(log_lik) + log_prior
+mu = np.array([mu1, mu2])
+Sigma = np.array([[sigma1**2, rho * sigma1 * sigma2],
+                  [rho * sigma1 * sigma2, sigma2**2]])
 
-def neg_log_posterior(theta, X, y, tau):
-    return -log_posterior(theta, X, y, tau)
-
-# Find MAP estimate
-theta_init = np.zeros(X.shape[1])
-result = minimize(neg_log_posterior, theta_init, args=(X, y, tau), 
-                  method='L-BFGS-B', options={'disp': False})
-theta_map = result.x
-
-# Compute Hessian numerically (or use autograd)
-from scipy.optimize import approx_fprime
-eps = np.sqrt(np.finfo(float).eps)
-
-def hessian_fd(theta):
-    """Finite-difference Hessian."""
-    d = len(theta)
-    H = np.zeros((d, d))
-    for i in range(d):
-        def grad_i(th):
-            return approx_fprime(th, lambda t: log_posterior(t, X, y, tau), eps)[i]
-        H[i, :] = approx_fprime(theta, grad_i, eps)
-    return H
-
-H = hessian_fd(theta_map)
-Sigma = -np.linalg.inv(H)  # Covariance matrix
-
-# Sample from the Laplace approximation
-laplace_dist = multivariate_normal(mean=theta_map, cov=Sigma)
-samples = laplace_dist.rvs(size=1000)
+samples = np.random.multivariate_normal(mu, Sigma, size=5000)
+x1, x2 = samples[:, 0], samples[:, 1]
 ```
 
-## Extending to variational inference
+In two dimensions it's easy to visualize `samples` with a scatter plot and verify that empirical covariances match the target $\Sigma$.
 
-The Laplace approximation is a fixed-point method: it finds one Gaussian and stops. Variational inference generalizes this by optimizing over a family of Gaussians (or other tractable distributions) to minimize KL divergence from the true posterior. When the variational family includes full-rank Gaussians, the solution often sits close to the Laplace approximation, but with adjustable flexibility for skewness or factorization constraints.
+## Checklist for Gauss 201
 
-## Summary
-
-The Laplace approximation converts optimization into inference by wrapping a Gaussian around the posterior mode. It is fast, interpretable, and sufficient for many exploratory analyses, but it requires validation against sampling methods when the posterior shape is unknown. Keep it in the Bayesian toolkit for prototyping and as a stepping stone to more sophisticated approximations.
+1. Work directly with the $2 \times 2$ covariance—no need for higher-dimensional code paths.
+2. Plot ellipses or scatter plots to build intuition about $(x_1, x_2)$ correlations.
+3. Use conditional formulas to predict $x_1$ from $x_2$ or to impute missing values.
+4. Remember that every high-dimensional Gaussian is built from these 2D blocks; mastering them pays off when you scale to Gauss 301+.
