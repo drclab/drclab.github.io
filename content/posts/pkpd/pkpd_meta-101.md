@@ -3,7 +3,7 @@ title = "PKPD Meta 101: Modeling the Modern Drug Discovery Process"
 date = "2025-11-06T00:00:00Z"
 type = "post"
 draft = false
-tags = ["pkpd", "meta-analysis", "drug-discovery"]
+tags = ["pkpd"]
 categories = ["posts"]
 description = "Sets the stage for a PK/PD meta-analysis series by tracing the modern drug discovery pipeline and showing how Bayesian aggregation of individual and average data keeps decisions aligned across phases."
 +++

@@ -5,7 +5,7 @@ date = "2025-12-05"
 math = true
 draft = true
 summary = "Distilling Section 3 of Gelman et al. (2018) into a PKPD-ready recipe: informative priors on study deltas, simulated likelihoods for average-only readouts, and convergence tuning in Stan."
-tags = ["pkpd", "bayesian", "meta-analysis", "stan"]
+tags = ["pkpd", "meta"]
 +++
 
 Section 3 of the Gelman et al. Bayesian aggregation paper sharpens the workflow we need when a PKPD program mixes rich internal patient-level data with literature summaries. The authors work in a hierarchical Bayesian frame, keep the core population parameters intact, and layer external evidence through a controlled deviation vector $\delta = \bar{\phi} - \phi$.

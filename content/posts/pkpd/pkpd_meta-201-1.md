@@ -5,7 +5,7 @@ date = "2025-12-06"
 math = true
 draft = true
 summary = "Work the PKPD_META 201 average-data likelihood into explicit multivariate normal form, including the mean vector, covariance construction, and matrix identities needed for Stan."
-tags = ["pkpd", "bayesian", "meta-analysis", "statistics"]
+tags = ["pkpd", "meta"]
 +++
 
 This follow-up to [PKPD_META 201](../pkpd_meta-201/) zooms in on the multivariate normal block that carries the external visit-level averages. The simulation-based Laplace approximation still supplies the moments, but we now write down the exact matrix expressions so the likelihood becomes transparent, auditable, and easily ported to Stan or NumPyro.
