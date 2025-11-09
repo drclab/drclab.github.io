@@ -1,6 +1,6 @@
 +++ 
-title = "PyMC 101: Linear Regression With Synthetic Plants"
-slug = "pymc-101"
+title = "PyMC 103: Linear Regression With Synthetic Plants"
+slug = "pymc-103"
 aliases = ["pymc101"]
 date = "2025-11-09T18:36:20Z"
 type = "post"
@@ -159,6 +159,53 @@ Two important tricks are hiding here:
 The final `pm.stats.summary` reports the predictive mean and standard deviation for each of the three new trials. Their spreads reflect both observation noise (`sigma`) and posterior uncertainty in the betas.
 
 ## Where to go next
+
+## PyMC primitives — quick reference
+
+Below are short explanations and tips for the PyMC building blocks used in the notebook. These are practical notes you can keep next to the code when porting the notebook to your own analysis.
+
+- pm.Model(coords=...)
+    - The top-level context that holds random variables and metadata. Passing a `coords` mapping (like `{"trial": range(100), "features": [...]}`) attaches human-friendly names to array dimensions. When variables declare `dims`, PyMC aligns shapes using these coordinates which makes traces and predictions easier to slice and label.
+
+- pm.Data(name, value, dims=...)
+    - A mutable data wrapper for observed covariates or design matrices. Use `pm.Data("x", x_array, dims=["trial","features"])` so you can later swap `x` with `pm.set_data(...)` without rebuilding the model. `pm.Data` is the recommended pattern for prediction and cross-validation.
+
+- pm.MutableData
+    - An explicit mutable container (alias/variant in some PyMC versions). The notebook uses `pm.Data` + `pm.set_data`, which is the same workflow: declare once, update many times for predictions.
+
+- pm.Distribution vs pm.<RVname>
+    - `pm.Normal("betas", dims="features")` defines a random variable in the model and registers it in the model context. `pm.Normal.dist(shape=...)` returns a distribution object that you can sample from outside a model with `pm.draw(...)` (useful for synthetic data generation).
+
+- pm.draw(dist, random_seed=...)
+    - Draws a NumPy array from a distribution object (not from the model). We use this to create synthetic covariates and new prediction inputs before attaching them to the model.
+
+- pm.do(model, interventions)
+    - A convenience context that temporarily overrides nodes in a model (an intervention). In the notebook we `pm.do(generative_model, fixed_parameters)` so the prior predictive draw behaves like a controlled data generator without permanently changing the model.
+
+- pm.observe(model, {"rv_name": values})
+    - Wraps a model with observed data by replacing the likelihood's random variable with the supplied array. This produces an `inference_model` context you can call `pm.sample` from. It’s a compact alternative to rebuilding a model with `observed=` arguments.
+
+- pm.sample(random_seed=..., tune=..., draws=...)
+    - Runs the chosen sampler (NUTS by default for continuous models). Typical workflow: initialize, run multiple chains (the notebook uses 4), and inspect `pm.stats.summary` or ArviZ plots for convergence diagnostics (`r_hat`, ESS).
+
+- pm.sample_prior_predictive / pm.sample_posterior_predictive
+    - `sample_prior_predictive` generates data under prior assumptions; `sample_posterior_predictive` simulates data from the posterior (or predictive) distribution. Use `extend_inferencedata=True` when you want the draws attached to the same `InferenceData` object for downstream plotting.
+
+- pm.set_data({...}, coords=...)
+    - Replaces the arrays stored in `pm.Data` objects. When predicting, call this inside the model context and then run `pm.sample_posterior_predictive` to generate predictions for new covariates.
+
+- pm.Deterministic("name", expr)
+    - Register a named derived variable in the trace. Useful for quantities of scientific interest (ratios, contrasts, predicted outcomes) that you want stored in the `InferenceData` for plotting.
+
+- pm.Potential("name", logp)
+    - Add an unnormalized log-probability term to the model. Handy for non-standard penalties or for incorporating constraints that are difficult to express as standard distributions.
+
+Tips and idioms
+
+- Prefer short, slug-like variable names (e.g., `plant_growth`) so ArviZ indexing is simpler — spaces are allowed but require bracket-style selection in summaries.
+- Use `coords` + `dims` liberally: they make multi-dimensional models (hierarchies, panel data) much easier to reason about and display.
+- When debugging model shape errors, print shapes from `pm.draw` and double-check `dims` order; shape mismatches are usually a dims/coords issue.
+- Keep the data-declaration (`pm.Data`) separate from model structure so you can re-use the model for prior predictive checks, posterior inference, and out-of-sample prediction with minimal code changes.
 
 - Plug the notebook into `hugo server --buildDrafts --buildFuture` and render the Markdown side-by-side to ensure equations and code blocks look right.
 - Replace the synthetic Normal draws with measurements from your project; only the `pm.Data` block and coordinate names need to change.
