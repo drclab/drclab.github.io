@@ -1,6 +1,6 @@
 +++ 
 title = "PKPD Meta 104: Mapping the Gelman ODE into Stan"
-date = "2025-11-09T00:00:00Z"
+date = "2025-11-09T01:00:00Z"
 type = "post"
 draft = false
 tags = ["pkpd", "stan", "ode"]
