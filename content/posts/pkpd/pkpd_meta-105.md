@@ -2,7 +2,7 @@
 title = "PKPD Meta 105: Single-Patient Bayesian Workflow"
 date = "2025-11-10T00:00:00Z"
 type = "post"
-draft = true
+draft = false
 math = true
 tags = ["pkpd", "stan", "cmdstanpy", "ode"]
 categories = ["posts"]

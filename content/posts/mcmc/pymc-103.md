@@ -2,7 +2,7 @@
 title = "PyMC 103: Linear Regression With Synthetic Plants"
 slug = "pymc-103"
 aliases = ["pymc101"]
-date = "2025-11-09T18:36:20Z"
+date = "2025-11-11T18:36:20Z"
 type = "post"
 draft = false
 math = false
