@@ -10,7 +10,7 @@ categories = ["posts"]
 description = "Guided tour of the official PyMC overview: model contexts, inference engines, predictive checks, and workflow tips for your first probabilistic programs."
 +++
 
-The [PyMC Overview](https://www.pymc.io/projects/docs/en/stable/learn/core_notebooks/pymc_overview.html) distills what you need to know before building Bayesian models in PyMC 5. This post retells that notebook-sized tour in prose so you can keep the big ideas handy while experimenting in a REPL or notebook.
+The [PyMC Overview](https://www.pymc.io/projects/docs/en/stable/learn/core_notebooks/pymc_overview.html) distills what you need to know before building Bayesian models in PyMC 5. This post retells that notebook-sized tour in prose so you can keep the big ideas handy while experimenting in a REPL or notebook. All examples here use PyMC 5.26.1.
 
 ## 1. Why PyMC is compelling
 
@@ -54,6 +54,15 @@ with linear_model:
         random_seed=14,
     )
 ```
+
+For a simple linear regression model with simulated data, this produces posterior summaries like:
+
+|       | mean |   sd | hdi_3% | hdi_97% | mcse_mean | mcse_sd | ess_bulk | ess_tail | r_hat |
+|-------|------|------|--------|---------|-----------|---------|----------|----------|-------|
+| alpha | 1.17 | 0.11 | 0.98   | 1.38    | 0.00      | 0.00    | 5856.93  | 2866.44  | 1.0   |
+| beta[0] | 1.00 | 0.10 | 0.81   | 1.20    | 0.00      | 0.00    | 5379.70  | 3052.57  | 1.0   |
+| beta[1] | 2.88 | 0.51 | 1.96   | 3.87    | 0.01      | 0.01    | 5269.01  | 3339.48  | 1.0   |
+| sigma | 1.01 | 0.07 | 0.87   | 1.14    | 0.00      | 0.00    | 5666.33  | 3077.97  | 1.0   |
 
 Under the hood PyMC will:
 1. Initialize with `pm.init_nuts()` (jitter + adapt_diag) to find a stable mass matrix.
