@@ -1,0 +1,13 @@
+# Latest PyMC v5 and common dependencies
+pymc>=5.0
+arviz
+xarray
+numpy
+scipy
+pandas
+matplotlib
+
+# Jupyter for interactive notebooks
+jupyterlab
+ipywidgets
+notebook

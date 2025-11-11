@@ -107,10 +107,12 @@ Here is an example inspired by a blog post by Jake Vanderplas on which priors to
 ```python
 import pymc as pm
 import pytensor.tensor as pt
+import numpy as np
 
-# Assuming X and Y are your data
-X = np.array([...])
-Y = np.array([...])
+# Generate sample data for demonstration
+np.random.seed(42)
+X = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0])
+Y = np.array([2.5, 4.1, 5.8, 8.2, 10.5, 12.1, 14.3, 16.8, 18.9, 21.2])
 
 with pm.Model() as model:
     alpha = pm.Uniform('intercept', -100, 100)
