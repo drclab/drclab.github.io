@@ -1,7 +1,7 @@
 +++
 title = "PKPD_META 106: Two-Patient PKPD Workflow with Stand ODE and RStan"
 type = "post"
-date = "2025-11-11"
+date = "2025-11-11T00:00:00Z"
 draft = false
 summary = "Extending the PKPD Meta 105 walkthrough to two synthetic patients, comparing single-subject fits against a pooled population perspective with notebook outputs and posterior charts."
 tags = ["pkpd", "stan"]

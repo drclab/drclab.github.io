@@ -5,38 +5,42 @@ date = "2025-11-19T00:00:00Z"
 type = "post"
 draft = false
 math = true
-tags = ["pymc", "bayesian", "time-series", "change-point", "discrete"]
+tags = ["pymc", "time-series", "discrete"]
 categories = ["posts"]
-description = "A worked case study: modeling change points in count data (coal-mining disasters 1851–1962) with PyMC, handling missing years and mixing samplers for discrete parameters."
+description = "A worked case study: modeling change points in count data (coal-mining disasters 1851–1961) with PyMC, handling missing years and mixing samplers for discrete parameters."
 +++
 
-This note walks through a classic pedagogical example: the number of recorded coal-mining disasters in the UK between 1851 and 1962 (Jarrett, 1979). The data are counts per year and include a couple of missing entries. The scientific question is straightforward: did the disaster rate change at some point during this period, and if so when? A change-point model (two Poisson regimes with a discrete switch-point) is a simple and interpretable way to answer it.
+This note walks through a classic pedagogical example: the number of recorded coal-mining disasters in the UK between 1851 and 1961 (Jarrett, 1979). The data are counts per year and include two missing entries. The scientific question is straightforward: did the disaster rate change at some point during this period, and if so when? A change-point model (two Poisson regimes with a discrete switch-point) is a simple and interpretable way to answer it.
 
 ## The data
 
-The original example stores the counts in a pandas Series with years 1851–1962. A few entries are missing (represented as `NaN`), and PyMC will treat those as missing observations to be imputed as part of inference.
+The original example stores the counts in a pandas Series with years 1851–1961 (111 years total). Two entries are missing (represented as `NaN`), and PyMC will treat those as missing observations to be imputed as part of inference.
 
 Occurrences of disasters in the time series are thought to follow a Poisson process with a large rate parameter in the early part of the time series, and one with a smaller rate in the later part. We are interested in locating the change point in the series, which is perhaps related to changes in mining safety regulations.
 
 ```python
-# fml: off
+# fmt: off
 disaster_data = pd.Series(
     [4, 5, 4, 0, 1, 4, 3, 4, 0, 6, 3, 3, 4, 0, 2, 6,
-     3, 3, 5, 4, 5, 3, 1, 4, 4, 1, 5, 5, 3, 4, 2, 5,
-     2, 2, 3, 4, 2, 1, 3, np.nan, 2, 1, 1, 1, 3, 0, 0,
-     1, 0, 1, 1, 0, 0, 3, 1, 0, 3, 2, 2, 0, 1, 1, 1,
-     0, 1, 0, 1, 0, 0, 0, 2, 1, 0, 0, 0, 0, 1, 0, 1]
+    3, 3, 5, 4, 5, 3, 1, 4, 4, 1, 5, 5, 3, 4, 2, 5,
+    2, 2, 3, 4, 2, 1, 3, np.nan, 2, 1, 1, 1, 1, 3, 0, 0,
+    1, 0, 1, 1, 0, 0, 3, 1, 0, 3, 2, 2, 0, 1, 1, 1,
+    0, 1, 0, 1, 0, 0, 0, 2, 1, 0, 0, 0, 1, 1, 0, 2,
+    3, 3, 1, np.nan, 2, 1, 1, 1, 1, 2, 4, 2, 0, 0, 1, 4,
+    0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1]
 )
-# fml: on
-years = np.arange(1851, 1963)
+# fmt: on
+years = np.arange(1851, 1962)
 
 plt.plot(years, disaster_data, "o", markersize=8, alpha=0.6)
 plt.ylabel("Disaster count")
 plt.xlabel("Year")
-plt.title("Coal mining disasters (1851–1962)")
+plt.title("Coal mining disasters (1851–1961)")
 ```
 
-The plot shows a higher frequency of disasters in the early period and fewer disasters later—suggestive of a change in the underlying Poisson rate.
+![Coal mining disasters data (1851-1961)](/img/pymc-104/disaster-data.png)
+
+The plot shows a higher frequency of disasters in the early period and fewer disasters later—suggestive of a change in the underlying Poisson rate. You can see two missing data points (the gaps in the scatter plot) which PyMC will impute during inference.
 
 ## A simple change-point model
 
@@ -79,6 +83,8 @@ Model sketch (implementation notation):
 Because $\tau$ is discrete we cannot sample it with NUTS. A common and robust solution is to mix samplers: use a Metropolis (or another discrete sampler) for $\tau$ and NUTS for the continuous rate parameters.
 
 ## PyMC implementation
+
+**Note:** The examples in this post use PyMC v5.26.1. The API is stable but check the official documentation if using a different version.
 
 The model translates directly into PyMC code:
 
@@ -144,9 +150,12 @@ This produces output showing the automatic sampler assignment:
 ```
 Multiprocess sampling (4 chains in 4 jobs)
 CompoundStep
+>CompoundStep
 >>Metropolis: [switchpoint]
 >>Metropolis: [disasters_unobserved]
->>NUTS: [early_rate, late_rate]
+>NUTS: [early_rate, late_rate]
+
+Sampling 4 chains for 1_000 tune and 10_000 draw iterations (4_000 + 40_000 draws total) took 15 seconds.
 ```
 
 PyMC automatically:
@@ -219,6 +228,8 @@ for ax in axes_arr.flatten():
 plt.draw()
 ```
 
+![Trace plot for all model parameters](/img/pymc-104/trace-plot.png)
+
 In the trace plot we can see that there's about a 10-year span that's plausible for a significant change in safety, but a 5-year span that contains most of the probability mass. The distribution is jagged because of the jumpy relationship between the year switchpoint and the likelihood; the jaggedness is not due to sampling error.
 
 The trace plot reveals:
@@ -226,6 +237,25 @@ The trace plot reveals:
 - **Right panels** show the sampling chains over iterations
 - The **switchpoint** posterior is discrete and concentrated around 1890–1895
 - The **early_rate** and **late_rate** parameters show clear separation, confirming a genuine rate change
+
+#### Summary statistics
+
+Here are the posterior estimates for our key parameters:
+
+```
+                 mean     sd    hdi_3%   hdi_97%  mcse_mean  mcse_sd  ess_bulk  ess_tail  r_hat  
+switchpoint  1889.865  2.463  1885.000  1894.000      0.050    0.030    2469.0    3982.0    1.0  
+early_rate      3.084  0.286     2.575     3.643      0.002    0.001   21472.0   26470.0    1.0  
+late_rate       0.930  0.117     0.711     1.150      0.001    0.001   25431.0   25151.0    1.0  
+```
+
+Key findings:
+- **Switchpoint**: The change occurred around **1890** (mean: 1889.9, 94% HDI: 1885-1894)
+- **Early disaster rate**: Approximately **3.1 disasters/year** before the change (94% HDI: 2.6-3.6)
+- **Late disaster rate**: Approximately **0.9 disasters/year** after the change (94% HDI: 0.7-1.2)
+- **Rate reduction**: The disaster rate dropped by roughly **70%** after 1890
+- All **r_hat values = 1.0**, indicating excellent convergence
+- High **effective sample sizes** (ESS > 2000) ensure reliable posterior estimates
 
 ### Posterior distribution of the change-point
 
@@ -308,25 +338,35 @@ plt.legend()
 plt.title("Coal mining disasters with estimated change-point")
 ```
 
+![Switchpoint visualization with HPD interval](/img/pymc-104/switchpoint-visualization.png)
+
 This comprehensive plot shows:
 - The observed disaster counts (blue dots)
-- The mean switchpoint estimate (orange vertical line)
-- The 94% HPD interval for the switchpoint (orange shaded band)
+- The mean switchpoint estimate (orange vertical line) at year **~1890**
+- The 94% HPD interval for the switchpoint (orange shaded band) spanning approximately **1885-1894**
 - The expected disaster rate that adapts to the switchpoint (dashed black line)
 
-The expected rate line clearly shows the transition from higher disaster frequency in the early period to lower frequency in the later period.
+The expected rate line clearly shows the transition from higher disaster frequency in the early period (averaging ~3 disasters/year) to lower frequency in the later period (averaging ~1 disaster/year). This dramatic reduction is consistent with improvements in mining safety regulations and practices that were implemented in the late 19th century.
 
 ### Imputed missing values
+
+The dataset contains missing observations for two years: **1890 and 1934**. PyMC automatically created latent variables to model these missing values and sampled them as part of the inference process. You can access the imputed values from the posterior:
 
 ```python
 # Imputed missing values (posterior predictive)
 with disasters_model:
     ppc = pm.sample_posterior_predictive(trace, var_names=["obs"], random_seed=42)
 
+# The missing values are stored in idata.posterior['disasters_unobserved']
 # ppc["obs"] has shape (draws, years). For missing-year index i, summarize ppc["obs"][ :, i]
 ```
 
-Because PyMC created latent variables for missing entries, the posterior predictive draws include draws for those years and give an imputed distribution.
+Because PyMC created latent variables for missing entries (accessible as `disasters_unobserved` in the trace), the posterior predictive draws include draws for those years and give an imputed distribution. This allows us to:
+- Estimate the likely number of disasters in the missing years
+- Quantify our uncertainty about those estimates
+- Use the complete dataset for prediction and model checking
+
+The missing data points are particularly interesting: 1890 falls right at the estimated switchpoint, while 1934 is well into the late period with lower disaster rates.
 
 ## Practical tips
 
@@ -341,133 +381,19 @@ Because PyMC created latent variables for missing entries, the posterior predict
 - Model seasonality or covariates: include time-varying covariates or a latent Gaussian process for a smoothly varying rate.
 - Marginalize discrete parameters: in some conjugate models you can sum/integrate out the discrete variable analytically to keep everything continuous.
 
-## Arbitrary deterministics
+## Next steps
 
-Due to its reliance on PyTensor, PyMC provides many mathematical functions and operators for transforming random variables into new random variables. However, the library of functions in PyTensor is not exhaustive, therefore PyTensor and PyMC provide functionality for creating arbitrary functions in pure Python, and including these functions in PyMC models. This is supported with the `as_op` function decorator.
-
-PyTensor needs to know the types of the inputs and outputs of a function, which are specified for `as_op` by `itypes` for inputs and `otypes` for outputs.
-
-```python
-from pytensor.compile.ops import as_op
-
-@as_op(itypes=[pt.lscalar], otypes=[pt.lscalar])
-def crazy_modulo3(value):
-    if value > 0:
-        return value % 3
-    else:
-        return (-value + 1) % 3
-
-with pm.Model() as model_deterministic:
-    a = pm.Poisson("a", 1)
-    b = crazy_modulo3(a)
-```
-
-### Important caveat: gradient limitations
-
-An important drawback of this approach is that it is not possible for `pytensor` to inspect these functions in order to compute the gradient required for the Hamiltonian-based samplers. Therefore, it is not possible to use the HMC or NUTS samplers for a model that uses such an operator. However, it is possible to add a gradient if we inherit from `Op` instead of using `as_op`. The PyMC example set includes a more elaborate example of the usage of `as_op`.
-
-This limitation is why our coal-mining disasters model uses the simpler `pm.math.switch` function (which is differentiable) rather than custom Python functions for the rate switching logic.
-
-### When to use `as_op`
-
-Use `as_op` when:
-- You need a custom transformation not available in PyTensor
-- You're using discrete-only models (where gradients aren't needed)
-- You're willing to use Metropolis or other gradient-free samplers
-
-Avoid `as_op` when:
-- You want to use NUTS or HMC samplers
-- The transformation can be expressed using built-in PyTensor operations
-- Performance is critical (native PyTensor operations are faster)
-
-## Arbitrary distributions
-
-Similarly, the library of statistical distributions in PyMC is not exhaustive, but PyMC allows for the creation of user-defined functions for an arbitrary probability distribution. For simple statistical distributions, the `CustomDist` class takes as an argument any function that calculates a log-probability $\log(p(x))$. This function may employ other random variables in its calculation. Here is an example inspired by a blog post by Jake Vanderplas on which priors to use for a linear regression (Vanderplas, 2014).
-
-```python
-import pytensor.tensor as pt
-
-with pm.Model() as model:
-    alpha = pm.Uniform('intercept', -100, 100)
-    
-    # Create variables with custom log-densities
-    beta = pm.CustomDist('beta', logp=lambda value: -1.5 * pt.log(1 + value**2))
-    eps = pm.CustomDist('eps', logp=lambda value: -pt.log(pt.abs_(value)))
-    
-    # Create likelihood
-    like = pm.Normal('y_est', mu=alpha + beta * X, sigma=eps, observed=Y)
-```
-
-### Advanced custom distributions
-
-For more complex distributions, one can create a subclass of `Continuous` or `Discrete` and provide the custom `logp` function, as required. This is how the built-in distributions in PyMC are specified. As an example, fields like psychology and astrophysics have complex likelihood functions for particular processes that may require numerical approximation.
-
-#### Example: Custom distribution with `RandomVariable`
-
-Implementing the `beta` variable above as a `Continuous` subclass is shown below, along with an associated `RandomVariable` object, an instance of which becomes an attribute of the distribution.
-
-```python
-class BetaRV(pt.random.op.RandomVariable):
-    name = "beta"
-    ndim_supp = 0
-    ndims_params = []
-    dtype = "floatX"
-    
-    @classmethod
-    def rng_fn(cls, rng, size):
-        raise NotImplementedError("Cannot sample from beta variable")
-
-beta = BetaRV()
-```
-
-#### Example: Full custom distribution subclass
-
-```python
-class Beta(pm.Continuous):
-    rv_op = beta
-    
-    @classmethod
-    def dist(cls, mu=0, **kwargs):
-        mu = pt.as_tensor_variable(mu)
-        return super().dist([mu], **kwargs)
-    
-    def logp(self, value):
-        mu = self.mu
-        return beta_logp(value - mu)
-
-def beta_logp(value):
-    return -1.5 * pt.log(1 + (value) ** 2)
-
-with pm.Model() as model:
-    beta = Beta("beta", mu=0)
-```
-
-This example shows:
-- Creating a custom `RandomVariable` class (`BetaRV`)
-- Defining the distribution's properties (name, dimensionality, data type)
-- Implementing a `Continuous` distribution subclass (`Beta`)
-- Providing the `dist` class method for parameter handling
-- Implementing the `logp` method for log-probability calculation
-- Using the custom distribution in a model
-
-#### Using `as_op` for log-probability functions
-
-If your logp cannot be expressed in PyTensor, you can decorate the function with `as_op` as follows:
-
-```python
-@as_op(itypes=[pt.dscalar], otypes=[pt.dscalar])
-```
-
-Note that this will create a blackbox Python function that will be much slower and not provide the gradients necessary for e.g. NUTS. This should only be used as a last resort when the log-probability cannot be expressed using PyTensor operations.
-
-Creating a custom distribution subclass allows you to:
-- Define complex probability models not available in the standard library
-- Implement domain-specific likelihoods
-- Add custom validation and parameterization logic
-- Provide custom sampling methods if needed
-
-This flexibility makes PyMC extensible to virtually any probabilistic model, from standard textbook examples to cutting-edge research applications.
+For advanced topics like creating custom operations and distributions in PyMC, see [PyMC 201: Advanced Topics](/posts/pymc-201/).
 
 ## Summary
 
 Change-point models are an excellent first application of Bayesian techniques for count time series. This case study demonstrates how PyMC handles missing observations and how to combine samplers to infer discrete parameters. The coal-mining disasters example remains a compact and instructive problem for learning these techniques.
+
+Key takeaways:
+- **Mixed sampling strategies** allow us to handle models with both discrete and continuous parameters
+- **Missing data** is handled automatically by PyMC when you pass arrays with `NaN` values
+- **pm.math.switch** provides differentiable conditional logic for piecewise functions
+- **Convergence diagnostics** (r_hat, ESS) are essential for validating MCMC results
+- **Visualization** of the change-point and HDI intervals helps communicate uncertainty
+
+The model successfully identified a significant reduction in coal mining disasters around 1890, corresponding to improved safety regulations in the late 19th century.
