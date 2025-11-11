@@ -4,7 +4,7 @@ type = "post"
 date = "2025-11-11"
 draft = false
 summary = "Extending the PKPD Meta 105 walkthrough to two synthetic patients, comparing single-subject fits against a pooled population perspective with notebook outputs and posterior charts."
-tags = ["pkpd", "stan", "bayesian"]
+tags = ["pkpd", "stan"]
 +++
 
 The [PKPD Meta 105: Single-Patient Bayesian Workflow](/posts/pkpd/pkpd_meta-105/) walkthrough demonstrated the CmdStanPy pipeline on a single synthetic retina subject. This follow-up moves the exact `stand_ode` model into RStan, keeps the original patient as a reference point, and adds a second longitudinal BCVA record to expose the population signal. The companion notebook [`stand-ode-rstan-demo.ipynb`](../../ipynb/stand-ode-rstan-demo.ipynb) captures the full analysis; the highlights below surface the evidence without opening the notebook.
