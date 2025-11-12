@@ -1,7 +1,7 @@
 +++
 title = "PyMC 201: Advanced Topics — Custom Operations and Distributions"
 slug = "pymc-201"
-date = "2025-11-19T01:00:00Z"
+date = "2025-11-16T01:00:00Z"
 type = "post"
 draft = false
 math = true
