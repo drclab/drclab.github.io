@@ -1,7 +1,7 @@
 +++
 title = "PyMC 101: Overview and Workflow"
 slug = "pymc-101"
-date = "2025-11-15T00:00:00Z"
+date = "2025-11-12T00:00:00Z"
 type = "post"
 draft = false
 math = false
