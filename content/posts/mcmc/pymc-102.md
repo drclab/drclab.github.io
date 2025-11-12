@@ -1,7 +1,7 @@
 +++
 title = "PyMC 102: Regularized Regression with the Horseshoe Prior"
 slug = "pymc-102"
-date = "2025-11-17T00:00:00Z"
+date = "2025-11-13T00:00:00Z"
 type = "post"
 draft = false
 math = true

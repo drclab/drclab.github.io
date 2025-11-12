@@ -1,7 +1,7 @@
 +++
 title = "PyMC 104: Change-point modeling — Coal mining disasters"
 slug = "pymc-104"
-date = "2025-11-19T00:00:00Z"
+date = "2025-11-15T00:00:00Z"
 type = "post"
 draft = false
 math = true
