@@ -1,8 +1,8 @@
 +++
 title = "Gauss 101"
-date = "2025-11-12T00:00:00Z"
+date = "2025-11-21T00:00:00Z"
 type = "post"
-draft = true
+draft = false
 math = true
 tags = ["statistics", "probability", "gaussian", "univariate"]
 categories = ["posts"]
