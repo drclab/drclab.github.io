@@ -5,7 +5,7 @@ date = "2025-11-13T00:00:00Z"
 type = "post"
 draft = false
 math = true
-tags = ["pymc", "bayesian", "regularization", "horseshoe", "variable-selection"]
+tags = ["pymc", "regularization", "horseshoe", "variable-selection"]
 categories = ["posts"]
 description = "Building a hierarchical regularized horseshoe model in PyMC for automatic variable selection: prior specification, non-centered reparameterization, and interpreting shrinkage patterns."
 +++
