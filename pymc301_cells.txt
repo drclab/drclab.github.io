@@ -1,0 +1,265 @@
+
+CELL 0 [code]
+from functools import partial
+import graphviz
+
+CELL 1 [code]
+import matplotlib.pyplot as plt
+import numpy as np
+import pytensor
+import pytensor.tensor as pt
+import scipy.stats
+
+import pymc as pm
+
+CELL 2 [code]
+x = pt.scalar(name="x")
+y = pt.vector(name="y")
+
+print(
+    f"""
+x type: {x.type}
+x name = {x.name}
+---
+y type: {y.type}
+y name = {y.name}
+"""
+)
+
+CELL 3 [code]
+z = x + y
+z.name = "x + y"
+
+CELL 4 [code]
+w = pt.log(z)
+w.name = "log(x + y)"
+
+CELL 5 [code]
+pytensor.dprint(w)
+
+CELL 6 [code]
+f = pytensor.function(inputs=[x, y], outputs=w)
+
+CELL 7 [code]
+f(x=0, y=[1, np.e])
+
+CELL 8 [code]
+w.eval({x: 0, y: [1, np.e]})
+
+CELL 9 [code]
+a = pt.scalar(name="a")
+b = pt.scalar(name="b")
+
+c = a / b
+c.name = "a / b"
+
+pytensor.dprint(c)
+
+CELL 10 [code]
+d = b * c
+d.name = "b * c"
+
+pytensor.dprint(d)
+
+CELL 11 [code]
+g = pytensor.function(inputs=[a, b], outputs=d)
+
+pytensor.dprint(g)
+
+CELL 12 [code]
+print(
+    f"""
+z type: {z.type}
+z name = {z.name}
+z owner = {z.owner}
+z owner inputs = {z.owner.inputs}
+z owner op = {z.owner.op}
+z owner output = {z.owner.outputs}
+"""
+)
+
+CELL 13 [code]
+# start from the top
+stack = [w]
+
+while stack:
+    print("---")
+    var = stack.pop(0)
+    print(f"Checking variable {var} of type {var.type}")
+    # check variable is not a root variable
+    if var.owner is not None:
+        print(f" > Op is {var.owner.op}")
+        # loop over the inputs
+        for i, input in enumerate(var.owner.inputs):
+            print(f" > Input {i} is {input}")
+            stack.append(input)
+    else:
+        print(f" > {var} is a root variable")
+
+CELL 14 [code]
+pytensor.dprint(w)
+
+CELL 15 [code]
+# get input tensors
+list(pytensor.graph.graph_inputs(graphs=[w]))
+
+CELL 16 [code]
+parent_of_w = w.owner.inputs[0]  # get z tensor
+new_parent_of_w = pt.exp(parent_of_w)  # modify the parent of w
+new_parent_of_w.name = "exp(x + y)"
+
+CELL 17 [code]
+pytensor.dprint(w)
+
+CELL 18 [code]
+new_w = pytensor.clone_replace(output=[w], replace={parent_of_w: new_parent_of_w})[0]
+new_w.name = "log(exp(x + y))"
+pytensor.dprint(new_w)
+
+CELL 19 [code]
+new_w.eval({x: 0, y: [1, np.e]})
+
+CELL 20 [code]
+f = pytensor.function(inputs=[x, y], outputs=new_w)
+
+pytensor.dprint(f)
+
+CELL 21 [code]
+f(x=0, y=[1, np.e])
+
+CELL 22 [code]
+a = np.random.normal(loc=0, scale=1, size=1_000)
+
+fig, ax = plt.subplots(figsize=(8, 6))
+ax.hist(a, color="C0", bins=15)
+ax.set(title="Samples from a normal distribution using numpy", ylabel="count");
+
+CELL 23 [code]
+y = pt.random.normal(loc=0, scale=1, name="y")
+y.type
+
+CELL 24 [code]
+pytensor.dprint(y)
+
+CELL 25 [code]
+y.eval()
+
+CELL 26 [code]
+for i in range(10):
+    print(f"Sample {i}: {y.eval()}")
+
+CELL 27 [code]
+x = pm.Normal.dist(mu=0, sigma=1)
+pytensor.dprint(x)
+
+CELL 28 [code]
+for i in range(10):
+    print(f"Sample {i}: {x.eval()}")
+
+CELL 29 [code]
+fig, ax = plt.subplots(figsize=(8, 6))
+ax.hist(pm.draw(x, draws=1_000), color="C1", bins=15)
+ax.set(title="Samples from a normal distribution using pymc", ylabel="count");
+
+CELL 30 [code]
+with pm.Model() as model:
+    z = pm.Normal(name="z", mu=np.array([0, 0]), sigma=np.array([1, 2]))
+
+pytensor.dprint(z)
+
+CELL 31 [code]
+model.basic_RVs
+
+CELL 32 [code]
+for i in range(10):
+    print(f"Sample {i}: {z.eval()}")
+
+CELL 33 [code]
+for i in range(10):
+    print(f"Sample {i}: {pm.draw(z)}")
+
+CELL 34 [code]
+fig, ax = plt.subplots(figsize=(8, 8))
+z_draws = pm.draw(vars=z, draws=10_000)
+ax.hist2d(x=z_draws[:, 0], y=z_draws[:, 1], bins=25)
+ax.set(title="Samples Histogram");
+
+CELL 35 [code]
+model
+
+CELL 36 [code]
+z_value = pt.vector(name="z")
+z_logp = pm.logp(rv=z, value=z_value)
+
+CELL 37 [code]
+pytensor.dprint(z_logp)
+
+CELL 38 [code]
+z_logp.eval({z_value: [0, 0]})
+
+CELL 39 [code]
+scipy.stats.norm.logpdf(x=np.array([0, 0]), loc=np.array([0, 0]), scale=np.array([1, 2]))
+
+CELL 40 [code]
+pytensor.dprint(model.logp(sum=False))
+
+CELL 41 [code]
+logp_function = model.compile_logp(sum=False)
+
+CELL 42 [code]
+point = model.initial_point()
+point
+
+CELL 43 [code]
+logp_function(point)
+
+CELL 44 [code]
+rv = scipy.stats.norm(0, 1)
+
+# Equivalent to rv = pm.Normal("rv", 0, 1)
+scipy.stats.norm(0, 1)
+
+CELL 45 [code]
+# Equivalent to rv_draw = pm.draw(rv, 3)
+rv.rvs(3)
+
+CELL 46 [code]
+# Equivalent to rv_logp = pm.logp(rv, 1.25)
+rv.logpdf(1.25)
+
+CELL 47 [code]
+with pm.Model() as model_2:
+    mu = pm.Normal(name="mu", mu=0, sigma=2)
+    sigma = pm.HalfNormal(name="sigma", sigma=3)
+    x = pm.Normal(name="x", mu=mu, sigma=sigma)
+
+CELL 48 [code]
+model_2.rvs_to_values
+
+CELL 49 [code]
+model_2.value_vars
+
+CELL 50 [code]
+# extract values as pytensor.tensor.var.TensorVariable
+mu_value = model_2.rvs_to_values[mu]
+sigma_log_value = model_2.rvs_to_values[sigma]
+x_value = model_2.rvs_to_values[x]
+# element-wise log-probability of the model (we do not take te sum)
+logp_graph = pt.stack(model_2.logp(sum=False))
+# evaluate by passing concrete values
+logp_graph.eval({mu_value: 0, sigma_log_value: -10, x_value: 0})
+
+CELL 51 [code]
+print(
+    f"""
+mu_value -> {scipy.stats.norm.logpdf(x=0, loc=0, scale=2)}
+sigma_log_value -> {-10 + scipy.stats.halfnorm.logpdf(x=np.exp(-10), loc=0, scale=3)}
+x_value -> {scipy.stats.norm.logpdf(x=0, loc=0, scale=np.exp(-10))}
+"""
+)
+
+CELL 52 [code]
+model_2.compile_logp(sum=False)({"mu": 0, "sigma_log__": -10, "x": 0})
+
+CELL 53 [code]
+

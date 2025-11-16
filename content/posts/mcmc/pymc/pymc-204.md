@@ -5,7 +5,7 @@ date = "2026-12-15T01:00:00Z"
 type = "post"
 draft = false
 math = true
-tags = ["pymc", "dims", "coords", "best-practices"]
+tags = ["pymc", "dims", "coords"]
 categories = ["posts"]
 description = "Understand PyMC's dimensionality bookkeeping system, how to register coordinates, and how to build readable multi-dimensional models."
 +++

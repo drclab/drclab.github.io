@@ -1,0 +1,1739 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" data-theme="light">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>PyMC and PyTensor &#8212; PyMC 5.26.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/style.css?v=bf8e26bd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+
+    <script src="../../_static/documentation_options.js?v=610192d2"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/thebelab-helper.js"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'learn/core_notebooks/pymc_pytensor';</script>
+    <link rel="canonical" href="https://www.pymc.io/projects/docs/learn/core_notebooks/pymc_pytensor.html" />
+    <link rel="icon" href="../../_static/PyMC.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="PyMC dims module" href="dims_module.html" />
+    <link rel="prev" title="Distribution Dimensionality" href="dimensionality.html" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="5.26.1" />
+  
+  <script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="pymc" /><meta name="readthedocs-version-slug" content="stable" /><meta name="readthedocs-resolver-filename" content="/learn/core_notebooks/pymc_pytensor.html" /><meta name="readthedocs-http-status" content="200" /></head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="light">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+
+
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search within PyMC library docs..."
+         aria-label="Search within PyMC library docs..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut">Local&nbsp;search</span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+     
+  
+
+<a class="navbar-brand logo" href="https://www.pymc.io">
+  
+  
+  
+  
+  
+    
+    
+    
+    <img src="../../_static/PyMC.jpg" class="logo__image only-light" alt="PyMC 5.26.1 documentation - Home"/>
+    <img src="../../_static/PyMC.jpg" class="logo__image only-dark pst-js-only" alt="PyMC 5.26.1 documentation - Home"/>
+  
+  
+</a></div>
+    
+      <div class="navbar-item"><b>5.26.1</b></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://www.pymc.io/welcome.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://www.pymc.io/projects/examples/en/latest/gallery.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../learn.html">
+    Learn
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://www.pymc.io/community/index.html">
+    Community
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing/index.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          <div>
+  <a class="nav-link pst-navbar-icon" href="../../search.html">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </a>
+</div>
+        </div>
+      
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/pymc-devs/pymc" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://bayes.club/@pymc" title="Mastodon" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-mastodon fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mastodon</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/pymc_devs/" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/PyMCDevelopers" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://discourse.pymc.io" title="Discourse" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-discourse fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Discourse</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile"><div>
+  <a class="nav-link pst-navbar-icon" href="../../search.html">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </a>
+</div>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://www.pymc.io/welcome.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://www.pymc.io/projects/examples/en/latest/gallery.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../learn.html">
+    Learn
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://www.pymc.io/community/index.html">
+    Community
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing/index.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/pymc-devs/pymc" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://bayes.club/@pymc" title="Mastodon" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-mastodon fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mastodon</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/pymc_devs/" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/PyMCDevelopers" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://discourse.pymc.io" title="Discourse" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-discourse fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Discourse</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Notebooks on core features</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pymc_overview.html">Introductory Overview of PyMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_comparison.html">Model comparison</a></li>
+<li class="toctree-l2"><a class="reference internal" href="posterior_predictive.html">Prior and Posterior Predictive Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimensionality.html">Distribution Dimensionality</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">PyMC and PyTensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dims_module.html">PyMC dims module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GLM_linear.html">GLM: Linear regression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gaussian_Processes.html">Gaussian Processes</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../books.html">Books</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../videos_and_podcasts.html">Videos and Podcasts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../consulting.html">Consulting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">Glossary</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../learn.html" class="nav-link">Learn PyMC &amp; Bayesian modeling</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Notebooks on core features</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">PyMC and PyTensor</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="pymc-and-pytensor">
+<span id="pymc-pytensor"></span><h1>PyMC and PyTensor<a class="headerlink" href="#pymc-and-pytensor" title="Link to this heading">#</a></h1>
+<p><strong>Authors:</strong> <a class="reference external" href="https://github.com/ricardoV94">Ricardo Vieira</a> and <a class="reference external" href="https://juanitorduz.github.io/">Juan Orduz</a></p>
+<p>In this notebook we want to give an introduction of how PyMC models translate to PyTensor graphs. The purpose is not to give a detailed description of all <a class="reference external" href="https://github.com/pymc-devs/pytensor"><code class="docutils literal notranslate"><span class="pre">pytensor</span></code></a>’s capabilities but rather focus on the main concepts to understand its connection with PyMC. For a more detailed description of the project please refer to the official documentation.</p>
+<section id="prepare-notebook">
+<h2>Prepare Notebook<a class="headerlink" href="#prepare-notebook" title="Link to this heading">#</a></h2>
+<p>First import the required libraries.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytensor</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytensor.tensor</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.stats</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pymc</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pm</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="introduction-to-pytensor">
+<h2>Introduction to PyTensor<a class="headerlink" href="#introduction-to-pytensor" title="Link to this heading">#</a></h2>
+<p>We start by looking into <code class="docutils literal notranslate"><span class="pre">pytensor</span></code>. According to their documentation</p>
+<blockquote>
+<div><p>PyTensor is a Python library that allows one to define, optimize, and efficiently evaluate mathematical expressions involving multi-dimensional arrays.</p>
+</div></blockquote>
+<p><img alt="pytensor logo" src="https://raw.githubusercontent.com/pymc-devs/pytensor/main/doc/images/PyTensor_RGB.svg" /></p>
+<section id="a-simple-example">
+<h3>A simple example<a class="headerlink" href="#a-simple-example" title="Link to this heading">#</a></h3>
+<p>To begin, we define some pytensor tensors and show how to perform some basic operations.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">vector</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">x type: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">type</span><span class="si">}</span>
+<span class="s2">x name = </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="si">}</span>
+<span class="s2">---</span>
+<span class="s2">y type: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">type</span><span class="si">}</span>
+<span class="s2">y name = </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">name</span><span class="si">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>x type: Scalar(float64, shape=())
+x name = x
+---
+y type: Vector(float64, shape=(?,))
+y name = y
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now that we have defined the <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> tensors, we can create a new one by adding them together.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">z</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+<span class="n">z</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;x + y&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>To make the computation a bit more complex let us take the logarithm of the resulting tensor.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">w</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+<span class="n">w</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;log(x + y)&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can use the <a class="reference external" href="https://pytensor.readthedocs.io/en/latest/library/index.html#pytensor.dprint" title="(in PyTensor vdev)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dprint()</span></code></a> function to print the computational graph of any given tensor.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Log [id A] &#39;log(x + y)&#39;
+ └─ Add [id B] &#39;x + y&#39;
+    ├─ ExpandDims{axis=0} [id C]
+    │  └─ x [id D]
+    └─ y [id E]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note that this graph does not do any computation (yet!). It is simply defining the sequence of steps to be done. We can use <a class="reference external" href="https://pytensor.readthedocs.io/en/latest/library/index.html#pytensor.function" title="(in PyTensor vdev)"><code class="xref py py-func docutils literal notranslate"><span class="pre">function()</span></code></a> to define a callable object so that we can push values trough the graph.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">pytensor</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="n">outputs</span><span class="o">=</span><span class="n">w</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now that the graph is compiled, we can push some concrete values:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">e</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([0., 1.])
+</pre></div>
+</div>
+</div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Sometimes we just want to debug, we can use <a class="reference external" href="https://pytensor.readthedocs.io/en/latest/library/graph/graph.html#pytensor.graph.basic.Variable.eval" title="(in PyTensor vdev)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">eval()</span></code></a> for that:</p>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">w</span><span class="o">.</span><span class="n">eval</span><span class="p">({</span><span class="n">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">e</span><span class="p">]})</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([0., 1.])
+</pre></div>
+</div>
+</div>
+</div>
+<p>You can set intermediate values as well</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">w</span><span class="o">.</span><span class="n">eval</span><span class="p">({</span><span class="n">z</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">e</span><span class="p">]})</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([0., 1.])
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="pytensor-is-clever">
+<h3>PyTensor is clever!<a class="headerlink" href="#pytensor-is-clever" title="Link to this heading">#</a></h3>
+<p>One of the most important features of <code class="docutils literal notranslate"><span class="pre">pytensor</span></code> is that it can automatically optimize the mathematical operations inside a graph. Let’s consider a simple example:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">)</span>
+
+<span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span>
+<span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;a / b&quot;</span>
+
+<span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>True_div [id A] &#39;a / b&#39;
+ ├─ a [id B]
+ └─ b [id C]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now let us multiply <code class="docutils literal notranslate"><span class="pre">b</span></code> times <code class="docutils literal notranslate"><span class="pre">c</span></code>. This should result in simply <code class="docutils literal notranslate"><span class="pre">a</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="n">b</span> <span class="o">*</span> <span class="n">c</span>
+<span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;b * c&quot;</span>
+
+<span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Mul [id A] &#39;b * c&#39;
+ ├─ b [id B]
+ └─ True_div [id C] &#39;a / b&#39;
+    ├─ a [id D]
+    └─ b [id B]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>The graph shows the full computation, but once we compile it the operation becomes the identity on <code class="docutils literal notranslate"><span class="pre">a</span></code> as expected.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">g</span> <span class="o">=</span> <span class="n">pytensor</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">],</span> <span class="n">outputs</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
+
+<span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>DeepCopyOp [id A] 0
+ └─ a [id B]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="what-is-in-a-pytensor-graph">
+<h3>What is in a PyTensor graph?<a class="headerlink" href="#what-is-in-a-pytensor-graph" title="Link to this heading">#</a></h3>
+<p>The following diagram shows the basic structure of an <code class="docutils literal notranslate"><span class="pre">pytensor</span></code> graph.</p>
+<p><img alt="pytensor graph" src="https://raw.githubusercontent.com/pymc-devs/pytensor/main/doc/tutorial/apply.png" /></p>
+<p>We can can make these concepts more tangible by explicitly indicating them in the first example from the section above. Let us compute the graph components for the tensor <code class="docutils literal notranslate"><span class="pre">z</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">z type: </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">type</span><span class="si">}</span>
+<span class="s2">z name = </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">name</span><span class="si">}</span>
+<span class="s2">z owner = </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">owner</span><span class="si">}</span>
+<span class="s2">z owner inputs = </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">owner</span><span class="o">.</span><span class="n">inputs</span><span class="si">}</span>
+<span class="s2">z owner op = </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">owner</span><span class="o">.</span><span class="n">op</span><span class="si">}</span>
+<span class="s2">z owner output = </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">owner</span><span class="o">.</span><span class="n">outputs</span><span class="si">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>z type: Vector(float64, shape=(?,))
+z name = x + y
+z owner = Add(ExpandDims{axis=0}.0, y)
+z owner inputs = [ExpandDims{axis=0}.0, y]
+z owner op = Add
+z owner output = [x + y]
+</pre></div>
+</div>
+</div>
+</div>
+<p>The following code snippet helps us understand these concepts by going through the computational graph of <code class="docutils literal notranslate"><span class="pre">w</span></code>. The actual code is not as important here, the focus is on the outputs.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># start from the top</span>
+<span class="n">stack</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span><span class="p">]</span>
+
+<span class="k">while</span> <span class="n">stack</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---&quot;</span><span class="p">)</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Checking variable </span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">var</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># check variable is not a root variable</span>
+    <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">owner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; &gt; Op is </span><span class="si">{</span><span class="n">var</span><span class="o">.</span><span class="n">owner</span><span class="o">.</span><span class="n">op</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># loop over the inputs</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="nb">input</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">owner</span><span class="o">.</span><span class="n">inputs</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; &gt; Input </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="nb">input</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; &gt; </span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2"> is a root variable&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>---
+Checking variable log(x + y) of type Vector(float64, shape=(?,))
+ &gt; Op is Log
+ &gt; Input 0 is x + y
+---
+Checking variable x + y of type Vector(float64, shape=(?,))
+ &gt; Op is Add
+ &gt; Input 0 is ExpandDims{axis=0}.0
+ &gt; Input 1 is y
+---
+Checking variable ExpandDims{axis=0}.0 of type Vector(float64, shape=(1,))
+ &gt; Op is ExpandDims{axis=0}
+ &gt; Input 0 is x
+---
+Checking variable y of type Vector(float64, shape=(?,))
+ &gt; y is a root variable
+---
+Checking variable x of type Scalar(float64, shape=())
+ &gt; x is a root variable
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note that this is very similar to the output of <a class="reference external" href="https://pytensor.readthedocs.io/en/latest/library/index.html#pytensor.dprint" title="(in PyTensor vdev)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dprint()</span></code></a> function introduced above.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Log [id A] &#39;log(x + y)&#39;
+ └─ Add [id B] &#39;x + y&#39;
+    ├─ ExpandDims{axis=0} [id C]
+    │  └─ x [id D]
+    └─ y [id E]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="graph-manipulation-101">
+<h3>Graph manipulation 101<a class="headerlink" href="#graph-manipulation-101" title="Link to this heading">#</a></h3>
+<p>Another interesting feature of PyTensor is the ability to manipulate the computational graph, something that is not possible with TensorFlow or PyTorch. Here we continue with the example above in order to illustrate the main idea around this technique.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># get input tensors</span>
+<span class="nb">list</span><span class="p">(</span><span class="n">pytensor</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">graph_inputs</span><span class="p">(</span><span class="n">graphs</span><span class="o">=</span><span class="p">[</span><span class="n">w</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[x, y]
+</pre></div>
+</div>
+</div>
+</div>
+<p>As a simple example, let’s add an <a class="reference external" href="https://pytensor.readthedocs.io/en/latest/library/tensor/basic.html#pytensor.tensor.exp" title="(in PyTensor vdev)"><code class="xref py py-func docutils literal notranslate"><span class="pre">exp()</span></code></a> before the <a class="reference external" href="https://pytensor.readthedocs.io/en/latest/library/tensor/basic.html#pytensor.tensor.log" title="(in PyTensor vdev)"><code class="xref py py-func docutils literal notranslate"><span class="pre">log()</span></code></a> (to get the identity function).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parent_of_w</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">owner</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># get z tensor</span>
+<span class="n">new_parent_of_w</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">parent_of_w</span><span class="p">)</span>  <span class="c1"># modify the parent of w</span>
+<span class="n">new_parent_of_w</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;exp(x + y)&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note that the graph of <code class="docutils literal notranslate"><span class="pre">w</span></code> has actually not changed:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Log [id A] &#39;log(x + y)&#39;
+ └─ Add [id B] &#39;x + y&#39;
+    ├─ ExpandDims{axis=0} [id C]
+    │  └─ x [id D]
+    └─ y [id E]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>To modify the graph we need to use the <a class="reference external" href="https://pytensor.readthedocs.io/en/latest/library/index.html#pytensor.clone_replace" title="(in PyTensor vdev)"><code class="xref py py-func docutils literal notranslate"><span class="pre">clone_replace()</span></code></a> function, which <em>returns a copy of the initial subgraph with the corresponding substitutions.</em></p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">new_w</span> <span class="o">=</span> <span class="n">pytensor</span><span class="o">.</span><span class="n">clone_replace</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="p">[</span><span class="n">w</span><span class="p">],</span> <span class="n">replace</span><span class="o">=</span><span class="p">{</span><span class="n">parent_of_w</span><span class="p">:</span> <span class="n">new_parent_of_w</span><span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">new_w</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;log(exp(x + y))&quot;</span>
+<span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">new_w</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Log [id A] &#39;log(exp(x + y))&#39;
+ └─ Exp [id B] &#39;exp(x + y)&#39;
+    └─ Add [id C] &#39;x + y&#39;
+       ├─ ExpandDims{axis=0} [id D]
+       │  └─ x [id E]
+       └─ y [id F]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>Finally, we can test the modified graph by passing some input to the new graph.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">new_w</span><span class="o">.</span><span class="n">eval</span><span class="p">({</span><span class="n">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">e</span><span class="p">]})</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([1.        , 2.71828183])
+</pre></div>
+</div>
+</div>
+</div>
+<p>As expected, the new graph is just the identity function.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Again, note that <code class="docutils literal notranslate"><span class="pre">pytensor</span></code> is clever enough to omit the <code class="docutils literal notranslate"><span class="pre">exp</span></code> and <code class="docutils literal notranslate"><span class="pre">log</span></code> once we compile the function.</p>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">pytensor</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="n">outputs</span><span class="o">=</span><span class="n">new_w</span><span class="p">)</span>
+
+<span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Add [id A] &#39;x + y&#39; 1
+ ├─ ExpandDims{axis=0} [id B] 0
+ │  └─ x [id C]
+ └─ y [id D]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">e</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([1.        , 2.71828183])
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="pytensor-randomvariables">
+<h3>PyTensor RandomVariables<a class="headerlink" href="#pytensor-randomvariables" title="Link to this heading">#</a></h3>
+<p>Now that we have seen pytensor’s basics we want to move in the direction of random variables.</p>
+<p>How do we generate random numbers in <a class="reference external" href="https://github.com/numpy/numpy"><code class="docutils literal notranslate"><span class="pre">numpy</span></code></a>? To illustrate it we can sample from a normal distribution:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1_000</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C0&quot;</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Samples from a normal distribution using numpy&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../../_images/259ee23b8d61a67f2fc50d8316c9ecd80fa3b1053d0472027316d04df78b2cda.png" src="../../_images/259ee23b8d61a67f2fc50d8316c9ecd80fa3b1053d0472027316d04df78b2cda.png" />
+</div>
+</div>
+<p>Now let’s try to do it in PyTensor.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">y</span><span class="o">.</span><span class="n">type</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>TensorType(float64, shape=())
+</pre></div>
+</div>
+</div>
+</div>
+<p>Next, we show the graph using <a class="reference external" href="https://pytensor.readthedocs.io/en/latest/library/index.html#pytensor.dprint" title="(in PyTensor vdev)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dprint()</span></code></a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>normal_rv{&quot;(),()-&gt;()&quot;}.1 [id A] &#39;y&#39;
+ ├─ RNG(&lt;Generator(PCG64) at 0x7FC6504CC740&gt;) [id B]
+ ├─ NoneConst{None} [id C]
+ ├─ 0 [id D]
+ └─ 1 [id E]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>The inputs are always in the following order:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">rng</span></code> shared variable</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arg1</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arg2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">argn</span></code></p></li>
+</ol>
+<p>We <em>could</em> sample by calling <a class="reference external" href="https://pytensor.readthedocs.io/en/latest/library/graph/graph.html#pytensor.graph.basic.Variable.eval" title="(in PyTensor vdev)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">eval()</span></code></a>. on the random variable.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array(0.67492335)
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note however that these samples are always the same!</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sample </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sample 0: 0.6749233482557402
+Sample 1: 0.6749233482557402
+Sample 2: 0.6749233482557402
+Sample 3: 0.6749233482557402
+Sample 4: 0.6749233482557402
+Sample 5: 0.6749233482557402
+Sample 6: 0.6749233482557402
+Sample 7: 0.6749233482557402
+Sample 8: 0.6749233482557402
+Sample 9: 0.6749233482557402
+</pre></div>
+</div>
+</div>
+</div>
+<p>We always get the same samples! This has to do with the random seed step in the graph, i.e. <code class="docutils literal notranslate"><span class="pre">RandomGeneratorSharedVariable</span></code> (we will not go deeper into this subject here). We will show how to generate different samples with <code class="docutils literal notranslate"><span class="pre">pymc</span></code> below.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="pymc">
+<h2>PyMC<a class="headerlink" href="#pymc" title="Link to this heading">#</a></h2>
+<p><img alt="pymc logo" src="https://raw.githubusercontent.com/pymc-devs/pymc/main/docs/logos/PyMC.png" /></p>
+<p>To do so, we start by defining a <code class="docutils literal notranslate"><span class="pre">pymc</span></code> normal distribution.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Normal</span><span class="o">.</span><span class="n">dist</span><span class="p">(</span><span class="n">mu</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>normal_rv{&quot;(),()-&gt;()&quot;}.1 [id A]
+ ├─ RNG(&lt;Generator(PCG64) at 0x7FC650553D80&gt;) [id B]
+ ├─ NoneConst{None} [id C]
+ ├─ 0 [id D]
+ └─ 1 [id E]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>Observe that <code class="docutils literal notranslate"><span class="pre">x</span></code> is just a normal <code class="docutils literal notranslate"><span class="pre">RandomVariable</span></code> and which is the same as <code class="docutils literal notranslate"><span class="pre">y</span></code> except for the <code class="docutils literal notranslate"><span class="pre">rng</span></code>.</p>
+<p>We can try to generate samples by calling <a class="reference external" href="https://pytensor.readthedocs.io/en/latest/library/graph/graph.html#pytensor.graph.basic.Variable.eval" title="(in PyTensor vdev)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">eval()</span></code></a> as above.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sample </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sample 0: 0.3880069666747013
+Sample 1: 0.3880069666747013
+Sample 2: 0.3880069666747013
+Sample 3: 0.3880069666747013
+Sample 4: 0.3880069666747013
+Sample 5: 0.3880069666747013
+Sample 6: 0.3880069666747013
+Sample 7: 0.3880069666747013
+Sample 8: 0.3880069666747013
+Sample 9: 0.3880069666747013
+</pre></div>
+</div>
+</div>
+</div>
+<p>As before we get the same value for all iterations. The correct way to generate random samples is using <a class="reference internal" href="../../api/generated/pymc.draw.html#pymc.draw" title="pymc.draw"><code class="xref py py-func docutils literal notranslate"><span class="pre">draw()</span></code></a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">pm</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">draws</span><span class="o">=</span><span class="mi">1_000</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C1&quot;</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Samples from a normal distribution using pymc&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../../_images/4db1356b3ab91d0aae23fc715a49d4cd801ba9e8560882a05237bafe6dcf254d.png" src="../../_images/4db1356b3ab91d0aae23fc715a49d4cd801ba9e8560882a05237bafe6dcf254d.png" />
+</div>
+</div>
+<p>Yay! We learned how to sample from a <code class="docutils literal notranslate"><span class="pre">pymc</span></code> distribution!</p>
+<section id="what-is-going-on-behind-the-scenes">
+<h3>What is going on behind the scenes?<a class="headerlink" href="#what-is-going-on-behind-the-scenes" title="Link to this heading">#</a></h3>
+<p>We can now look into how this is done inside a <code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">pm</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span> <span class="k">as</span> <span class="n">model</span><span class="p">:</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">sigma</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]))</span>
+
+<span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>normal_rv{&quot;(),()-&gt;()&quot;}.1 [id A] &#39;z&#39;
+ ├─ RNG(&lt;Generator(PCG64) at 0x7FC6482D1FC0&gt;) [id B]
+ ├─ NoneConst{None} [id C]
+ ├─ [0 0] [id D]
+ └─ [1 2] [id E]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>We are just creating random variables like we saw before, but now registering them in a <code class="docutils literal notranslate"><span class="pre">pymc</span></code> model. To extract the list of random variables we can simply do:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">basic_RVs</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[z ~ Normal(&lt;constant&gt;, &lt;constant&gt;)]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">basic_RVs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>normal_rv{&quot;(),()-&gt;()&quot;}.1 [id A] &#39;z&#39;
+ ├─ RNG(&lt;Generator(PCG64) at 0x7FC6482D1FC0&gt;) [id B]
+ ├─ NoneConst{None} [id C]
+ ├─ [0 0] [id D]
+ └─ [1 2] [id E]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can try to sample via <a class="reference external" href="https://pytensor.readthedocs.io/en/latest/library/graph/graph.html#pytensor.graph.basic.Variable.eval" title="(in PyTensor vdev)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">eval()</span></code></a> as above and it is no surprise that we are getting the same samples at each iteration.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sample </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sample 0: [-0.78480847  2.20329511]
+Sample 1: [-0.78480847  2.20329511]
+Sample 2: [-0.78480847  2.20329511]
+Sample 3: [-0.78480847  2.20329511]
+Sample 4: [-0.78480847  2.20329511]
+Sample 5: [-0.78480847  2.20329511]
+Sample 6: [-0.78480847  2.20329511]
+Sample 7: [-0.78480847  2.20329511]
+Sample 8: [-0.78480847  2.20329511]
+Sample 9: [-0.78480847  2.20329511]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Again, the correct way of sampling is via <a class="reference internal" href="../../api/generated/pymc.draw.html#pymc.draw" title="pymc.draw"><code class="xref py py-func docutils literal notranslate"><span class="pre">draw()</span></code></a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sample </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">pm</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sample 0: [-1.10363734 -4.33735303]
+Sample 1: [ 0.69639479 -0.81137315]
+Sample 2: [ 1.25238284 -0.0119145 ]
+Sample 3: [ 1.21683809 -3.08878544]
+Sample 4: [1.63496743 2.58329782]
+Sample 5: [0.4128748  3.29810689]
+Sample 6: [1.76074607 3.33727713]
+Sample 7: [ 0.92855273 -0.14005723]
+Sample 8: [ 2.04166261 -1.25987621]
+Sample 9: [-0.24230627 -2.91013171]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">z_draws</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="nb">vars</span><span class="o">=</span><span class="n">z</span><span class="p">,</span> <span class="n">draws</span><span class="o">=</span><span class="mi">10_000</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist2d</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">z_draws</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">z_draws</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Samples Histogram&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../../_images/8c363e9de8872b7ab545c203959bd5958fe2a55761ea45bc391ec893a51c4245.png" src="../../_images/8c363e9de8872b7ab545c203959bd5958fe2a55761ea45bc391ec893a51c4245.png" />
+</div>
+</div>
+</section>
+<section id="enough-with-random-variables-i-want-to-see-some-log-probabilities">
+<h3>Enough with Random Variables, I want to see some (log)probabilities!<a class="headerlink" href="#enough-with-random-variables-i-want-to-see-some-log-probabilities" title="Link to this heading">#</a></h3>
+<p>Recall we have defined the following model above:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_latex math notranslate nohighlight">
+\[
+            \begin{array}{rcl}
+            \text{z} &amp;\sim &amp; \operatorname{Normal}(\text{&lt;constant&gt;},~\text{&lt;constant&gt;})
+            \end{array}
+            \]</div>
+</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">pymc</span></code> is able to convert <code class="docutils literal notranslate"><span class="pre">RandomVariable</span></code>s to their respective probability functions. One simple way is to use <a class="reference internal" href="../../api/generated/pymc.logp.html#pymc.logp" title="pymc.logp"><code class="xref py py-func docutils literal notranslate"><span class="pre">logp()</span></code></a>, which takes as first input a RandomVariable, and as second input the value at which the logp is evaluated (we will discuss this in more detail later).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">z_value</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">vector</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">)</span>
+<span class="n">z_logp</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">logp</span><span class="p">(</span><span class="n">rv</span><span class="o">=</span><span class="n">z</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">z_value</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">z_logp</span></code> contains the PyTensor graph that represents the log-probability of the normal random variable <code class="docutils literal notranslate"><span class="pre">z</span></code>, evaluated at <code class="docutils literal notranslate"><span class="pre">z_value</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">z_logp</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Check{sigma &gt; 0} [id A] &#39;z_logprob&#39;
+ ├─ Sub [id B]
+ │  ├─ Sub [id C]
+ │  │  ├─ Mul [id D]
+ │  │  │  ├─ ExpandDims{axis=0} [id E]
+ │  │  │  │  └─ -0.5 [id F]
+ │  │  │  └─ Pow [id G]
+ │  │  │     ├─ True_div [id H]
+ │  │  │     │  ├─ Sub [id I]
+ │  │  │     │  │  ├─ z [id J]
+ │  │  │     │  │  └─ [0 0] [id K]
+ │  │  │     │  └─ [1 2] [id L]
+ │  │  │     └─ ExpandDims{axis=0} [id M]
+ │  │  │        └─ 2 [id N]
+ │  │  └─ ExpandDims{axis=0} [id O]
+ │  │     └─ Log [id P]
+ │  │        └─ Sqrt [id Q]
+ │  │           └─ 6.283185307179586 [id R]
+ │  └─ Log [id S]
+ │     └─ [1 2] [id L]
+ └─ All{axes=None} [id T]
+    └─ MakeVector{dtype=&#39;bool&#39;} [id U]
+       └─ All{axes=None} [id V]
+          └─ Gt [id W]
+             ├─ [1 2] [id L]
+             └─ ExpandDims{axis=0} [id X]
+                └─ 0 [id Y]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>There is also a handy <code class="docutils literal notranslate"><span class="pre">pymc</span></code> function to compute the log cumulative probability of a random variable <a class="reference internal" href="../../api/generated/pymc.logcdf.html#pymc.logcdf" title="pymc.logcdf"><code class="xref py py-func docutils literal notranslate"><span class="pre">logcdf()</span></code></a>.</p>
+</div>
+<p>Observe that, as explained at the beginning, there has been no computation yet. The actual computation is performed after compiling and passing the input. For illustration purposes alone, we will again use the handy <a class="reference external" href="https://pytensor.readthedocs.io/en/latest/library/graph/graph.html#pytensor.graph.basic.Variable.eval" title="(in PyTensor vdev)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">eval()</span></code></a> method.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">z_logp</span><span class="o">.</span><span class="n">eval</span><span class="p">({</span><span class="n">z_value</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]})</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([-0.91893853, -1.61208571])
+</pre></div>
+</div>
+</div>
+</div>
+<p>This is nothing else than evaluating the log probability of a normal distribution.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">loc</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">scale</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([-0.91893853, -1.61208571])
+</pre></div>
+</div>
+</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">pymc</span></code> models provide some helpful routines to facilitating the conversion of <code class="docutils literal notranslate"><span class="pre">RandomVariable</span></code>s to probability functions. <code class="xref py py-meth docutils literal notranslate"><span class="pre">logp()</span></code>, for instance can be used to extract the joint probability of all variables in the model:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pytensor</span><span class="o">.</span><span class="n">dprint</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">logp</span><span class="p">(</span><span class="nb">sum</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Check{sigma &gt; 0} [id A] &#39;z_logprob&#39;
+ ├─ Sub [id B]
+ │  ├─ Sub [id C]
+ │  │  ├─ Mul [id D]
+ │  │  │  ├─ ExpandDims{axis=0} [id E]
+ │  │  │  │  └─ -0.5 [id F]
+ │  │  │  └─ Pow [id G]
+ │  │  │     ├─ True_div [id H]
+ │  │  │     │  ├─ Sub [id I]
+ │  │  │     │  │  ├─ z [id J]
+ │  │  │     │  │  └─ [0 0] [id K]
+ │  │  │     │  └─ [1 2] [id L]
+ │  │  │     └─ ExpandDims{axis=0} [id M]
+ │  │  │        └─ 2 [id N]
+ │  │  └─ ExpandDims{axis=0} [id O]
+ │  │     └─ Log [id P]
+ │  │        └─ Sqrt [id Q]
+ │  │           └─ 6.283185307179586 [id R]
+ │  └─ Log [id S]
+ │     └─ [1 2] [id L]
+ └─ All{axes=None} [id T]
+    └─ MakeVector{dtype=&#39;bool&#39;} [id U]
+       └─ All{axes=None} [id V]
+          └─ Gt [id W]
+             ├─ [1 2] [id L]
+             └─ ExpandDims{axis=0} [id X]
+                └─ 0 [id Y]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipykernel.iostream.OutStream at 0x7fc6cd274a90&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>Because we only have one variable, this function is equivalent to what we obtained by manually calling <code class="docutils literal notranslate"><span class="pre">pm.logp</span></code> before. We can also use a helper <code class="xref py py-meth docutils literal notranslate"><span class="pre">compile_logp()</span></code> to return an already compiled PyTensor function of the model logp.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">logp_function</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">compile_logp</span><span class="p">(</span><span class="nb">sum</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>This function expects a “point” dictionary as input. We could create it ourselves, but just to illustrate another useful <code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code> method, let’s call <code class="xref py py-meth docutils literal notranslate"><span class="pre">initial_point()</span></code>, which returns the point that most samplers use when deciding where to start sampling.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">point</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">initial_point</span><span class="p">()</span>
+<span class="n">point</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;z&#39;: array([0., 0.])}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">logp_function</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[array([-0.91893853, -1.61208571])]
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="what-are-value-variables-and-why-are-they-important">
+<h3>What are value variables and why are they important?<a class="headerlink" href="#what-are-value-variables-and-why-are-they-important" title="Link to this heading">#</a></h3>
+<p>As we have seen above, a logp graph does not have random variables. Instead it’s defined in terms of input (value) variables. When we want to sample, each random variable (RV) is replaced by a logp function evaluated at the respective input (value) variable. Let’s see how this works through some examples. RV and value variables can be observed in these <a class="reference external" href="https://github.com/scipy/scipy"><code class="docutils literal notranslate"><span class="pre">scipy</span></code></a> operations:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rv</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Equivalent to rv = pm.Normal(&quot;rv&quot;, 0, 1)</span>
+<span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;scipy.stats._distn_infrastructure.rv_continuous_frozen at 0x7fc64808be10&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Equivalent to rv_draw = pm.draw(rv, 3)</span>
+<span class="n">rv</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([-1.00721939, -0.60656542, -0.28202337])
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Equivalent to rv_logp = pm.logp(rv, 1.25)</span>
+<span class="n">rv</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="mf">1.25</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>-1.7001885332046727
+</pre></div>
+</div>
+</div>
+</div>
+<p>Next, let’s look at how these value variables behave in a slightly more complex model.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">pm</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span> <span class="k">as</span> <span class="n">model_2</span><span class="p">:</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;mu&quot;</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">HalfNormal</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Each model RV is related to a “value variable”:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model_2</span><span class="o">.</span><span class="n">rvs_to_values</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{mu ~ Normal(0, 2): mu,
+ sigma ~ HalfNormal(0, 3): sigma_log__,
+ x ~ Normal(mu, sigma): x}
+</pre></div>
+</div>
+</div>
+</div>
+<p>Observe that for sigma the associated value is in the <em>log</em> scale as in practice we require unbounded values for NUTS sampling.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model_2</span><span class="o">.</span><span class="n">value_vars</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[mu, sigma_log__, x]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now that we know how to extract the model variables, we can compute the element-wise log-probability of the model for specific values.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># extract values as pytensor.tensor.var.TensorVariable</span>
+<span class="n">mu_value</span> <span class="o">=</span> <span class="n">model_2</span><span class="o">.</span><span class="n">rvs_to_values</span><span class="p">[</span><span class="n">mu</span><span class="p">]</span>
+<span class="n">sigma_log_value</span> <span class="o">=</span> <span class="n">model_2</span><span class="o">.</span><span class="n">rvs_to_values</span><span class="p">[</span><span class="n">sigma</span><span class="p">]</span>
+<span class="n">x_value</span> <span class="o">=</span> <span class="n">model_2</span><span class="o">.</span><span class="n">rvs_to_values</span><span class="p">[</span><span class="n">x</span><span class="p">]</span>
+<span class="c1"># element-wise log-probability of the model (we do not take te sum)</span>
+<span class="n">logp_graph</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">model_2</span><span class="o">.</span><span class="n">logp</span><span class="p">(</span><span class="nb">sum</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="c1"># evaluate by passing concrete values</span>
+<span class="n">logp_graph</span><span class="o">.</span><span class="n">eval</span><span class="p">({</span><span class="n">mu_value</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sigma_log_value</span><span class="p">:</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="n">x_value</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([ -1.61208572, -11.32440366,   9.08106147])
+</pre></div>
+</div>
+</div>
+</div>
+<p>This equivalent to:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">mu_value -&gt; </span><span class="si">{</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">scale</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span>
+<span class="s2">sigma_log_value -&gt; </span><span class="si">{</span><span class="o">-</span><span class="mi">10</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">halfnorm</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">),</span><span class="w"> </span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">scale</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="si">}</span>
+<span class="s2">x_value -&gt; </span><span class="si">{</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">scale</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">))</span><span class="si">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>mu_value -&gt; -1.612085713764618
+sigma_log_value -&gt; -11.324403641427345
+x_value -&gt; 9.081061466795328
+</pre></div>
+</div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">sigma_log_value</span></code> we add the <span class="math notranslate nohighlight">\(-10\)</span> term for the <code class="docutils literal notranslate"><span class="pre">scipy</span></code> and <code class="docutils literal notranslate"><span class="pre">pytensor</span></code> to match because of the jacobian.</p>
+</div>
+<p>As we already saw, we can also use the method <code class="xref py py-meth docutils literal notranslate"><span class="pre">compile_logp()</span></code> to obtain a compiled pytensor function of the model logp, which takes a dictionary of <code class="docutils literal notranslate"><span class="pre">{value</span> <span class="pre">variable</span> <span class="pre">name</span> <span class="pre">:</span> <span class="pre">value}</span></code> as inputs:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model_2</span><span class="o">.</span><span class="n">compile_logp</span><span class="p">(</span><span class="nb">sum</span><span class="o">=</span><span class="kc">False</span><span class="p">)({</span><span class="s2">&quot;mu&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;sigma_log__&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[array(-1.61208572), array(-11.32440366), array(9.08106147)]
+</pre></div>
+</div>
+</div>
+</div>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code> class also has methods to extract the gradient (<code class="xref py py-meth docutils literal notranslate"><span class="pre">dlogp()</span></code>) and the hessian (<code class="xref py py-meth docutils literal notranslate"><span class="pre">d2logp()</span></code>) of the logp.</p>
+<p>If you want to go deeper into the internals of <code class="docutils literal notranslate"><span class="pre">pytensor</span></code> RandomVariables and <code class="docutils literal notranslate"><span class="pre">pymc</span></code> distributions please take a look into the <a class="reference internal" href="../../contributing/implementing_distribution.html#implementing-a-distribution"><span class="std std-ref">distribution developer guide</span></a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">load_ext</span> watermark
+<span class="o">%</span><span class="k">watermark</span> -n -u -v -iv -w -p pytensor
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Tue Jun 25 2024
+
+Python implementation: CPython
+Python version       : 3.11.8
+IPython version      : 8.22.2
+
+pytensor: 2.20.0+3.g66439d283.dirty
+
+pytensor  : 2.20.0+3.g66439d283.dirty
+pymc      : 5.15.0+1.g58927d608
+scipy     : 1.12.0
+numpy     : 1.26.4
+matplotlib: 3.8.3
+
+Watermark: 2.4.3
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="dimensionality.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Distribution Dimensionality</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="dims_module.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">PyMC dims module</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prepare-notebook">Prepare Notebook</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction-to-pytensor">Introduction to PyTensor</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-simple-example">A simple example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pytensor-is-clever">PyTensor is clever!</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-in-a-pytensor-graph">What is in a PyTensor graph?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#graph-manipulation-101">Graph manipulation 101</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pytensor-randomvariables">PyTensor RandomVariables</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pymc">PyMC</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-going-on-behind-the-scenes">What is going on behind the scenes?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#enough-with-random-variables-i-want-to-see-some-log-probabilities">Enough with Random Variables, I want to see some (log)probabilities!</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-are-value-variables-and-why-are-they-important">What are value variables and why are they important?</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+<div id="searchbox"></div></div>
+
+  <div class="sidebar-secondary-item">
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/pymc-devs/pymc/edit/main/docs/source/learn/core_notebooks/pymc_pytensor.ipynb">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/learn/core_notebooks/pymc_pytensor.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+<div class="tocsection supportbutton">
+
+    <a href="https://numfocus.org/donate-to-pymc">
+      <i class="far fa-heart"></i> Support PyMC
+    </a>
+</div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2020-present, The PyMC Development Team.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
