@@ -1,7 +1,7 @@
 +++
 title = "PyMC 204: Dimensionality and Coordinates"
 slug = "pymc-204"
-date = "2026-12-15T01:00:00Z"
+date = "2025-11-19T01:00:00Z"
 type = "post"
 draft = false
 math = true

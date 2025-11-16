@@ -1,7 +1,7 @@
 +++
 title = "PyMC 301: PyTensor Graph Surgery"
 slug = "pymc-301"
-date = "2026-11-21T00:00:00Z"
+date = "2026-12-21T00:00:00Z"
 type = "post"
 draft = false
 math = true

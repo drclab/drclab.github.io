@@ -1,7 +1,7 @@
 +++
 title = "PyMC 202: Bayesian Model Comparison with LOO and WAIC"
 slug = "pymc-202"
-date = "2025-11-18T02:00:00Z"
+date = "2025-11-17T00:00:00Z"
 type = "post"
 draft = false
 math = true

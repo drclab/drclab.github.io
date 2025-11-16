@@ -1,7 +1,7 @@
 +++
 title = "PyMC 203: Prior and Posterior Predictive Checks"
 slug = "pymc-203"
-date = "2025-11-19T01:00:00Z"
+date = "2025-11-18T01:00:00Z"
 type = "post"
 draft = false
 math = true
