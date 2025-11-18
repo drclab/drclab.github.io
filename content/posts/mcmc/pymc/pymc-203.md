@@ -5,7 +5,7 @@ date = "2025-11-18T01:00:00Z"
 type = "post"
 draft = false
 math = true
-tags = ["pymc", "bayesian", "predictive-checks", "model-validation"]
+tags = ["pymc", "predictive-checks", "model-validation"]
 categories = ["posts"]
 description = "Master prior and posterior predictive checks in PyMC: validate model assumptions, assess fit quality, and make out-of-sample predictions with full posterior uncertainty quantification."
 +++
