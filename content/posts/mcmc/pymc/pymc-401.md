@@ -14,7 +14,7 @@ PyMC calls the introductory GLM tutorial the “Inference Button” notebook for
 
 ## 1. From deterministic slopes to Bayesian posteriors
 
-The tutorial starts by reminding us that classic linear regression is $Y = X\\beta + \\epsilon$ with a Gaussian noise term. Bayesians rewrite this as $Y \\sim \\mathcal{N}(X\\beta, \\sigma^2)$ so they can put priors on every unknown and recover full posterior distributions instead of point estimates. Those two benefits—encoding prior beliefs (e.g., “the noise scale should stay small”) and quantifying parameter uncertainty—are what make the Bayesian treatment practical even for a textbook straight line.
+The tutorial starts by reminding us that classic linear regression is $Y = X\beta + \epsilon$ with a Gaussian noise term. Bayesians rewrite this as $Y \sim \mathcal{N}(X\beta, \sigma^2)$ so they can put priors on every unknown and recover full posterior distributions instead of point estimates. Those two benefits—encoding prior beliefs (e.g., “the noise scale should stay small”) and quantifying parameter uncertainty—are what make the Bayesian treatment practical even for a textbook straight line.
 
 ## 2. Reproducible synthetic data
 
