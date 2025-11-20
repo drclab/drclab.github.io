@@ -1,11 +1,11 @@
 +++
 title = "PyMC 301: PyTensor Graph Surgery"
 slug = "pymc-301"
-date = "2026-12-21T00:00:00Z"
+date = "2025-11-20T00:00:00Z"
 type = "post"
 draft = false
 math = true
-tags = ["pymc", "pytensor", "probabilistic-programming", "graph"]
+tags = ["pymc", "pytensor"]
 categories = ["posts"]
 description = "A practical dive into PyTensor graphs, PyMC random variables, and compiled log-probability functions inspired by the official PyMC & PyTensor tutorial."
 +++

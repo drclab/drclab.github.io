@@ -1,11 +1,11 @@
 +++
 title = "PyMC 302: Dimensions Without Tears"
 slug = "pymc-302"
-date = "2027-04-15T00:00:00Z"
+date = "2025-11-21T00:00:00Z"
 type = "post"
 draft = false
 math = true
-tags = ["pymc", "dims", "xtensor", "probabilistic-programming"]
+tags = ["pymc", "dims"]
 categories = ["posts"]
 description = "Turn PyMC dims from metadata into executable structure: build dim-aware variables, mix them with legacy tensors, and vectorize spline models using the experimental pymc.dims API."
 +++

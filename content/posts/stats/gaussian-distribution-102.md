@@ -1,10 +1,10 @@
 +++
 title = "Gauss 102: Distribution of the Sample Mean"
-date = "2025-11-22T00:00:00Z"
+date = "2025-12-02T00:00:00Z"
 type = "post"
 draft = false
 math = true
-tags = ["statistics", "probability", "gaussian", "sampling-distribution", "central-limit-theorem"]
+tags = ["statistics", "gaussian"]
 categories = ["posts"]
 description = "Deriving the sampling distribution of the mean from independent Gaussian observations: log-probability mechanics, variance reduction, and practical implications."
 +++
