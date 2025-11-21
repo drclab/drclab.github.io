@@ -1,7 +1,7 @@
 +++
 title = "PyMC 302: Dimensions Without Tears"
 slug = "pymc-302"
-date = "2025-11-21T00:00:00Z"
+date = "2025-11-21T01:00:00Z"
 type = "post"
 draft = false
 math = true
