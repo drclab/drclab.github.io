@@ -1,7 +1,7 @@
 +++
 title = "PyMC 402: Gaussian Processes"
 slug = "pymc-402"
-date = "2027-08-27T00:00:00Z"
+date = "2025-11-23T00:00:00Z"
 type = "post"
 draft = false
 math = true

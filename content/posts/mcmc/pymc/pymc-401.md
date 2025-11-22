@@ -1,7 +1,7 @@
 +++
 title = "PyMC 401: Linear GLMs Two Ways"
 slug = "pymc-401"
-date = "2027-08-20T00:00:00Z"
+date = "2025-11-22T00:00:00Z"
 type = "post"
 draft = false
 math = true
