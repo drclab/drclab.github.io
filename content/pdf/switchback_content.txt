@@ -1,0 +1,1323 @@
+                                                                                                          MANAGEMENT SCIENCE
+                                                                                                          Vol. 69, No. 7, July 2023, pp. 3759–3777
+https://pubsonline.informs.org/journal/mnsc                                                        ISSN 0025-1909 (print), ISSN 1526-5501 (online)
+
+
+
+
+Design and Analysis of Switchback Experiments
+Iavor Bojinov,a David Simchi-Levi,b Jinglong Zhaoc,*
+a
+  Technology and Operations Management Unit, Harvard Business School, Boston, Massachusetts 02163; b Institute for Data, Systems, and
+Society, Department of Civil and Environmental Engineering, and Operations Research Center, Massachusetts Institute of Technology,
+Cambridge, Massachusetts 02139; c Operations and Technology Management Department, Questrom School of Business, Boston University,
+Boston, Massachusetts 02215
+*Corresponding author
+Contact: ibojinov@hbs.edu,   https://orcid.org/0000-0002-3470-8539 (IB); dslevi@mit.edu, https://orcid.org/0000-0002-4650-1519 (DS-L);
+jinglong@bu.edu, https://orcid.org/0000-0003-0986-0085 (JZ)
+
+Received: September 25, 2020               Abstract. Switchback experiments, where a firm sequentially exposes an experimental unit
+Revised: May 24, 2021; January 4, 2022     to random treatments, are among the most prevalent designs used in the technology sector,
+Accepted: March 1, 2022                    with applications ranging from ride-hailing platforms to online marketplaces. Although prac­
+Published Online in Articles in Advance:   titioners have widely adopted this technique, the derivation of the optimal design has been
+November 1, 2022                           elusive, hindering practitioners from drawing valid causal conclusions with enough statistical
+                                           power. We address this limitation by deriving the optimal design of switchback experiments
+https://doi.org/10.1287/mnsc.2022.4583     under a range of different assumptions on the order of the carryover effect—the length of
+                                           time a treatment persists in impacting the outcome. We cast the optimal experimental design
+Copyright: © 2022 INFORMS
+                                           problem as a minimax discrete optimization problem, identify the worst-case adversarial
+                                           strategy, establish structural results, and solve the reduced problem via a continuous relaxa­
+                                           tion. For switchback experiments conducted under the optimal design, we provide two
+                                           approaches for performing inference. The first provides exact randomization-based p-values,
+                                           and the second uses a new finite population central limit theorem to conduct conservative
+                                           hypothesis tests and build confidence intervals. We further provide theoretical results when
+                                           the order of the carryover effect is misspecified and provide a data-driven procedure to iden­
+                                           tify the order of the carryover effect. We conduct extensive simulations to study the numerical
+                                           performance and empirical properties of our results and conclude with practical suggestions.
+
+                                           History: Accepted by George Shanthikumar, big data analytics.
+                                           Funding: The authors thank the Massachusetts Institute of Technology (MIT)-IBM partnership in Artifi­
+                                              cial Intelligence and the MIT Data Science Laboratory for support.
+                                           Supplemental Material: Data and the online appendix are available at https://doi.org/10.1287/mnsc.2022.
+                                              4583.
+
+Keywords: design of experiments • discrete optimization • central limit theorem • switchback experiments
+
+
+
+1. Introduction                                                               are made across a range of different business outcomes,
+Academic scholars have appreciated the benefits that                          and the tests are usually conducted for at least a week
+experimentation brings to firms for many decades                              (Kohavi et al. 2020). This simple practice has provided
+(March 1991, Sitkin 1992, Sarasvathy 2001, Thomke                             tremendous value to firms (Koning et al. 2019).
+2001, Johari et al. 2015, Kohavi and Thomke 2017, Sun                            However, some firms and authors have recognized
+et al. 2018, Xiong et al. 2019). However, widespread                          the limitations of these simple A/B tests (Gupta et al.
+adoption of the practice has only taken off in the last dec­                  2019, Bojinov et al. 2020); the two most prominent
+ade, partly fueled by the rapid cost reductions achieved                      being handling interference (the scenario where the
+by firms in the technology sector (Kohavi et al. 2007,                        assignment of one subject impacts another’s outcomes)
+2009; Bakshy et al. 2014; Azevedo et al. 2019; Kohavi et al.                  and estimating heterogeneous (or personalized) effects.
+2020). Most large firms now possess internal tools for                        For example, many online platforms and retail market­
+experimentation, and a growing number of smaller and                          places often observe varying levels of interference when
+more conventional companies are purchasing the                                conducting experiments (see Chamandy 2016, Cui et al.
+capabilities from third-party sellers that offer full-stack                   2020, Kastelman and Ramesh 2018, Farronato et al. 2018,
+integration (Thomke 2020). These tools typically allow                        Glynn et al. 2020, Holtz et al. 2020, Li et al. 2021 for
+simple “A/B” tests that compare the standard offering                         online platforms like Airbnb, DoorDash, Lyft, and Uber
+“A” to a new or improved version “B.” The comparisons                         and Caro and Gallien 2012, Ferreira et al. 2016, Cui et al.
+
+
+
+                                                                       3759
+                                                                             Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+3760                                                                Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS
+
+
+2019, and Ma et al. 2021 for retail markets like Amazon,          wants to test a new fare pricing algorithm’s effective­
+AB InBev, Rue la la, Zara) and desire to estimate hetero­         ness in a large city (Farronato et al. 2018). Administer­
+geneous effects (see Nie et al. 2018, Deshpande et al.            ing the test version to a subset of drivers can impact
+2018, McFowland et al. 2018, Hadad et al. 2019).                  their behavior, which, in turn, could change the behav­
+   In this paper, we simultaneously tackle both of these          ior of drivers that are receiving the old version. Di­
+two challenges by developing a theoretical framework              rectly comparing the revenue generated by the drivers
+for the optimal design and analysis of switchback experi­         across the two groups will likely provide a biased esti­
+ments under the minimal amount of assumptions. In                 mate of what would happen if everyone were assigned
+switchback experiments, we sequentially expose a unit             to the new version compared with the old. Instead,
+to a random treatment, measure its response, and repeat           practitioners treat the city as a single aggregated unit
+the procedure for a fixed period of time (Robins 1986,            and use a switchback experiment to estimate the inter­
+Bojinov and Shephard 2019). By administering alternate            vention’s effectiveness, thereby alleviating the problem
+treatments to the same unit, we can directly estimate an          caused by interference. A similar issue often arises
+individual level causal effect and alleviate the challenges       in revenue management when, for example, a retailer
+posed by interference.                                            wants to test the effectiveness of a new promotion
+   In addressing the two challenges, many works in the            planning algorithm (Ferreira et al. 2016). Administer­
+literature assume specific outcome models under inter­            ing the new version to a subset of stock keeping units
+ference. Wager and Xu (2019), Johari et al. (2020), and Li        (SKUs) cannibalizes the sales from the other SKUs. Again
+et al. (2021) work on experimental design for two-sided           comparing the generated revenue across the two groups
+online platforms by assuming that the interference can            is unlikely to provide an accurate measure of the pro­
+be captured via game-theoretic modeling. Glynn et al.             motion’s effectiveness. Again, practitioners treat all the
+(2020) assumes an underlying Markov chain model and               SKUs as a single aggregated unit and use a switchback
+formulates the experimental design problem as esti­               experiment to obtain accurate estimates of the promo­
+mating the difference between two steady state reward             tion’s effectiveness.
+distributions. Some other literature directly models the             The second application arises when we have a limited
+interference through a network, for example, Li et al.            number of experimental units, and we believe the effects
+(2015), Eckles et al. (2017), Sussman and Airoldi (2017),         are likely to be heterogeneous. For example, Bojinov and
+Athey et al. (2018), Basse et al. (2019a), Puelz et al. (2019).   Shephard (2019) used switchback experiments to make
+In such models, a treatment assigned to one node of               causal claims about the relative effectiveness of algorithms
+the network creates a “spillover effect,” which impacts           compared with humans at executing large financial trades
+the outcomes of the neighboring nodes. All of the above           across a range of financial markets. More generally, psy­
+methods make specific assumptions on the outcome                  chologists and biostatisticians regularly use switchback
+models. If these assumptions hold, the above methods              experiments whenever studying the effectiveness of an
+correctly identify the causal effects (or the model param­        intervention on a single unit, for example, Lillie et al.
+eters) with great precision; if these assumptions do not          (2011) and Boruvka et al. (2018).
+hold, the estimates are likely biased.
+   Unlike the above works, we make no specific out­               1.2. Main Contributions
+come model assumptions in this paper. Instead, we                 There are three significant challenges to using switch­
+make assumptions about the existence of the carryover             back experiments. The first is that causal estimators from
+effects, which refer to the persistence of past interven­         switchback experiments have large variances as the pre­
+tions in impacting the future outcomes. More specifi­             cision is a function of the total number of assignments.
+cally, we make assumptions on the order of carryover              The second is that past interventions are likely to impact
+effects, which refers to the duration of time periods of          future outcomes; this is often referred to as a carryover
+such persistence. We then establish formal results on             effect. Typically, many authors assume that there are no
+the optimal design of switchback experiments under                carryover effects (Chamberlain 1982, Athey and Imbens
+different assumptions of the order of the carryover               2018, Imai and Kim 2019), although some recent work
+effects; we also propose a data-driven procedure to               has relaxed this assumption (Robins 1986, Sobel 2012,
+estimate the order of the carryover effects.                      Bojinov et al. 2021). The third is that standard super pop­
+                                                                  ulation inference—where researchers either assume a
+1.1. Applications                                                 model for the outcome or that the units are sampled
+There are two classes of applications where switchback            from an infinitely large population—requires unrealistic
+experiments are widely used in practice. The first arises         assumptions that fail to capture the problem’s personal­
+when units interfere with each other either through a             ized nature (Bojinov and Shephard 2019).
+network or some more complicated unknown struc­                      This paper’s main contributions are to address these
+ture. For example, consider a ride-hailing platform that          three challenges and present a framework that allows
+Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS                                                             3761
+
+firms and researchers to run reliable switchback experi­                  limitations that may lead to future research directions.
+ments. First, we derive optimal designs for switchback                    All technical proofs are in the online appendix.
+experiments, ensuring that we select a design that leads
+to the lowest variance among the most popular class                       2. Notations, Assumptions, and Regular
+assignment mechanisms. The designs are optimal in the                        Switchback Experiments
+sense that we search for both the optimal randomiza­
+                                                                          2.1. Assignment Paths and Potential Outcomes
+tion points and the optimal randomization probabilities,
+                                                                          We focus our discussion on a single experimental unit.
+which, together, capture the most general class of ran­
+                                                                          For example, this unit could be a ride-hailing platform
+domization mechanisms. Second, we assume the pres­
+                                                                          testing the effectiveness of a new fare pricing algorithm
+ence of a carryover effect and show that our estimation
+                                                                          in a city. At each time point t ∈ [T] � {1, 2, : : : , T}, we
+and inference are valid both when the order of the carry­
+                                                                          assign the unit to receive an intervention Wt ∈ {0, 1}. For
+over effect is correctly specified and misspecified, the lat­
+                                                                          example, one experimental period could be one to two
+ter leading to a minor increase in the variance. For
+practitioners, we also propose a method to identify the                   hours for a ride-hailing platform and T could be two
+order of the carryover effect by running a series of care­                weeks, that is, T � 336 when one period is one hour. In
+fully designed switchback experiments. Finally, we take                   some applications, the time horizon T is predetermined,
+a purely design-based perspective on uncertainty; that                    for example, a typical experimental duration for a ride-
+is, we treat the outcomes as unknown but fixed (or                        hailing platform is a few weeks; however, when T is not
+equivalently, we condition on the set of potential out­                   predetermined, Section 6 provides details for how to
+comes) and assume that the assignment mechanism is                        choose an appropriate T. Throughout most of this paper,
+the only source of randomness (Fisher et al. 1937, Kemp­                  with the exception being the derivation of our asymp­
+thorne 1955, Rubin 1980, Abadie et al. 2020). The main                    totic results, we consider T to be a known, fixed constant.
+benefit of a design-based perspective is that the infer­                     Following convention, we say that the unit is as­
+ence, and in turn the causal conclusions, do not depend                   signed to treatment if Wt � 1 and control when Wt � 0;
+on our ability to correctly specify a model describing the                in A/B testing terminology, “A” is control and “B” is
+phenomena we are studying, ensuring that our findings                     treatment. For example, Chamandy (2016) studied how
+are wholly nonparametric and robust to model misspeci­                    a new surge-pricing subsidy (the treatment) compared
+fication (Imbens and Rubin 2015, chapter 5).                              with the current setup without the subsidy (the control).
+                                                                          The assignment path is then the collection of assign­
+1.3. Roadmap                                                              ments and is denoted using a vector notation whose
+The paper is structured as follows. In Section 2, we define               dimensions are specified in the subscript, W 1:T � (W1 ,
+the notations, the assumptions, and the assignment                        W2 , : : : , WT ) ∈ {0, 1}T . We adopt the convention that W 1:T
+mechanism that we focus on, which we will refer to                        stands for a random assignment path, whereas w1:T
+as the regular switchback experiments. In Section 3, we                   stands for one realization.
+discuss how to design an effective regular switchback                        After administering the assigned intervention, we
+experiment under the minimax rule. The design is opti­                    observe a corresponding outcome. For example, this
+mal with respect to (i) the optimal treatment assignment                  could be the average ride-matching rate (often defined
+probability and (ii) the randomization frequency and                      as the proportion of requested rides that were success­
+randomization points. We cast the design problem as a min­                fully matched with a driver) during each two-hour
+imax discrete optimization problem, identify the worst-case               experimental period. Following the extended potential
+adversarial strategy, establish structural results, and                   outcomes framework, at time t ∈ [T], we posit that for
+then explicitly find the optimal design. In Section 4, we                 each possible assignment path w1:T , there exists a cor­
+discuss how to perform inference and conduct statisti­                    responding potential outcome denoted by Yt (w1:T ); the
+cal testing based on the results obtained from an opti­                   set of all potential outcomes are collected in
+mally designed switchback experiment. We propose
+                                                                                          Y � {Yt (w1:T )}t∈[T],w1:T ∈{0,1}T
+an exact test for sharp null hypotheses and an asymp­
+totic test for testing the average treatment effect. We                   with support Y ∈ Y.
+also discuss how to make an inference when the carry­
+over effect is misspecified and how to conduct hypoth­                    Example 1. When T � 4, there are 16 assignment paths
+esis testing to identify the true order of the carryover                  as shown in Figure 1. Associated with each assignment
+effect. In Section 5, we run simulations to test the cor­                 path w1:4 are four potential outcomes Y1 (w1:4 ), Y2 (w1:4 ),
+rectness and effectiveness of our proposed theoretical                    Y3 (w1:4 ), Y4 (w1:4 ).
+results under various simulation setups. In Section 6,                      Throughout this paper, we do not directly model the
+we give empirical illustrations on how to conduct a                       potential outcomes or impose a parametric relationship
+switchback experiment in practice and conclude with                       with the assignment path; instead, we treat them as
+                                                                                     Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+3762                                                                        Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS
+
+
+Figure 1. (Color online) Illustrator of Assignment Paths and              Assumption 2 (m-Carryover Effects). There exists a fixed
+Potential Outcomes When T � 4                                             and given m, such that for any t ∈ {m + 1, m + 2, : : : , T},
+                                                                          wt�m:T ∈ {0,1}T�t+m+1 , and for any w′1:t�m�1 , w′′
+                                                                                                                           1:t�m�1 ∈
+                                                                          {0,1}t�m�1 ,
+                                                                                  Yt (w′1:t�m�1 , wt�m:T ) � Yt (w′′
+                                                                                                                  1:t�m�1 , wt�m:T ):
+
+                                                                          Assumption 2 restricts the order of the carryover effect
+                                                                          (Laird et al. 1992, Senn and Lambrou 1998, Bojinov and
+                                                                          Shephard 2019, Basse et al. 2019b). The validity of
+                                                                          Assumption 2 depends on the setting and requires
+                                                                          practitioners to use their domain knowledge to choose
+                                                                          an appropriate m. Examples arise in ride hailing in
+                                                                          which the effect of surge pricing on a ride-hailing plat­
+                                                                          form typically dissipates after one or two hours, de­
+                                                                          pending on the city size (Garg and Nazerzadeh 2019).
+Notes. The green path stands for one assignment path w1:4 � (1, 1,
+                                                                          Moreover, in Section 4.4, we propose a data-driven
+0, 0). Following the green path, there are four potential outcomes. The   procedure for selecting an appropriate m.
+two red dots each stand for two potential outcomes that are equal            Assumptions 1 and 2 allow us to simplify notation.
+under Assumption 1. And the potential outcomes at the two red dots        For any t ∈ {m + 1, : : : , T} and any two assignment paths
+are equal if Assumption 2 is further assumed.
+                                                                          w1:T , w′1:T ∈ {0,1}m+1 , whenever wt�m:t � w′t�m:t , this leads
+unknown but fixed quantities or, equivalently, we im­                     to
+plicitly condition on Y. Our setup does not preclude the                                         Yt (w1:T ) � Yt (w′1:T ):
+possibility that the potential outcomes were generated
+                                                                          In the remainder of this paper, we will write Yt (wt�m:t ) :
+through a dynamic process; however, it allows us to
+                                                                          � Yt (w1:T ) to emphasize the dependence on treatments
+be completely agnostic to the data-generating process,
+                                                                          wt�m:t . For example, the potential outcomes at the two
+making our causal claims more objective. To make
+                                                                          red dots in Figure 1 are equal, that is, Y3 (1, 1) :� Y3 (1,
+inference possible, we rely on the variation introduced
+                                                                          1, 1, 1) � Y3 (1, 1, 1, 0) � Y3 (0, 1, 1, 1) � Y3 (0, 1, 1, 0).
+by the random assignment path; this is commonly re­
+ferred to as finite-sample or design-based perspective
+                                                                          2.2. Causal Effects
+and has a long history going back to Fisher et al. (1937),
+                                                                          In the potential outcomes approach to causal inference,
+Kempthorne (1955), Rubin (1980), and Neyman et al.
+                                                                          any comparison of potential outcomes has a causal
+(1990). Unlike traditional sampling-based inference, the
+                                                                          interpretation. In this paper, we focus on a special set
+design-based approach does not require a hypothetical                     of causal estimands that measure the relative effectiveness
+population from which to sample experimental units;                       of persistently assigning a unit to treatment as opposed to
+see Imbens and Rubin (2015) and Abadie et al. (2020)                      control. For any p ∈ {0, 1, : : : , T�1}, let 1p+1 � (1, 1, : : : , 1)
+for recent reviews. Instead, we make two assumptions                      be a vector of (p + 1) ones; let 0p+1 � (0, 0, : : : , 0) be a vec­
+that limit the dependence of the potential outcomes on                    tor of (p + 1) zeros. Define the average lag-p causal effect
+assignment paths. Below let {t : t′ } � {t, t + 1, : : : , t′ }, for      of consecutive treatments on the outcome, for any p ∈
+any t < t′ ∈ [T].                                                         {0, 1, : : : , T�1},
+Assumption 1 (Nonanticipating Potential Outcomes). For                                             1 X  T
+
+any t ∈ [T], w1:t ∈ {0,1}t , and for any w′t+1:T , w′′                                   τp (Y) �           [Yt (1p+1 )�Yt (0p+1 )]:        (1)
+                                                         t+1:T ∈ {0,                              T�p t�p+1
+  T�t
+1} ,
+             Yt (w1:t , w′t+1:T ) � Yt (w1:t , w′′
+                                                t+1:T ):                  This estimand captures the effects of permanently de­
+                                                                          ploying a new policy and has been widely studied in
+Assumption 1 states that the potential outcomes at time
+                                                                          the longitudinal experiments since the early work of
+t do not depend on future treatments (Basse et al. 2019b,
+                                                                          Robins (1986).
+Bojinov and Shephard 2019, Rambachan and Shephard
+2019). Because we control the assignment mechanism                        Remark 1. Although we focus on an average causal
+instead of letting the experimental units to administer                   effect, all of our results and analysis trivially extend to
+future assignments (e.g., at a ride-hailing platform, a                   the total causal effect, which does not normalize, that
+passenger does not know the price in the next hour), the                  is, (T�p)τp (Y). The optimal design as we will show in
+design ensures that this assumption is satisfied.                         Section 3 will remain unchanged.
+Example 2 (Example 1 Continued). Under Assumption                           In our setup, p reflects the experimental designer’s
+1, Y3 (1, 1, 1, 1) � Y3 (1, 1, 1, 0). In Figure 1, the dot at             knowledge of the order of the carryover effect; see the
+Y3 (1, 1, 1) stands for both Y3 (1, 1, 1, 1) and Y3 (1, 1, 1, 0).         discussion below Assumption 2. Such a knowledge is
+Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS                                                                3763
+
+either correct, which we refer to as the perfect knowl­                   Example 3. When T � 4, T � {t0 � 1, t1 � 3}, Q � (q0 , q1 ) �
+edge case (p � m), or incorrect, which we refer to as the                 (1=2, 1=2) corresponds to the following design: with
+“misspecified” m case1 (p ≠ m). In this section, we focus                 probability one-fourth, W 1:4 � (1, 1, 1, 1); with proba­
+on the p � m case to derive the optimal design; Section                   bility one-fourth, W 1:4 � (1, 1, 0, 0); with probability one-
+4.3 considers what happens when m is misspecified by                      fourth, W 1:4 � (0, 0, 1, 1); with probability one-fourth,
+discussing the p ≠ m case.                                                W 1:4 � (0, 0, 0, 0). See Figure 2 (left figure) for the four
+   The challenge of causal inference on switchback experi­                assignment paths that are in the support of the discrete
+ments is that we only observe one assignment path. In                     probability distribution.
+other words, for each period t, we observe at most either                 Example 4. Not all switchback experiments are regular.
+Yt (1p+1 ) or Yt (0p+1 ) (and sometimes neither). After con­              For example, when T � 4, with probability one-fourth, W 1:4
+ducting a switchback experiment, the observed data                        � (1, 1, 1, 0); with probability one-fourth, W 1:4 � (1, 0, 0, 0);
+contain wobs 1:T , the realized assignment path, and Yt
+                                                        obs
+                                                            �             with probability one-fourth, W 1:4 � (0, 1, 1, 1); with pro­
+      obs
+Yt (w1:T ), the observed outcome at time t under the real­                bability one-fourth, W 1:4 � (0, 0, 0, 1). See Figure 2 (right
+ized assignment path wobs     1:T . To link the observed and              figure) for the four assignment paths that are in the sup­
+potential outcomes, we assume there is only one version                   port of the discrete probability distribution.
+of the treatment2 and that there is no noncompliance.
+                                                                             In Section 3, we show that fair coin flipping (i.e.,
+2.3. Regular Switchback Experiments                                       qk � 1=2, ∀k ∈ {0, 1, : : : , K}) is indeed optimal, under a
+The design of a switchback experiment induces a prob­                     mild assumption.3 The reason behind fair coin flips
+abilistic distribution over assignment paths w1:T ∈ {0,                   reflects our limited assumption on the outcome model
+1}T . Formally, a design of a switchback experiment is any                and the inherent symmetry in the potential outcomes.
+η : {0,1}T → [0, 1] such that                                                Note that we do not consider adaptive treatment assign­
+       X                                                                  ments as most firms design the entire experiment before
+             η(w1:T ) � 1, η(w1:T ) ≥ 0, ∀w1:T ∈ {0,1}T :                 the experiment is launched; the treatment assignments are
+   w1:T ∈{0,1}T                                                           typically not updated based on the observed outcomes.
+Explicitly, η(·) is the underlying discrete distribution of               We briefly outline adaptive experimental designs as future
+the random assignment path W 1:T .                                        extensions in Section 6.
+  In this paper, we narrow our scope to the family of                        For any regular switchback experiment (T, Q), we
+regular switchback experiments. This family of experi­                    may use T to refer to the same experiment when Q is
+ments is parameterized by T and Q, defined as                             clear from the context. We denote the underlying dis­
+                                                                          crete probability distribution using ηT,Q (·). For any T
+              T � {t0 � 1 < t1 < t2 <⋯< tK } ⊆ [T],
+                                                                          and Q, the discrete probability distribution has a total of
+where K < T is a positive integer and T contains a total                  2K+1 many supports. The assignment path is random
+of K + 1 integers, which is a subset of all the time indi­                and follows the discrete probability distribution ηT,Q (·):
+ces; and                                                                   ηT,Q (w1:T ) �
+                                                                           8
+                  Q � (q0 , q1 , : : : , qK ) ∈ (0,1)K+1 :� Q,             >
+                                                                           >  YK
+                                                                                  1{wtk � 1} 1{wtk � 0}
+                                                                           <                ·               , if ∀k ∈ {0, 1, : : : , K},
+where Q is a vector of K + 1 real numbers between (0,                         k�0
+                                                                                      q tk         q̄ tk
+                                                                           >
+                                                                           >                                   wtk � wtk +1 � ⋯ � wtk+1 -1 ,
+1). For the ease of notations also denote tK+1 � T + 1,                    :
+                                                                              0,                               otherwise:
+though our time horizon is only T periods.
+                                                                                                                                          (3)
+Definition 1 (Regular Switchback Experiments). For any                    In the remainder of this paper, unless explicitly noted,
+T � {t0 � 1 < t1 <⋯< tK } ⊆ [T], and any Q � (q0 , q1 , : : : ,           all probabilities and expectations are taken with res­
+qK ) ∈ (0,1)K+1 , a regular switchback experiment (T, Q)                  pect to this discrete probability distribution ηT,Q (·).
+administers a probabilistic treatment at any time t,
+given by                                                                  2.4. Estimation
+             Pr (Wt � 1) � qk , if tk ≤ t ≤ tk+1 �1:      (2)             Now that ηT,Q (·) is determined, following any realiza­
+                                                                          tion of the assignment path w1:T , we use the Horvitz-
+In words, the experimental designer jointly decides on                    Thompson estimator to estimate the causal effect:
+a collection of randomization points, which consists of                                                      (
+flipping biased coins at each period t ∈ {t0 , : : : , tK }, as                                     1 X  T
+                                                                                                                      1{wt�p:t � 1p+1 }
+                                                                          bτ p (ηT,Q , w1:T , Y) �             Ytobs
+well as a collection of randomization probabilities                                                T�p t�p+1         Pr (W t�p:t � 1p+1 )
+behind the biased coins, (q0 , : : : , qK ). If the resulting                                                                 )
+flip at period tk is heads, then the experimental de­                                                obs 1{wt�p:t � 0p+1 }
+                                                                                                  � Yt                           :        (4)
+signer assigns the unit to treatment during periods                                                      Pr (W t�p:t � 0p+1 )
+(tk , tk + 1, : : : , tk+1 �1) and otherwise, if tails, assigns the       We emphasize that the estimator b    τ p (·, · , ·) depends on
+unit to control during periods (tk , tk + 1, : : : , tk+1 �1).            (i) the probability distribution that the assignment path
+                                                                                        Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+3764                                                                          Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS
+
+
+Figure 2. (Color online) Two Designs
+
+
+
+
+Notes. The blue lines stand for the possible treatment assignments that a design could administer. Left: regular switchback experiment (Example 3);
+right: irregular switchback experiment (Example 4).
+
+
+is sampled from, (ii) the realization of the assignment                     and any set of potential outcomes Y, we define the loss
+path, and (iii) the set of potential outcomes.                              function
+                                                                                                      �                            �2
+Example 5. Suppose T � 4, p � m � 1. Suppose the as­                              L(ηT,Q , w1:T , Y) � bτ p (ηT,Q ,w1:T ,Y)�τp (Y)
+signments are probabilistic and Pr (Wt � 1) � Pr (Wt �
+0) � 1=2, ∀t ∈ [4]: With probability one-sixteenth, the                     and the risk function
+                                                                                                  X
+green assignment path as in Figure 1 is administered,                               r(ηT,Q , Y) �                     ηT,Q (w1:T )
+                                            τ 1 � 13 {4Y2 (1,
+W 1:4 � (1, 1, 0, 0). The estimator is then b                                                          w1:T ∈{0,1}T
+1) + 0 � 4Y4 (0, 0)}:                                                                                   �                           �2
+                                                                                                       · bτ p (ηT,Q ,w1:T ,Y)�τp (Y) :                (5)
+   Because the assignment path W 1:T is random, this
+Horvitz-Thompson estimator is also random. Moreover,                        Such a risk function quantifies the expected squared
+when the assignment path satisfies a regular switchback,                    difference between our estimand and estimator. Since
+the probabilities in the denominator are known. As we                       the estimator is unbiased, the risk function also has a
+will show in Theorem 1, under the optimal design, these                     second interpretation: the variance of the estimator. A
+probabilities will be multiplicatives of one-half, allowing                 design with a lower risk is also a design whose estima­
+us to avoid the known stability issues of the Horvitz-                      tor has a lower variance.
+Thompson estimator when the probabilities are extreme                       Example 6 (Examples 3 and 5 Revisited). Suppose T � 4
+(either close to zero or close to one). It is well known that               and p � m � 1. As in Example 3, T � {1, 3}. With proba­
+the Horvitz-Thompson estimator is unbiased if the treat­                    bility one-fourth, W 1:4 � (1, 1, 0, 0), b τ 1 (T) � 13 {2Y2 (1, 1)
+ment and control probabilities are both nonzero.                                                               1
+                                                                            �2Y4 (0, 0)}, L(ηT,Q , w1:T , Y) � 9 (Y2 (1, 1) + Y2 (0, 0)�Y3 (1,
+Proposition 1 (Unbiasedness of the Horvitz-Thompson                         1) + Y3 (0, 0)�Y4 (1, 1)�Y4 (0, 0))2 : As in Example 5, T̃ �
+Estimator). In a regular switchback experiment, under As­                   {1, 2, 3, 4}. With probability one-sixteenth, W 1:4 � (1,
+sumptions 1 and 2, the Horvitz-Thompson estimator is un­                              τ 1 (T̃) � 13 {4Y2 (1, 1) � 4Y4 (0, 0)}, L(ηT̃ ,Q , w1:T , Y) � 19
+                                                                            1, 0, 0), b
+biased for the average lag-p causal effect of consecutive                                                                                         2
+                                                                            (3Y2 (1, 1) + Y2 (0, 0)�Y3 (1, 1) + Y3 (0, 0)�Y4 (1, 1)�3Y4 (0,0)) :
+treatments on outcome, that is,
+                                                                              Example 6 suggests that, even if the two realizations
+                 E[b
+                   τ p (ηT,Q , W 1:T , Y)] � τp (Y):
+                                                                            of the assignment path are the same and the potential
+The expectation E[·] is taken with respect to the ran­                      outcomes are the same, because the probability distri­
+dom assignment W 1:T ~ ηT,Q (·). When it is obvious, we                     butions ηT,Q and ηT̃ ,Q are distinct, the corresponding
+will compress the subscript in the expectation writing                      estimators b τ 1 (T) and b
+                                                                                                     τ 1 (T̃) could be different, and the
+E[·] to mean EW 1:T ~ηT,Q [·]. The proof to Proposition 1 is                corresponding loss functions L(ηT,Q , w1:T , Y) and L(ηT̃ ,Q ,
+standard, by checking the expectations. We defer its                        w1:T , Y) could also be different. This observation sug­
+proof to Section EC.2 in the online appendix.                               gests that there exists some design ηT∗ that has a small
+                                                                            risk. In the next section, we find such a design when m is
+2.5. Evaluation of Experiments:                                             correctly specified.
+      The Decision-Theoretic Framework
+To evaluate the quality of a design of experiment, we                       3. Design of Regular Switchback
+adopt the decision-theoretic framework (Berger 2013,                           Experiments Under Minimax Rule
+Bickel and Doksum 2015). When the random design is                          The goal of this section is to find the optimal design of
+ηT,Q (·), for any realization of the assignment path w1:T                   regular switchback experiments, that is, to select the
+Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS                                                                3765
+
+optimal randomization points and the optimal ran­                           inference literature (Aronow et al. 2017, Chin 2018, Boji­
+domization probabilities. Throughout this section, we                       nov and Shephard 2019, Li et al. 2020, Han et al. 2021). It
+assume m is known and we set p � m.                                         is the well-behaved variance that lays the foundation of
+   We formalize our experimental design problem                             our limiting distribution of the estimator.
+through the minimax framework. The minimax deci­                               To solve the minimax Problem (6), we start by focus­
+sion rule (Wu 1981, Li 1983, Berger 2013) finds an opti­                    ing on the inner maximization part. We characterize the
+mal design of experiment such that the worst-case risk                      worst-case potential outcomes by identifying two dom­
+against an adversarial selection of potential outcomes is                   inating strategies for the adversarial selection of
+minimized,                                                                  potential outcomes. Denote Y+ � {Yt (1m+1 ) � Yt (0m+1 ) �
+                                                                            B}t∈{m+1:T} and Y� � {Yt (1m+1 ) � Yt (0m+1 ) � �B}t∈{m+1:T} .
+   min      max r(ηT,Q , Y)
+T∈[T], Q∈Q Y∈Y
+                                         X                                  Lemma 1. Under Assumptions 1–3, Y+ and Y� are the only
+                �     min      max                   ηT,Q (w1:T )           two dominating strategies for the adversarial selection of
+                    T∈[T], Q∈Q Y∈Y
+                                      w1:T ∈{0,1}T                          potential outcomes. That is, for any T ⊆ [T] and for any
+                     �                    �2                                Y ∈ Y,
+                      τ p (w1:T ,Y)�τp (Y) :
+                    · b                                               (6)
+One compelling reason to adopt the minimax frame­                               r(ηT,Q , Y+ ) ≥ r(ηT,Q , Y); r(ηT,Q , Y� ) ≥ r(ηT,Q , Y):
+work, as commented in the seminal work of Wu (1981,                         Moreover, for any Y ∈ Y such that Y ≠ Y+ , Y ≠ Y� , the
+p. 1168), is that “the experimenter’s information about                     above two inequalities are strict.
+the model is never perfect. When a model is proposed,
+there is always the possibility that the ‘true’ model devi­                   The proof of Lemma 1 can be found in Section
+ates from the assumed model.” Instead of finding the                        EC.3.3.1 in the online appendix. Lemma 1 simplifies
+best possible design by imposing a model, we try to                         the minimax problem in (6), as it allows us to replace Y
+derive the best possible design for the worse possible set                  by Y∗ � Y+ or Y∗ � Y� and reduce the minimax Prob­
+of potential outcomes.                                                      lem (6) into a minimization problem
+   To overcome minimaxity and to lay out the founda­                                               min       r(ηT,Q , Y∗ ):
+tion for inference, we impose an additional assumption                                          T∈[T], Q∈Q
+on the support of the potential outcome. Because the
+                                                                            Next we solve this minimization problem by first find­
+potential outcomes are unknown but fixed, we assume
+                                                                            ing the optimal Q values.
+that their absolute values are bounded from above and
+that bound is attainable at every time period.                              Theorem 1 (Optimality of Fair Coin Flipping). Under Ass­
+                                                                            umptions 1–3, any optimal design of experiment (T, Q)
+Assumption 3 (Bounded Potential Outcomes). The potential
+                                                                            must satisfy q0 � q1 � ⋯ � qK � 1=2.
+outcomes are bounded by some constant, that is, ∃ B >
+0, s:t: ∀t ∈ [T], ∀w ∈ {0,1}T , |Yt (w)| ≤ B, or, equivalently,                The proof of Theorem 1 can be found in Section
+Y ∈ Y � [�B, B]T .                                                          EC.3.4.1 in the online appendix. Theorem 1 suggests
+                                                                            that the optimal randomization probabilities should be
+   Assumption 3 is often satisfied because it assumes
+                                                                            one-half. So we can restrict our scope to only finding
+that the potential outcomes are bounded by the same
+                                                                            the experiments induced by fair coin flipping and focus
+(possibly a large) constant, (e.g., the ride-matching rate
+                                                                            on the trade-off behind the number and timing of the
+from each experimental period is always a finite quan­
+                                                                            randomization points.
+tity) and that the extreme could possibly occur at any
+                                                                               The trade-off lies between having too many random­
+point in time (e.g., the maximum ride-matching rate
+                                                                            ization points (corresponding to large K) and too few
+could be observed at any time). In particular, knowl­
+                                                                            randomization points (corresponding to small K). Intui­
+edge about the magnitude of B is not required; as we
+                                                                            tively, too many decreases the probability of observing
+show below, the optimal design does not depend on B.
+                                                                            consecutive treatments 1m+1 or controls 0m+1 , which, in
+   The reason to make Assumption 3 is twofold. First,
+                                                                            turn, decreases the amount of useful data. On the other
+for optimization purposes, Assumption 3 reflects the
+                                                                            hand, too few decreases the number of independent
+inherent symmetry in the potential outcomes under
+                                                                            observations and reduces our ability to produce reli­
+both treatment and control, which is in the same spirit
+                                                                            able results. Both of these scenarios reduce our ability
+as the permutation invariance assumption (Wu 1981,
+                                                                            to draw valid causal claims. Theorem 2 formalizes this
+Li 1983, Basse et al. 2019b). It is such symmetry that
+                                                                            trade-off.
+ensures the optimality of fair coin flipping. See Theo­
+rem 1. Second, for inferential purposes, Assumption 3                       Theorem 2 (Optimal Design). Under Assumptions 1–3, the
+ensures that the variance of the estimator is well be­                      optimal solution to the design of regular switchback experi­
+haved, which is commonly assumed in the finite-sample                       ment as we have introduced in (6) is equivalent to the
+                                                                                      Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+3766                                                                         Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS
+
+
+optimal solution to the following subset selection problem.                T�1}. This suggests that the minimax optimal design
+     (                                                                     in the absence of a carryover effect is robust to the
+         XK
+ min 4       (tk+1 �tk )2 + 8m(tK �t1 ) + 4m2 K�4m2                        existence of a short carryover effect.
+T⊂[T]
+          k�0
+                                             )                             4. Inference and Testing
+                X
+                K�1
+           +4         [(m�tk+1 + tk ) ]+ 2
+                                                                 (7)       After designing and running the experiment, we obtain
+                k�1                                                        two time series. The first is the observed assignment
+                                                                           path wobs
+                                                                                   1:T , and the second is the corresponding observed
+In particular, when m � 0, then T∗ � {1, 2, 3, : : : , T}; when            outcomes Y obs 1:T . See Figure 3. To draw inference from
+m > 0, and if there exists n ≥ 4 ∈ N, such that T � nm, then               these data, we propose two methods: an exact random­
+T∗ � {1, 2m + 1, 3m + 1, : : : , (n�2)m + 1}.                              ization based test and a finite population conservative
+   The proof of Theorem 2 is deferred to Section EC.3.6.1                  test that establishes asymptotic result.
+in the online appendix. Theorem 2 presents the optimal                        In Sections 4.1 and 4.2, we assume perfect knowl­
+design in a class of perfect cases when the time horizon                   edge of m, that is, p � m; we will write τm and b        τ m to
+splits into several equal-length epochs;4 see Table 1 for an               stand for τp and b   τ p , respectively. We discuss in Section
+example. In practice, we recommend selecting T that                        4.3 the case when p ≠ m and show that our inference
+satisfies the condition in Theorem 2; see Section 6 for a                  methods are still valid. To conclude this section, we
+discussion.                                                                provide in Section 4.4 a data-driven procedure to iden­
+   There are two important implications of Theorem 2.                      tify a possible value for the carryover effect by running
+First, the optimal randomization frequency depends on                      multiple experiments. Such a procedure relaxes Ass­
+the physical duration of the carryover effect, regardless                  umption 2 and is of great practical relevance.
+of the granularity of one single experimental period. This
+observation suggests that practitioners should set each                    4.1. Exact Inference
+period to be almost as long as the order of the carryover                  We propose an exact nonparametric test for the sharp
+effect, which sheds some light on the selection of gra­                    null of no effect at every time point (Fisher et al. 1937,
+nularity when practitioners design the experiment. See                     Rubin 1980, Bojinov and Shephard 2019):
+Example 7. Second, a special case arises when there are                       H0 : Yt (wt�m:t )�Yt (w′t�m:t ) � 0
+no carryover effects (m � 0) or very little carryover effect
+                                                                                   for all wt�m:t , wt�m : t′ , t ∈ {m + 1 : T}:                (8)
+(m � 1); in both cases the optimal designs are almost the
+same. This observation suggests a layer of robustness                      The sharp null hypothesis implies that                   Yt (wobs
+                                                                                                                                         t�m:t ) �
+when the granularity is set to be the same as the sus­                     Yt (wt�m:t ) for all wt�m:t ∈ {0,1}t . That is, regardless of
+pected order of the carryover effect; see Example 8.                       the assignment path wt�m:t , we would have observed
+                                                                           the same outcomes.
+Example 7 (Two Granularity Levels). In the ride-sharing
+                                                                              We can conduct exact tests by using the known
+application, suppose the firm has two options to treat
+                                                                           assignment mechanism to simulate new assignment
+one single time period either as 0.5 hour or one hour;
+                                                                           paths; see Algorithm 1 for details. The test depends on
+and suppose the carryover effect lasts for two hours.
+                                                                           the observation that, under the sharp null hypothesis of
+When one single experimental period corresponds to
+                                                                           no treatment effect (8), any assignment path w[i]    1:T leads
+0.5 hour, the carryover effect lasts for m � 4 periods.
+                                                                           to the same observed outcomes. In particular, in Step 3,
+When one single experimental period corresponds to
+                                                                           we assume the observed outcomes remain unchanged.
+one hour, the carryover effect lasts for m � 2 periods.
+                                                                           Thus, all treatment paths lead to the same observed out­
+From Theorem 2, the optimal design exhibits an opti­                                 obs
+                                                                           comes Ym+1:T    . To obtain a confidence interval, we pro­
+mal structure that randomizes once every m periods
+                                                                           pose inverting a sequence of exact hypothesis tests to
+(except for the first and last epoch, which lasts for 2m
+                                                                           identify the region outside of which (8) is violated at
+time periods each). In both cases, the optimal design
+                                                                           the prespecified nominal level (Imbens and Rubin 2015,
+would randomize once every two hours.
+                                                                           chapter 5). In practice, obtaining confidence intervals
+Example 8 (Little Carryover Effect). For example, Theo­                    through this approach is somewhat challenging; instead,
+rem 2 suggests that the optimal design when m � 0 is                       we refer the reader to the subsequent section that pro­
+T∗ � {1, 2, 3, : : : , T} and when m � 1 is T∗ � {1, 3, 4, : : : ,         vides a less computationally intensive approach.
+
+Table 1. An Example of the Optimal Design T∗ � {1, 5, 7, 9} When T � 12 and p � m � 2
+
+            1             2        3             4        5            6          7           8           9           10            11           12
+    ∗
+T           ✓             –        –             –        ✓            –         ✓            –           ✓            –            –             –
+Note. Each checkmark beneath a time period t indicates that t is a randomization point.
+Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS                                                                           3767
+
+Figure 3. (Color online) Illustrator of the Observed Assignment Path wobs
+                                                                      1:T (Blue and Red Dots) and the Observed Outcomes
+Y obs
+  p+1:T (Black Curve)
+
+
+
+
+Note. The dashed lines are the potential outcomes under consecutive treatments/controls.
+
+
+
+
+Algorithm 1 (Algorithm for Performing a Sharp-Null Hypoth­                  clear, we introduce the following notations. For any
+esis Test)                                                                                                               P(k+2)m
+                                                                            k ∈ {0, 1, : : : , n�2}, let Ȳ k (1m+1 ) �     t�(k+1)m+1 Yt (1m+1 )
+   Require: Fix I, total number of samples drawn.                                                P(k+2)m
+   1: for i in 1 : I do                                                     and Ȳ k (0m+1 ) � t�(k+1)m+1 Yt (0m+1 ). Moreover, for any
+                                                                                                                 P
+   2: Sample a new assignment path w[i]            1:T according
+                                                                                                            obs
+                                                                            k ∈ {0, 1, : : : , n�2}, let Ȳ k � (k+2)m           obs
+                                                                                                                    t�(k+1)m+1 Yt    be the sum
+         to the assignment mechanism.                                       of the observed outcomes.
+                    obs                              [i]
+   3: Hold Yp+1:T        unchanged. Compute b     τ according
+        to (4),                                                             Lemma 2 (Variance of the Horvitz-Thompson Estimator
+                                (                                           Under the Optimal Design). Under Assumptions 1–3 and
+                [i]     1 X  T
+                                          1{w[i]
+                                              t�m:t � 1m+1 }                under the optimal design as shown in Theorems 1 and 2,
+              τ �
+              b                    Ytobs
+                       T�m t�m+1         Pr (W t�m:t � 1m+1 )               if n � T=m ≥ 4 is an integer, then the variance of the Horvitz-
+                                                 )                          Thompson estimator, Var(b τ m ), is
+                                 [i]
+                         obs 1{wt�m:t � 0m+1 }
+                      �Yt                           :
+                            Pr (W t�m:t � 0m+1 )                                 τm) �
+                                                                             Var(b
+                                                                                     (
+  4: end for                                                                    1
+                          P           [i]                                                  Ȳ 0 (1m+1 )2 + Ȳ 0 (0m+1 )2 + 2Ȳ 0 (1m+1 )Ȳ 0 (0m+1 )
+  5: Compute b   p F � I�1 Ii�1 1{| b
+                                    τ | > |b
+                                           τ |}                              (T�m)2
+  6: return b
+            p F , the estimated p-value. For large I, this is                 n�3 h
+                                                                              X                                                                 i
+exact.                                                                      +       3Ȳ k (1m+1 )2 + 3Ȳ k (0m+1 )2 + 2Ȳ k (1m+1 )Ȳ k (0m+1 )
+                                                                               k�1
+                                                                            + Ȳ n�2 (1m+1 )2 + Ȳ n�2 (0m+1 )2 + 2Ȳ n�2 (1m+1 )Ȳ n�2 (0m+1 ) )
+4.2. Asymptotic Inference                                                     X
+                                                                              n�3 �                             � �                               �
+We now introduce a conservative test for the null of no                     +      2 Ȳ k (1m+1 ) + Ȳ k (0m+1 ) · Ȳ k+1 (1m+1 ) + Ȳ k+1 (0m+1 ) :
+average treatment effect:                                                      k�0
+                                                                                                                                                   (10)
+               1 X  T
+    H0 : τm �           [Yt (1m+1 )�Yt (0m+1 )] � 0:                  (9)
+              T�m t�m+1                                                     Lemma 2 provides the variance of the Horvitz-Thompson
+                                                                            estimator under the optimal design. Because we never
+To test such a null, we derive a finite population central                  observe all the potential outcomes, most of the cross-
+limit theorem to approximate the distribution of the                        product terms in (10) cannot be directly estimated.
+Horvitz-Thompson estimator.                                                 Instead, we provide the following upper bound to (10)
+     Assume n � T=m ≥ 4 is an integer, then under the                       and propose an unbiased estimator.
+optimal design as shown in Theorems 1 and 2, the assign­
+ment path is determined by the realizations at W1 , W2m+1 ,                 Corollary 1. Under the conditions in Lemma 2, there exists
+: : : , W(n�2)m+1 . To make the dependence on randomization                 an upper bound for the variance of the Horvitz-Thompson
+                                                                                                    Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+3768                                                                                       Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS
+
+
+estimator, Var(b τ m ) ≤ VarU (bτ m ), which can be estimated by                           The proofs of Lemma 2, Corollary 1, and Theorem 3
+  2
+σ U , defined as
+b                                                                                        are deferred to Sections EC.4.2, EC.4.3, and EC4.4 in
+                     (
+               1            obs      X
+                                     n�3
+                                               obs
+                                                                                         the online appendix, respectively.
+        2
+      σU �
+      b            2
+                       8(Ȳ 0 )2 +       32(Ȳ k )2 1{Wkm+1
+            (T�m)                    k�1
+                                                      )                                  4.3. Inference Under Misspecified m
+                                                              obs                        Up to now, we assumed that we knew the order of the
+                                  � W(k+1)m+1 } + 8(Ȳ n�2 )2 :                          carryover effect m and set p � m. In practice, we may not
+                 2                                      2
+                                                                                         know the exact value of the carryover effect, and we have
+Moreover, b                            σ U ] � VarU (b
+          σ U is unbiased, that is., E[b             τ m ).                              to select p either based on domain knowledge or the pro­
+   Corollary 1 provides the foundation to make conserva­                                 cedure we recommend in Section 4.4. In this section, we
+tive inference. We make the following technical assump­                                  consider what happens when p ≠ m and show that the
+tion for the asymptotic normal distribution to hold.                                     estimation and inference are still valid and meaningful,
+                                                                                         although the design from Theorem 2 is no longer opti­
+Assumption 4 (Nonnegligible Variance). Assume that the                                   mal. Below we distinguish two cases: p > m and p < m.
+randomization distribution has a nonnegligible variance,                                    When p > m, because of Assumption 2, Yt (1p+1 ) �
+that is,                                                                                 Yt (1m+1 ), ∀t ∈ {p + 1 : T}, and the lag-p causal effect is
+                                τ m ) ≥ Ω(n�1 ):
+                            Var(b                                               (11)     essentially the lag-m causal effect. So all the estimation
+                                                                                         and inference results still hold.
+In particular, one sufficient condition for (11) is to assume                               However, when p < m, the Horvitz-Thompson esti­
+that all the potential outcomes are positive, that is, there                             mator (4) will be biased for the causal estimand. See
+exists some constant b > 0, such that ∀t ∈ [T], ∀w1:T ∈ {0,1}T ,                         Section EC.4.5 in the online appendix for more discus­
+Yt (w1:T ) ≥ b.                                                                          sions. When p < m, the exact inference procedure as in
+   Intuitively, the key to most central limit theorems is                                Section 4.1 remains valid. For the asymptotic inference
+that all the variables roughly have variances of the                                     procedure, a similar result to Theorem 3 still holds
+same order. In other words, there cannot be a small                                      when m is misspecified, as we state in Corollary 2. The
+number of variables that compromise the majority of                                      only difference is that when p < m, the asymptotic nor­
+the variance. Because under Assumption 3 the poten­                                      mal distribution will not be centered around the causal
+tial outcomes are bounded, each variable contributes                                     estimand as we defined in (1) but some quantity that
+to the total variance of order O(n�2 ). Assumption 4                                     we will discuss in Section EC.4.5. The proof is deferred
+suggests that the total variance is large enough, such                                   to Section EC.4.7 in the online appendix.
+that it cannot come from only a few of the time periods.                                 Corollary 2 (Asymptotic Normality When m is Misspecified).
+Theorem 3 (Asymptotic Normality). Let m be fixed. For any                                For any n ≥ 4 ∈ N, define an n-replica experiment such that
+n ≥ 4 ∈ N, define an n-replica experiment such that there                                there are T � np time periods. Take the optimal design as in
+are T � nm time periods. We take the optimal design as in                                Theorem 2 whose randomization points are at T∗ � {1,
+Theorem 2 whose randomization points are at T∗ � {1,                                     2p + 1, 3p + 1, : : : , (n�2)p + 1}. We have the following two
+2m + 1, 3m + 1, : : : , (n�2)m + 1}. Under Assumptions 1–2,                              observations.
+and under Assumption 4, the limiting distribution of the                                   i. When p > m, under Assumptions 1–2, the variance of
+Horvitz-Thompson estimator in the n-replica experiment                                   the Horvitz-Thompson estimator, Var(b      τ p ), is explicitly given
+has an asymptotic normal distribution. That is, let Var(b                          τm)   by (10).
+be defined in Lemma 2. As n → +∞,                                                          ii. Furthermore, no matter if p > m or p < m, under
+                        τ m �τm D
+                        b                                                                Assumptions 1–3 and assume Var(b       τ p ) ≥ Ω(n�1 ), the limit­
+                     pffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffi → N (0, 1):       ing distribution of the Horvitz-Thompson estimator in the
+                         Var(b                   τm)                                     n-replica experiment has an asymptotic normal distribution.
+Theorem 3 is in the spirit of the finite population cen­                                 That is, as n → +∞,
+tral limit theorems as in Li and Ding (2017), Aronow
+                                                                                                               τ p �E[b
+                                                                                                               b                          τp] D
+et al. (2017), Chin (2018), Bojinov et al. (2021), and Han                                                     qffiffiffiffiffiffiffiffiffiffiffiffiffiffiffi → N (0, 1):
+et al. (2021). Note that Theorem 3 does not require                                                                Var(b                   τp)
+Var(bτ m ) to converge as n → +∞.
+   To conduct inference, we replace Var(b      τ m ) by b
+                                                          2
+                                                        σ U as                           Corollary 2, together with Theorem 3, is the key to iden­
+provided in Corollary 1. Define the test statistic to be                                 tification of m, the order of the carryover effect. In Sec­
+           qffiffiffiffiffiffi                                                           tion 4.4, we provide a procedure to identify m.
+                     2
+     τ m |= b
+z � |b        σ U . When the alternative hypothesis is two
+sided, the estimated p-value is given by b    p N � 2�2Φ(z),                             4.4. Identifying the Order of the Carryover Effect
+where Φ     is the cumulative distribution function (CDF) of                             Using Theorem 3 and Corollary 2, we can define a hypoth­
+a standard normal distribution.                                                          esis testing procedure, which, combined with a searching
+Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS                                                                                                                                                      3769
+
+method, yields an estimate of the order of the carryover                                                                                                   proposed in Section 4.4, which identifies m the length of
+effect.                                                                                                                                                    the carryover effect.
+   To build intuition, suppose we have access to two com­                                                                                                    We start with a simple linear additive carryover effect
+parable experimental units. The two experimental units                                                                                                     model, which originates from Hedayat et al. (1978), Oman
+could be two separate units or two nonoverlapping time                                                                                                     and Seiden (1988), and Jones and Kenward (2014).
+epochs on one experimental unit such that the two
+                                                                                                                                                             Yt (w1:t ) � µ + αt + δ(1) wt + δ(2) wt�1 + ⋯ +δ(t) w1 + ɛt ,
+epochs are far enough such that the carryover effect
+from one does not affect the outcomes of the other. Sup­                                                                                                                                                                      (13)
+pose on the first experimental unit we design an optimal                                                                                                   where µ is a fixed effect; αt is a fixed effect associated to
+experiment under p � p1, and on the second unit we use                                                                                                     period t; δ(1) , δ(2) , : : : , δ(t) are nonstochastic coefficients;
+p � p2; without loss of generality, let p1 < p2 .                                                                                                          wt , wt�1 , : : : , w1 are the treatment indicators; and ɛt is
+   After running the experiment and collecting the re­                                                                                                     the random noise in period t. We will run many simu­
+sults, consider the following two statistics. For the first                                                                                                lations based on this model. For a more detailed dis­
+                                                         2
+unit, we calculate bτ p1 , the sampling average, and b σ p1 , the                                                                                          cussion of the flexibility of the potential outcome
+conservative sampling variance as suggested by Corol­                                                                                                      framework, see Section EC.5.1 in the online appendix.
+                                                      2
+lary 1. For the second unit, we calculate bτ p2 and b
+                                                    σ p2 .
+                                                                                                                                                           5.1. Comparison of the Risk Functions for
+   Define a procedure that tests the following null hy­
+                                                                                                                                                                    Different Designs
+pothesis:
+                                                                                                                                                           5.1.1. Simulation Setup. We consider two setups. The
+                           H 0 : m ≤ p1 :                    (12)                                                                                          first setup is for the worst-case risk. We consider T �
+Under the null Hypothesis (12), ; so both b                                                                                                τ p1 and b
+                                                                                                                                                    τ p2   120, p � m � 2, where m is correctly identified, and
+are unbiased estimators of τm. Furthermore, given                                                                                                          Yt (13 ) � Yt (03 ) � 10. We compare three different designs
+that the two estimators both conform asymptotic nor­                                                                                                       of switchback experiments. The first one is our pro­
+mal distributions and that the two experimental units are                                                                                                  posed optimal design as in Theorem 2, such that T∗ �
+independent, the difference between the two estimators                                                                                                     {1, 5, 7, : : : , 117}. The second one is the most common
+should be an asymptotic normal distribution cen­                                                                                                           and naive switchback experiment, which independently
+tered around zero, that is,                                                                                                                                assigns treatment/control in every period with half-half
+                     qffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffi D                 probability. It is parameterized by TH1 � {1, 2, 3, : : : ,
+        τ p1 �b
+       (b     τ p2 )= Var(τp1 ) + Var(τp2 ) → N (0, 1):                                                                                                    120}. The third one is the “intuitive” experiment dis­
+                                                                                                                                                           cussed in Table 1, which divides the time horizon into
+To test the null Hypothesis (12), define the test statistic                                                                                                several epochs each with length m + 1 � 3. It is parame­
+to be                                                                                                                                                      terized by TH2 � {1, 4, 7, : : : , 118}.
+                    �            � qffiffiffi2ffiffiffiffiffiffiffiffiffiffiffiffi2ffiffiffiffi                                                                 Second, we run simulations based on the outcome
+                z � �b      τ p2 �= b
+                      τ p1 �b       σ p1 + b                           σ p2 :
+                                                                                                                                                           model as in (13). Similar to the first setup, we consider
+The estimated p-value is given by bp � 2�2Φ(z), where                                                                                                      again T � 120, p � m � 2 where m is correctly identified.
+Φ is the CDF of a standard normal distribution.                                                                                                            For the outcome model, we consider µ � 0, αt � log (t),
+  The above procedure enables us to test the null                                                                                                          and ɛt ~ N(0, 1) are independent and identically dis­
+Hypothesis (12). We can combine such a procedure                                                                                                           tributed (i.i.d.) standard normal distributions. For any
+with any searching method to identify m.                                                                                                                   t > 3, let δ(t) � 0. We will vary the values of
+                                                                                                                                                           δ(1) , δ(2) , δ(3) ∈ {1, 2} and conduct experiments under 23 � 8
+                                                                                                                                                           different scenarios. Again we compare the same three
+5. Simulation Study                                                                                                                                        different designs of switchback experiments: T∗ �
+There are five goals for this simulation study. First, show                                                                                                {1, 5, 7, : : : , 117}, TH1 � {1, 2, 3, : : : , 120}, and TH2 � {1, 4, 7,
+that the optimal design in Theorem 2 has the smallest                                                                                                      : : : , 118}.
+risk compared against two benchmarks. There are two                                                                                                             We simulate one assignment path at a time and con­
+dimensions for our comparison: the worst-case risk and                                                                                                     duct an experiment following this assignment path.
+the risk under a specific outcome model. Second, verify                                                                                                    Because the outcome model is prescribed, we can cal­
+the asymptotic normal distribution under a nonasymp­                                                                                                       culate both the causal estimand and the observed out­
+totic setup and study the quality of the upper bound pro­                                                                                                  comes (along the simulated assignment path). Then we
+posed in Corollary 1. Third, understand the rejection rate                                                                                                 calculate the Horvitz-Thompson estimator based on
+and its dependence on the length of time horizon. Fourth,                                                                                                  the simulated assignment path and the simulated ob­
+study the performance of the optimal design under a                                                                                                        served outcomes. With both the estimand and estima­
+misspecified m and compare the difference of the two                                                                                                       tor, we can calculate the loss function. We repeat the
+inference methods proposed in Section 4. Fifth, study                                                                                                      above procedure enough (100,000) times to obtain an
+the performance of the hypothesis testing procedure as                                                                                                     accurate approximation of the risk function.
+                                                                                      Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+3770                                                                        Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS
+
+
+5.1.2. Simulation Results. First, we calculate the worst-                r(ηTH1 ) and r(ηT∗ ) decreases. This coincides with the
+case risk functions via simulations. Notice that, when                   intuitions discussed in Section 3.
+p � m � 2, we could explicitly calculate the worst-case
+risk functions under the three different designs of                      5.2. Asymptotic Normality
+switchback experiments T∗ , TH1 , and TH2 . Even though                  5.2.1. Simulation Setup. We run simulations based on
+we can explicitly calculate them via the following                       the outcome model in (13), with T � 120 and m � 2. We
+expression (see Lemma EC.9 in the online appendix                        will consider three cases: (i) m is correctly specified, so
+for details),                                                            p � 2; (ii) p � 3, and we estimate lag-3 causal estimand
+           (                                                             as in (1); (iii) p � 1, and we pretend as if we estimated
+     B2         X
+                K+1
+                                                                         the lag-1 causal estimand. However, as the lag-1 causal
+              4     (tk �tk�1 )2 + 8m(tK �t1 )
+   (T�m)2                                                                estimand is not well defined, we instead estimate a dif­
+                k�1
+                                                          )              ferent quantity, which we refer to as the “m-misspecified
+                                    X
+                                    K
+               + 4m2 K�4m2 + 4         [(m�tk + tk�1 )+ ]2 ,             lag-p causal estimand” (see details and definition in
+                                     k�2                                 (EC.10) in the online appendix).
+                                                                (14)        For the outcome model, we consider µ � 0, αt � log (t),
+                                                                         and ɛt ~ N(0, 1) are i.i.d. standard normal distributions.
+we still use the simulation to confirm this result. See                  For any t > 3, let δ(t) � 0. For simplicity, let δ(1) � δ(2) �
+Table 2 for our simulation results.
+                                                                         δ(3) � δ. We vary δ ∈ {1, 2, 3} and conduct experiments
+  The causal effect is τ2 � 0 because Yt (13 ) � Yt (03 ) � 10.
+                                  ∗                                      under three different scenarios. We simulate one assign­
+The simulated estimator is E[b  τ 2 ] � �0:0291 for our pro­
+                                                                         ment path at a time and conduct experiments following
+                                    H1                        H2
+posed optimal design and E[b         τ 2 ] � 0:0104 and E[b
+                                                          τ2 ] �         this assignment path. Because the outcome model is pre­
+�0:0478 for the two benchmarks, respectively. The risk                   scribed, we calculate the observed outcomes based on
+function is r(ηT∗ ) � 26:78 for our proposed optimal design              the simulated assignment path. Then we calculate the
+and r(ηTH1 ) � 33:67 and r(ηTH1 ) � 27:85 for the two bench­             Horvitz-Thompson estimator, and the conservative esti­
+marks, respectively. Such simulation results suggest that                mator of the randomization variance (Corollary 1), based
+our proposed optimal design has the smallest risk, under                 on the simulated assignment path and the simulated
+the worst-case outcome model. In the last three columns                  observed outcomes. On the other hand, the lag-p causal
+are the risk functions of the three designs, all suggested by            estimand is easy to calculate once the outcome model is
+Expression (14). The risk functions calculated from theory               prescribed. Yet the m-misspecified lag-p causal estimand
+take values that are very close to the risk functions calcu­             has to be calculated in conjunction with the simulated
+lated from Expression (14), which verifies our theory.                   assignment path. By repeating the above procedure
+   Second, we calculate the risk functions based on the                  enough (100,000) times, we obtain a distribution of the
+outcome model in (13). See Table 3. As we vary the val­                  estimator.
+ues of δ(1) , δ(2) , and δ(3) , the average lag-2 causal effect is
+                                                                         5.2.2. Simulation Results. In Figure 4, the dotted dark
+being changed. All three estimators are able to reflect the
+                                                                         blue line is the probability density function of the
+change as the estimand changes. The risk function can
+                                                                         standard normal distribution. The pink histogram cor­
+be simulated, and we see that the risk function asso­
+                                                                         responds to the distribution induced by √bffipffiffiffiffiffiffiffiffiffiffi , which
+                                                                                                                                              τ �τp
+ciated with the first benchmark TH1 is 28%�32%                                                                                                 Var(b
+                                                                                                                                                   τp)
+larger than the optimal design; the second benchmark
+                                                                         is the estimator (after recentering at zero) normalized
+TH2 is 1%�2% larger. Such simulation results suggest                     by the square root of the true randomization variance.5
+again that our proposed optimal design has the smallest                  Such a distribution, as suggested by Theorem 3, con­
+risk. Moreover, as r(ηTH2 ) is close to r(ηT∗ ) and both are             verges to a standard normal distribution when T is
+much smaller than r(ηTH1 ), our results suggest that when                large. Comparing to the dotted dark blue line, Figure 4
+m is unknown, it is better to select p to be slightly larger             suggests that Theorem 3 approximately holds for mod­
+than the true m as opposed to significantly smaller.                     erate values of T. The light blue histogram corresponds
+   As the magnitude of treatment effects increase, the
+                                                                         to the distribution induced by √bffipffiffiffiffiffiffi2ffiffiffi, which is the esti­
+                                                                                                          τ �τp
+associated risk functions also increase. The relative                                                      E[ b         σU]
+difference between risk functions of r(ηTH1 ) and r(ηT∗ )                mator (after recentering at zero) normalized by the
+increases, whereas the relative difference between                       expectation of the conservative upper bound of the
+
+Table 2. Simulation Results for the Worst-Case Risk Function
+
+τ2           τ ∗2 ]
+           E[b              τ H1
+                          E[b 2 ]            τ H2
+                                           E[b 2 ]        r(ηT∗ )        r(ηTH1 )           r(ηTH2 )           r̃(ηT∗ )           r̃(ηTH1 )          r̃(ηTH2 )
+
+0          0.0250         0.0200           0.0059         26.78          33.67              27.85              26.67              33.96               27.81
+                           ∗
+Note. The optimal design T as suggested by Theorem 2 yields the smallest risk, both in theory and confirmed by simulations.
+Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS                                                                     3771
+
+Table 3. Simulation Results for the Risk Function Based on                  Table 4. Simulation Results for the Randomization
+the Outcome Model in (13)                                                   Distribution
+                            ∗       H1       H2                                                                                                2
+δ(1)   δ(2)   δ(3)   τ2 E[b
+                          τ 2 ] E[b
+                                  τ 2 ] E[b
+                                          τ 2 ] r(ηT∗ ) r(ηTH1 ) r(ηTH2 )                             τp     τ[m]
+                                                                                                              p      E[b
+                                                                                                                       τp]         τp)
+                                                                                                                               Var(b       E[b
+                                                                                                                                             σU]
+
+1       1      1     3   3.016   3.012    3.002    7.96   10.22     8.11    m � 2, p � 2    δ 
+                                                                                             �1       3       –      3.016       7.96        8.48
+1       1      2     4   4.018   4.013    4.002    9.57   12.39     9.74                    δ 
+                                                                                             �2       6       –      6.022      13.28       15.16
+1       2      1     4   4.018   4.013    4.002    9.57   12.39     9.74                    δ 
+                                                                                             �3       9       –      9.028      20.10       24.25
+2       1      1     4   4.018   4.013    4.002    9.57   12.39     9.74    m � 2, p � 3    δ 
+                                                                                             �1       3       –      3.006      11.92       12.67
+1       2      2     5   5.020   5.015    5.003   11.34   14.81    11.52                    δ 
+                                                                                             �2       6       –      6.009      19.89       22.70
+2       1      2     5   5.020   5.015    5.003   11.34   14.81    11.52                    δ 
+                                                                                             �3       9       –      9.012      30.10       36.32
+2       2      1     5   5.020   5.015    5.003   11.34   14.81    11.52    m � 2, p � 1    δ 
+                                                                                             �1       –       2      2.016       4.00        4.13
+2       2      2     6   6.022   6.016    6.003   13.28   17.48    13.47                    δ 
+                                                                                             �2       –       4      4.026       6.69        7.06
+                                                                                            δ 
+                                                                                             �3       –       6      6.037      10.14       10.92
+Notes. For each row, the random seed that generates the simulation
+setup is fixed. The optimal design T∗ as suggested in Theorem 2, though     Notes. The randomization distribution is unbiased in all nine cases
+solved from a minimax program, still yields the smallest risk for the       (when p < m it is unbiased for the m-misspecified average lag-1 causal
+outcome model in (13). A few rows are redundant because our                 effect). The conservative estimation of the variance upper bound from
+switchback experiment, combining with the causal estimand (1), is           Corollary 1 is close to the true variance.
+only able to measure the total additive treatment effect. We cannot
+distinguish the source of the additive treatment effects; that is, we are
+unable to distinguish δ(1) , δ(2) , and δ(3) .
+                                                                            m-misspecified estimand and the estimator is unbiased
+                                                                            for this m-misspecified estimand. (ii) Quality of Corollary 1
+                                                                            and 2. As we increase δ, the variances of the randomiza­
+randomization variance. Because we replace the true
+                                                                            tion distributions also increase. The conservative estima­
+variance by the conservative upper bound, the shape
+                                                                            tors of the randomization variances are very close to the
+of the distribution is more concentrated around zero,
+                                                                            true variances, which suggests that Corollary 1 and 2
+as we see from the “taller” histogram. The red vertical
+                                                                            approximate the true variances quite well.
+line is the expected value of the randomization distri­
+bution for the pink histogram. The cases of δ        � 1 and
+δ � 2 are similar, and the cases of overestimated m and                     5.2.3. Robustness Check. In this section, we run simu­
+underestimated m are also similar. We discuss them in                       lations under almost the same setup as introduced in
+Section EC.5.3 in the online appendix.                                      Section 5.2.1, with the only difference being that we
+   For all the nine cases (p ∈ {1, 2, 3} and δ ∈ {1, 2, 3}),                select each ɛt to be an i.i.d. student’s t-distribution with
+see Table 4 for the expected values and the variances of                    one degree of freedom. The purpose of this section is to
+the randomization distributions as well as the conser­                      verify our theory when ɛt are drawn from heavy tailed
+vative estimator of the randomization variances. Note                       distributions.
+that the three cases all have the same underlying out­                         When m � 2, p � 2, δ � 1, as we can see from Figure 5,
+come model. It is the different knowledge of m that                         the randomization distribution is significantly different
+leads to three different designs of experiments.                            from a standard normal distribution. This is because T �
+   From Table 4, we make the following two observa­                         120 is too small. Alternatively, we increase T � 1,200 to
+tions. (i) Unbiasedness of the Horvitz-Thompson estimator.                  see that the randomization distribution behaves like a
+When m is correctly specified, R[b  τ p ] is very close to τp,              normal distribution; see Figure 6. In other words, when
+verifying the unbiasedness of the estimator. When                           ɛt noises are heavy tailed, our Theorem 3 has a slower
+m � 2, p � 3, the estimand remains unchanged and the                        convergence rate to a normal distribution. We conduct
+estimator remains unbiased. But the variance of the esti­                   extensive simulation study under other parameters, as
+mator is larger. When m � 2, p � 1, the estimand is the                     we will show in Section EC.5.3 in the online appendix.
+
+                                                                            Figure 5. (Color online) Randomization Distribution When Ran­
+Figure 4. (Color online) Approximate Normality of the Ran­                  dom Noises Are Student’s t-Distributions and When m � 2,
+domization Distribution When m � 2, p � 2, δ � 3                            p � 2, δ � 1, T � 120
+                                                                            Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+3772                                                               Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS
+
+
+Figure 6. (Color online) Randomization Distribution When         5.3.2. Simulation Results. We calculate the rejection
+Random Noises Are Student’s t-Distributions and When m � 2,      rates via simulations and then plot Figure 7. The blue
+p � 2, δ � 1, T � 1,200                                          dots are rejection rates under exact inference; the red
+                                                                 dots are under asymptotic inference. In all the simula­
+                                                                 tions, δ ≠ 0, τp ≠ 0. So, ideally, we would wish to reject
+                                                                 both the Fisher’s null hypothesis (8) and the Neyman’s
+                                                                 null hypothesis (9).
+                                                                    From Figure 7, we make the following three observa­
+                                                                 tions. (i) Dependence on T/m. The rejection rates increase
+                                                                 as the length of the horizon increases—more specifically,
+                                                                 as T/m the total number of epochs increases. In practice,
+                                                                 when firms have the capability to choose the length of T,
+                                                                 they can refer to Figure 7 to choose T properly. Also see
+                                                                 the discussion in Section 6. (ii) Between two inference meth­
+                                                                 ods. In all three cases, the rejection rate from testing a
+                                                                 sharp null hypothesis (8) is slightly higher than that
+5.3. Rejection Rates                                             from testing the Neyman’s null (9). This coincides with
+5.3.1. Simulation Setup. We run simulations based                our intuition that a sharp null is more likely to be
+on the outcome model as in (13). We vary T ∈ {120,               rejected. We discuss this in Section 5.5.2 together with
+240, : : : , 1,200}. We consider p � m � 2 where m is cor­       the associated p-values. (iii) Dependence on the signal-to-
+rectly specified. Similar to Section 5.2, we consider            noise ratio. The rejection rates all increase as δ  increases
+the same parameterization and conduct experiments                from one to three (while holding the noise from the
+under three different scenarios δ ∈ {1, 2, 3}.                   model fixed). This suggests that when the treatment
+   We simulate one assignment path at a time, and con­           effect is relatively larger, we do not require a long experi­
+duct experiments following this assignment path. We              mental horizon to achieve a desired rejection rate.
+first calculate the observed outcomes and the Horvitz-
+Thompson estimator. Then we conduct the two infer­               5.4. Comparison of the Type I and Type II Errors
+ence methods as proposed in Section 4, and obtain two                     for Different Designs
+estimated p-values. For the asymptotic inference method,         5.4.1. Simulation Setup. We run simulations based on
+                  2
+we plug in b    σ U , the conservative upper bound of the var­   the outcome model as in (13). We vary T ∈ {120, 240,
+iance. We reject the corresponding null hypothesis when          : : : , 1,200}. We consider p � m � 2 where m is correctly
+the p-value is smaller than 0.1. (In Section EC.5.4 in the       specified. Similar to Section 5.2, we consider the same
+online appendix, we run additional simulations by re­            parameterization and conduct experiments under three
+placing such 0.1 threshold by 0.05 and 0.01.) By repeating       different scenarios δ ∈ {1, 2, 3}. We compare three de­
+the above procedure enough (in this simulation, 1000)            signs of experiments as described in Section 5.1: the opti­
+times, we obtain the frequency of a null hypothesis being        mal design T∗ � {1, 5, 7, : : : , 117}, which we refer to as
+rejected, which we refer to as the rejection rate.               Optimal Design as in Figure 8; the most commonly
+
+
+Figure 7. (Color online) Rejection Rates and Their Dependence on T/m
+
+
+
+
+Note. Left: δ 
+             � 1; middle: δ 
+                           � 2; right: δ 
+                                        � 3.
+Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS                                                                        3773
+
+Figure 8. (Color online) Type I and Type II Errors
+
+
+
+
+Note. Upper left: δ 
+                   � 0, type I error; upper right: δ 
+                                                    � 1, type II error; bottom left: δ 
+                                                                                      � 2, type II error; bottom right: δ 
+                                                                                                                         � 3, type II error.
+
+
+adopted heuristic TH1 � {1, 2, 3, : : : , 120}, which we refer                  are the type I and type II errors of the heuristic design
+to as Heuristic Design H1; and the so-called intuitive                          H1; the yellow dots are the type I and type II errors of
+design TH2 � {1, 4, 7, : : : , 118}, which we refer to as Heu­                  the heuristic design H2. The figure on the top-left cor­
+ristic Design H2.                                                               ner reports the type I error generated from δ     � 0. The
+   In this simulation, we first calculate the frequency of                      grey horizontal line in the top-left figure represents the
+rejecting the Fisher’s null hypothesis as in (8) out of a                       0.05 nominal level. The other figures report the type II
+total of 1000 repetitions. And then we use the fre­                             errors generated from δ ∈ {1, 2, 3}.
+quency to calculate the type I and type II errors. Type I                          From Figure 8 we make the following observations.
+error is the probability of rejecting the null hypothesis                       First, for type I error, all the three designs have similar
+when there is no treatment effect, which we simulate                            performance—all are very close to the 0.05 nominal
+as the frequency of rejection using δ       � 0 when there is                   level. Second, the optimal design almost always has
+no treatment effect. Type II error is the probability of                        the smallest type II error. This suggests that, even
+not rejecting the null hypothesis when there is a treat­                        though we design our optimal experiment under the
+ment effect, which we simulate as one minus the fre­                            minimax criterion, the optimal design derived from
+quency of rejection using δ ∈ {1, 2, 3} when there is a                         this criterion outperforms the two heuristic bench­
+nonnegligible treatment effect.                                                 marks with respect to the type II error. The type II error
+                                                                                becomes smaller when T/m, the effective experimental
+5.4.2. Simulation Results. The simulation results are                           periods, increases. The gaps between the optimal de­
+summarized in Figure 8. The blue dots are the type I                            sign and the two heuristic designs also become smaller
+and type II errors of the optimal design; the red dots                          when T/m increases.
+                                                                                    Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+3774                                                                       Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS
+
+
+5.5. Estimation Under a Misspecified m                                      From Table 5, we see that both our estimator and the
+5.5.1. Simulation Setup. We run simulations whose                        estimated variance are well defined in all the cases
+setup are similar to Section 5.2.1; the only difference is               when p � m, p > m, and p < m. In each case, as δ          in­
+that we only simulate one assignment path in this Sec­                   creases from one to three, the associated p-values exhibit
+tion and conduct hypothesis testing for this single run                  decreasing trends, suggesting a stronger rejection rate
+of the experiment.                                                       against the null hypothesis. Moreover, the p-values sug­
+   The outcome model we consider is in (13); we con­                     gested by the exact inference are always slightly smaller
+sider the same parameterization as in Section 5.2.1 and                  than the p-values suggested by the asymptotic inference.
+conduct experiments under three different scenarios                      This coincides with our intuition that (i) the exact infer­
+δ ∈ {1, 2, 3}. We consider three cases: (i) m correctly speci­           ence method possesses a stronger null hypothesis (8),
+fied, so p � 2; (ii) p � 3, and we estimate the lag-3 causal             which implies the null hypothesis of (9); (ii) in the asymp­
+estimand as in (1); (iii) p � 1, and we pretend as if we                 totic inference, we replaced the true randomization var­
+estimated the lag-1 causal estimand. However, the lag-                   iance by its conservative upper bound, which further
+1 causal estimand is not well defined. Instead, we esti­                 leads to a larger p-value.
+mate the 2-misspecified lag-1 causal estimand as in
+(EC.10) in the online appendix.                                          5.6. Estimation of m
+   We only simulate one assignment path. Because the                     We run simulations based on the outcome model as in
+outcome model is prescribed, we calculate the observed                   (13) to test the performance of the procedure described
+outcomes. There is only one time series of such observed                 in Section 4.4. In this section, we only focus on δ          � 3.
+outcomes. We calculate the Horvitz-Thompson estima­                      Suppose we have narrowed down the range of the
+tor based on the simulated assignment path and the                       order of the carryover effect to be m ≤ 3. In the first
+simulated observed outcomes. We calculate the lag-p                      round, we use our procedure to test a null hypothesis
+causal estimand directly and also the m-misspecified                     m ≤ 2. Then we observe rows 3 and 6 from Table 5,
+lag-p causal estimand in conjunction with the simulated                                       2                        2
+                                                                         with b τ 2 � 7:25, b
+                                                                                            σ 2 � 23:88; b
+                                                                                                         τ 3 � 8:23, b
+                                                                                                                     σ 3 � 39:00. So the
+assignment path. Finally, we perform the two inference                   estimated p-value for the null hypothesis m ≤ 2 is esti­
+methods from Section 4 and report their associated esti­                 mated to be b    p � 0:902, which is too large to reject the
+mated p-values. For the asymptotic inference method,                     null hypothesis. In the second round, we consult the
+                2
+we plug in b  σ U the conservative upper bound of the var­               procedure to test a null hypothesis m ≤ 1. Then we
+iance. We choose I � 100000 to be the number of samples                  observe rows 3 and 9 from Table 5, with b             τ 1 � 1:86,
+drawn in the exact inference method as shown in Algo­                      2                        2
+                                                                         σ 3 � 9:47; b
+                                                                         b            τ 2 � 7:25, b
+                                                                                                  σ 2 � 23:88. The estimated p-value
+rithm 1.                                                                 for the null hypothesis m ≤ 1 is estimated to be b            p�
+                                                                         0:350. This is still rather large, yet a significant differ­
+5.5.2. Simulation Results. Notice this is only one ex­
+                                                                         ence from 0.902.
+periment under one simulated experimental setup from
+                                                                             We conduct a few more numerical simulations with
+one simulated assignment path. So the estimators bτ p we
+                                                                         different time periods. The setup is the same as in Section
+derive are different from τp (or τ(m)
+                                   p , which stands for
+                                                                         5.5, except that T takes values in T ∈ {210, 1020, 2010}.6
+the treatment effect when m is misspecified; see Sec­
+                                                                         When T � 210, in the first round the estimated p-value
+tion EC.4.5 in the online appendix for more details).
+                                                                         for the null hypothesis m ≤ 2 is estimated to be b    p � 0:956;
+But they still follow the true causal effects which they
+                                                                         in the second round, the estimated p-value for the null
+estimate. See Table 5.
+                                                                         hypothesis m ≤ 1 is estimated to be b     p � 0:182. When T �
+Table 5. Simulation Results for Correctly Specified m Case               1020, in the first round the estimated p-value for the null
+and Two Misspecified m Cases                                             hypothesis m ≤ 2 is estimated to be b     p � 0:869; in the sec­
+                                                  2
+                                                                         ond round the estimated p-value for the null hypothesis
+                        τp   τ(m)
+                              p         τp
+                                        b       σU
+                                                b        b
+                                                         pF      b
+                                                                 pN      m ≤ 1 is estimated to be b   p � 0:163. When T � 2010, in the
+m � 2, p � 2   δ 
+                �1      3      –      1.35     8.81    0.626    0.648    first round the estimated p-value for the null hypothesis
+               δ 
+                �2      6      –      4.30    15.16    0.231    0.269    m ≤ 2 is estimated to be b    p � 0:760; in the second round
+               δ 
+                �3      9      –      7.25    23.88    0.101    0.138    the estimated p-value for the null hypothesis m ≤ 1 is
+m � 2, p � 3   δ 
+                �1      3      –      1.77    14.26    0.606    0.639
+               δ 
+                �2      6      –      5.00    24.69    0.262    0.314
+                                                                         estimated to be b  p � 0:037. In practice, we suggest increas­
+               δ 
+                �3      9      –      8.23    39.00    0.136    0.188    ing the horizon’s length to a degree such that T=p > 100.
+m � 2, p � 1   δ 
+                �1      –      2     �1.03     3.87    0.590    0.599
+               δ 
+                �2      –      4      0.41     6.28    0.866    0.870    6. Practical Implications, Limitations, and
+               δ 
+                �3      –      6      1.86     9.47    0.530    0.547
+                                                                            Concluding Remarks
+Notes. The simulation setup for the three δ � 1 cases is the same, so
+                                                                         When a firm decides to use a switchback experiment
+are the δ 
+         � 2 cases and δ 
+                        � 3 cases. The estimated p-values bp F derived
+from the exact inference are slightly smaller than the p-values b   pN   to evaluate a new product or initiative, they have to
+derived from the asymptotic inference.                                   make multiple decisions to ensure that the results are
+Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS                                                               3775
+
+reliable, practical, and replicable. First, the firm must                 optimization formulation as shown in Theorem 2 can
+determine an appropriate outcome(s) that adequately                       always be used to find an optimal solution without dis­
+captures the relative effectiveness of the change. In                     carding any periods. Just in the “imperfect cases,” we do
+practice, this requires substantive domain knowledge                      not have closed-form solutions. Our suggestion is that if
+combined with an understanding of the likely impact                       the experimental designer wishes not to discard any
+of the change; see Kohavi et al. (2020) for an in-depth                   periods, then solve the optimal solution (using any com­
+discussion of metric definition strategies.                               mercial software); if the experimental designer wishes
+   Second, as part of the design of the experiment, the                   not to solve an optimization problem, then discard a few
+firm often has control over the granularity of one single                 periods and consult the explicit solution suggested in
+experimental period. As we have shown in Example 7,                       Theorem 2.
+as long as each time period is smaller than the length of                    After designing the experiment, the firm can use the
+the carryover effect and the length of the carryover                      data collected from the test to draw causal conclusions
+effect is divisible by the length of one time unit, the                   about the new innovation’s performance using the two
+selection of granularity makes no difference to the opti­                 inferential methods as discussed in Section 4. As a more
+mal design and analysis of switchback experiments.                        practical consideration, when the firm have the capabil­
+On the other hand, setting each period’s length longer                    ity to run multiple experiments on multiple experimen­
+than the carryover effect will lead to a loss in precision.               tal units, we suggest the firm to run the optimal design
+Consider an extreme case where the carryover effect is                    on each of the experimental units and then combine
+one minute, whereas each period is selected to be an                      them to increase both precision and power. See Bojinov
+hour. If we had set each period to be a minute, we                        and Shephard (2019) for detailed discussions.
+would have collected an order of magnitude of more                           We point out three limitations of our paper. First,
+useful data. Hence, we suggest that each period’s length                  when m, the order of the carryover effect is as large as
+be smaller than the carryover effect duration.                            comparable to T the horizon’s length, our method,
+   Third, the firm must use prior knowledge to decide                     though still unbiased in theory, incurs a large variance
+an appropriate value p for the order of the carryover                     that typically prohibits the firm from making mean­
+effect m. When a firm lacks such knowledge, we pro­                       ingful inference. This is because our method is general
+pose using the procedure outline in Section 4.4 to select                 and requires the minimum amount of modeling as­
+an appropriate value of the order of the carryover                        sumptions. If we have strong domain knowledge about
+effect. Practically, researchers should try to narrow down                the outcome model, we can incorporate it to improve the
+the set of possible values of m as, when m is relatively                  design. Second, our method only considers flipping in­
+large compared with T, our procedure could fail to reject                 dependent coins before the experiment even begins. We
+the null hypothesis simply because of insufficient statis­                do not consider adaptively changing the coin flip proba­
+tical power. Also, it is important to keep in mind that                   bilities, as it requires further assumptions about the out­
+each hypothesis test to identify (12) needs to consume                    come model, for example, some time-homogeneity of the
+experimental resources at the scale of T=m > 100 to dis­                  data-generating process. Third, in this paper, we have
+tinguish two candidate values, which could be over bur­                   only considered the estimand as in (1), which is moti­
+densome when the resource is scarce.                                      vated when firms want to decide whether to perma­
+   Fourth, when the firm has control over the experi­                     nently adopt a policy. If the primary focus is on some
+ment’s horizon, the firm should set p � m and control                     other general causal estimands, our results do not
+the overall duration of the experiment n � T=p � T=m.                     directly apply. It remains open to derive new results
+We suggest choosing n by referring to the rejection rate                  for other estimands, using a similar strategy that we
+curve, as shown in Section 5.3; intuitively, this procedure               have employed.
+resembles a typical power analysis. We begin with sel­
+ecting our inference method, as described in Section 4.                   Acknowledgments
+We then use our domain knowledge to estimate the                          We thank the department editor George Shanthikumar, the
+expected signal-to-noise ratio; this could be done by                     anonymous associate editor, and three anonymous referees
+looking at historical experiments or through dummy                        whose comments improved the manuscript.
+experiments. Then, we choose the desired rejection
+rate and find out the length of the horizon required.                     Endnotes
+   Finally, using the previous four points, the firm decides              1
+                                                                           Some authors specifically focus on p < m, particularly when m is
+the randomization points and samples the assignment                       of the same order as T (Bojinov and Shephard 2019).
+path from the appropriate randomization distribution.                     2
+                                                                            When combined with noninterference if there were multiple units,
+This final step has already been discussed at length, as                  this is known as the stable unit treatment value assumption (Rubin
+we showed in Section 3 the optimal design is obtained                     1980).
+from Theorems 1 and 2. In cases when the time horizon                     3
+                                                                           Researchers have either shown that versions of completely ran­
+is predetermined and when T/p is not an integer, our                      domized experiments (corresponding to “fair coin flips”) are
+                                                                                    Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+3776                                                                       Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS
+
+
+optimal, for example, Wu (1981), Li (1983), and Basse et al. (2019b)     Chin A (2018) Central limit theorems via Stein’s method for random­
+where they make mild assumptions on permutation invariance, or                ized experiments under interference. Preprint, submitted April
+have explicitly assumed that the coin flips are fair, for example, Bai        9, https://arxiv.org/abs/1804.03105.
+(2019) and Harshaw et al. (2019).                                        Cui R, Li J, Zhang D (2020) Reducing discrimination with reviews
+4
+  For other imperfect cases when T is not divisible by m, we can also         in the sharing economy: Evidence from field experiments on
+solve (7) and find the optimal design. However, we do not present             Airbnb. Management Sci. 66(3):1071–1094.
+closed-form solutions to such a subset selection problem because of      Cui R, Zhang DJ, Bassamboo A (2019) Learning from inventory
+integrality issues. Technical discussions about the optimal design in         availability information: Evidence from field experiments on
+such imperfect cases are deferred to Section EC.3.6 in the online             Amazon. Management Sci. 65(3):1216–1235.
+appendix.                                                                Deshpande Y, Mackey L, Syrgkanis V, Taddy M (2018) Accurate infer­
+5                                                                             ence for adaptive linear models. Dy J, Andreas K, eds. Proc. Inter­
+                                        τ p ) and the expectation of
+  We numerically find such variance Var(b
+                                 2                                            nat. Conf. Machine Learn., vol. 80 (PMLR), 1194–1203.
+the conservative upper bound E[bσU]                                      Eckles D, Karrer B, Ugander J (2017) Design and analysis of experi­
+6
+ The values of T were selected such that they were both divisible             ments in networks: Reducing bias from interference. J. Causal
+by both two and three, the possible values of the carryover effect.           Inference 5(1):20150021.
+                                                                         Farronato C, MacCormack A, Mehta S (2018) Innovation at Uber:
+                                                                              The launch of express pool. Harvard Business School Case No.
+                                                                              620(062), Harvard Business School, Boston.
+References                                                               Ferreira KJ, Lee BHA, Simchi-Levi D (2016) Analytics for an online
+Abadie A, Athey S, Imbens GW, Wooldridge JM (2020) Sampling-                  retailer: Demand forecasting and price optimization. Manufac­
+     based vs. design-based uncertainty in regression analysis. Econ­         turing Service Oper. Management 18(1):69–88.
+     ometrica 88(1):265–296.                                             Fisher RA (1937) The Design of Experiments, 2nd ed. https://www.
+Aronow PM, Samii C (2017) Estimating average causal effects under             amazon.com/Design-Experiments-Ronald-Fisher/dp/0028446909.
+     general interference, with application to a social network          Garg N, Nazerzadeh H (2019) Driver surge pricing. Preprint, sub­
+     experiment. Ann. Appl. Statist. 11(4):1912–1947.                         mitted May 18, https://arxiv.org/abs/1905.07544.
+Athey S, Imbens GW (2018) Design-based analysis in difference-in-        Glynn P, Johari R, Rasouli M (2020) Adaptive experimental design
+     differences settings with staggered adoption. Technical report,          with temporal interference: A maximum likelihood approach.
+     National Bureau of Economic Research, Cambridge, MA.                     Preprint, submitted June 10, https://arxiv.org/abs/2006.05591.
+Athey S, Eckles D, Imbens GW (2018) Exact p-values for network           Gupta S, Kohavi R, Tang D, Xu Y, Andersen R, Bakshy E, Cardin
+     interference. J. Amer. Statist. Assoc. 113(521):230–240.                 N, et al. (2019) Top challenges from the first practical online con­
+Azevedo EM, Deng A, Montiel Olea J, Rao JM, Weyl EG (2019) A/b                trolled experiments summit. SIGKDD Explorations 21(1):20–35.
+     testing with fat tails. J. Political Econom. 128(12):4614–4650      Hadad V, Hirshberg DA, Zhan R, Wager S, Athey S (2019) Confi­
+Bai Y (2019) Optimality of matched-pair designs in randomized con­            dence intervals for policy evaluation in adaptive experiments.
+     trol trials. Preprint, submitted December 15, https://dx.doi.org/        Preprint, submitted November 7, https://arxiv.org/abs/1911.
+     10.2139/ssrn.3483834.                                                    02768v1.
+Bakshy E, Eckles D, Bernstein MS (2014) Designing and deploying          Han KW, Bojinov I, Basse G (2021) Population interference in panel
+     online field experiments. Proc. 23rd Internat. Conf. World Wide          experiments. Preprint, submitted February 28, https://arxiv.org/
+     Web (ACM, New York), 283–292.                                            abs/2103.00553.
+Basse G, Ding Y, Toulis P (2019b) Minimax crossover designs. Pre­        Harshaw C, Sävje F, Spielman D, Zhang P (2019) Balancing covari­
+     print, submitted August 9, https://arxiv.org/abs/1908.03531v1.           ates in randomized experiments using the Gram-Schmidt walk.
+Basse G, Ding P, Feller A, Toulis P (2019a) Randomization tests for           Preprint, submitted November 8, https://arxiv.org/abs/1911.
+     peer effects in group formation experiments. Preprint, submit­           03071.
+     ted April 4, https://arxiv.org/abs/1904.02308.                      Hedayat A, Afsarinejad K (1978) Repeated measurements designs,
+Berger JO (2013) Statistical Decision Theory and Bayesian Analysis            ii. Ann. Statist. 6(3):619–628.
+     (Springer Science & Business Media, Berlin).                        Holtz D, Lobel R, Liskovich I, Aral S (2020) Reducing interference
+Bickel PJ, Doksum KA (2015) Mathematical Statistics: Basic Ideas and          bias in online marketplace pricing experiments. Preprint, sub­
+     Selected Topics, vol. I (CRC Press, Boca Raton, FL).                     mitted April 26, https://arxiv.org/abs/2004.12489.
+Bojinov I, Shephard N (2019) Time series experiments and causal          Imai K, Kim IS (2019) When should we use unit fixed effects regres­
+     estimands: Exact randomization tests and trading. J. Amer. Sta­          sion models for causal inference with longitudinal data? Amer.
+     tist. Assoc. 114(528):1665–1682.                                         J. Political Sci. 63(2):467–490.
+Bojinov I, Rambachan A, Shephard N (2021) Panel experiments and          Imbens GW, Rubin DB (2015) Causal Inference for Statistics, Social,
+     dynamic causal effects: A finite population perspective. Quant.          and Biomedical Sciences: An Introduction (Cambridge University
+     Econom. 12(4):1171–1196.                                                 Press, Cambridge, UK).
+Bojinov I, Saint-Jacques G, Tingley M (2020) Avoid the pitfalls of a/    Johari R, Li H, Weintraub G (2020) Experimental design in two-
+     b testing: Make sure your experiments recognize customers’               sided platforms: An analysis of bias. Preprint, submitted Febru­
+     varying needs. Harvard Bus. Rev. 98(2):48–53.                            ary 13, https://arxiv.org/abs/2002.05670.
+Boruvka A, Almirall D, Witkiewitz K, Murphy SA (2018) Assessing          Johari R, Pekelis L, Walsh DJ (2015) Always valid inference: Bring­
+     time-varying causal effect moderation in mobile health. J. Amer.         ing sequential analysis to a/b testing. Preprint, submitted
+     Statist. Assoc. 113(523):1112–1121.                                      December 15, https://arxiv.org/abs/1512.04922.
+Caro F, Gallien J (2012) Clearance pricing optimization for a fast-      Jones B, Kenward MG (2014) Design and Analysis of Cross-over Trials
+     fashion retailer. Oper. Res. 60(6):1404–1422.                            (CRC Press, Boca Raton, FL).
+Chamandy N (2016) Experimentation in a ridesharing marketplace—          Kastelman D, Ramesh R (2018) Switchback tests and randomized
+     Lyft engineering. Accessed October 1, 2022, https://eng.lyft.com/        experimentation under network effects at DoorDash. Accessed
+     experimentation-in-a-ridesharing-marketplace-b39db027a66e.               October 1, 2022, https://medium.com/@DoorDash/switchback-
+Chamberlain G (1982) Multivariate regression models for panel                 tests-and-randomized-experimentation-under-network-effects-at-
+     data. J. Econometrics 18(1):5–46.                                        doordash-f1d938ab7c2a.
+Bojinov, Simchi-Levi, and Zhao: Switchback Experiments
+Management Science, 2023, vol. 69, no. 7, pp. 3759–3777, © 2022 INFORMS                                                                           3777
+
+Kempthorne O (1955) The randomization theory of experimental               Nie X, Tian X, Taylor J, Zou J (2018) Why adaptively collected data
+      inference. J. Amer. Statist. Assoc. 50(271):946–967.                      have negative bias and how to correct for it. Storkey A, Perez-
+Kohavi R, Thomke S (2017) The surprising power of online experi­                Cruz F, eds. Proc. 21st Internat. Conf. Artificial Intelligence Statist.,
+      ments. Harvard Bus. Rev. 95:74–82.                                        vol. 84 (PMLR), 1261–1269.
+Kohavi R, Henne RM, Sommerfield D (2007) Practical guide to con­           Oman SD, Seiden E (1988) Switch-back designs. Biometrika 75(1):
+      trolled experiments on the web: Listen to your customers not to           81–89.
+      the hippo. Proc. 13th ACM SIGKDD Internat. Conf. Knowledge           Puelz D, Basse G, Feller A, Toulis P (2019) A graph-theoretic app­
+      Discovery Data Mining (ACM, New York), 959–967.                           roach to randomization tests of causal effects under general
+Kohavi R, Tang D, Xu Y (2020) Trustworthy Online Controlled Experi­             interference. Preprint, submitted October 24, https://arxiv.org/
+      ments: A Practical Guide to A/B Testing (Cambridge University             abs/1910.10862.
+      Press, Cambridge, UK).                                               Rambachan A, Shephard N (2019) Econometric analysis of potential
+Kohavi R, Crook T, Longbotham R, Frasca B, Henne R, Ferres JL,                  outcomes time series: Instruments, shocks, linearity and the
+      Melamed T (2009) Online experimentation at Microsoft. Data                causal response function. Preprint, submitted March 5, https://
+      Mining Case Stud. 11:39.                                                  arxiv.org/abs/1903.01637.
+Koning R, Hasan S, Chatterji A (2019) Experimentation and startup per­     Robins J (1986) A new approach to causal inference in mortality studies
+      formance: Evidence from a/b testing. Technical report, National           with a sustained exposure period—Application to control of the
+      Bureau of Economic Research, Cambridge, MA.                               healthy worker survivor effect. Math. Model. 7(9-12):1393–1512.
+Laird NM, Skinner J, Kenward M (1992) An analysis of two-period            Rubin DB (1980) Randomization analysis of experimental data: The
+      crossover designs with carry-over effects. Statist. Medicine              Fisher randomization test comment. J. Amer. Statist. Assoc. 75(371):
+      11(14-15):1967–1979.                                                      591–593.
+Li H, Zhao G, Johari R, Weintraub GY (2021) Interference, bias, and        Sarasvathy SD (2001) Causation and effectuation: Toward a theoreti­
+      variance in two-sided marketplace experimentation: Guidance               cal shift from economic inevitability to entrepreneurial contin­
+      for platforms. Preprint, submitted April 25, https://arxiv.org/           gency. Acad. Management Rev. 26(2):243–263.
+      abs/2104.12222.                                                      Senn S, Lambrou D (1998) Robust and realistic approaches to carry-
+Li JQ, Rusmevichientong P, Simester D, Tsitsiklis JN, Zoumpoulis SI             over. Statist. Medicine 17(24):2849–2864.
+      (2015) The value of field experiments. Management Sci. 61(7):        Sitkin SB (1992) Learning through failure: The strategy of small
+      1722–1740.                                                                losses. Res. Organ. Behav. 14:231–266.
+Li KC (1983) Minimaxity for randomized designs: Some general               Sobel ME (2012) Does marriage boost men’s wages?: Identification
+      results. Ann. Statist. 11(1):225–239.                                     of treatment effects in fixed effects regression models for panel
+Li X, Ding P (2017) General forms of finite population central limit            data. J. Amer. Statist. Assoc. 107(498):521–529.
+      theorems with applications to causal inference. J. Amer. Statist.    Sun T, Viswanathan S, Huang N, Zheleva E (2018) Designing pro­
+      Assoc. 112(520):1759–1769.                                                motional incentive to embrace social sharing: Evidence from
+Li X, Ding P, Rubin DB (2020) Rerandomization in 2k factorial                   field and laboratory experiments. Preprint, submitted January 5,
+      experiments. Ann. Statist. 48(1):43–63.                                   https://dx.doi.org/10.2139/ssrn.3095094.
+Lillie EO, Patay B, Diamant J, Issell B, Topol EJ, Schork NJ (2011)        Sussman DL, Airoldi EM (2017) Elements of estimation theory for
+      The n-of-1 clinical trial: The ultimate strategy for individualiz­        causal effects in the presence of network interference. Preprint,
+      ing medicine? Personalized Medicine 8(2):161–173.                         submitted February 12, https://arxiv.org/abs/1702.03578.
+Ma W, Simchi-Levi D, Zhao J (2021) Dynamic pricing (and assort­            Thomke S (2001) Enlightened experimentation: The new imperative
+      ment) under a static calendar. Management Sci. 67(4):2292–2313.           for innovation. Harvard Bus. Rev. 79(2):66–75.
+March JG (1991) Exploration and exploitation in organizational             Thomke SH (2020) Experimentation Works: The Surprising Power of
+      learning. Organ. Sci. 2(1):71–87.                                         Business Experiments (Harvard Business Review Press, Boston).
+McFowland III E, Somanchi S, Neill DB (2018) Efficient discovery of        Wager S, Xu K (2019) Experimenting in equilibrium. Preprint, sub­
+      heterogeneous treatment effects in randomized experiments via             mitted March 6, https://arxiv.org/abs/1903.02124.
+      anomalous pattern detection. Preprint, submitted March 24,           Wu CF (1981) On the robustness and efficiency of some randomized
+      https://arxiv.org/abs/1803.09159.                                         designs. Ann. Statist. 9(6):1168–1177.
+Neyman J, Dabrowska DM, Speed TP (1990) On the application of              Xiong R, Athey S, Bayati M, Imbens GW (2019) Optimal experimental
+      probability theory to agricultural experiments: Essay on princi­          design for staggered rollouts. Preprint, submitted November 9,
+      ples, section 9. Statist. Sci. 5(4):465–472.                              https://arxiv.org/abs/1911.03764v1.
+Copyright 2023, by INFORMS, all rights reserved. Copyright of Management Science is the
+property of INFORMS: Institute for Operations Research and its content may not be copied or
+emailed to multiple sites or posted to a listserv without the copyright holder's express written
+permission. However, users may print, download, or email articles for individual use.
+
