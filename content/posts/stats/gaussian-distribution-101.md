@@ -1,6 +1,6 @@
 +++
 title = "Gauss 101"
-date = "2025-12-01T00:00:00Z"
+date = "2025-11-24T00:00:00Z"
 type = "post"
 draft = false
 math = true
