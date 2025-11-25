@@ -5,3 +5,5 @@ resources/
 /.DS_Store
 Thumbs.db
 content/baad-master/
+.RData
+.Rhistory

@@ -1,8 +1,8 @@
 +++
 title = "Gauss 202: Log Probability of 2D Sample Means"
-date = "2025-12-13T00:00:00Z"
+date = "2025-11-26T00:00:00Z"
 type = "post"
-draft = true
+draft = false
 math = true
 tags = ["statistics", "probability", "gaussian", "sample-mean"]
 categories = ["posts"]
