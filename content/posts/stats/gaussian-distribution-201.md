@@ -1,6 +1,6 @@
 +++
 title = "Gauss 201: Multivariate Gaussian in Two Dimensions"
-date = "2025-11-25T00:00:00Z"
+date = "2025-11-26T00:00:00Z"
 type = "post"
 draft = false
 math = true
