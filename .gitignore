@@ -1,5 +1,5 @@
 .hugo_build.lock
-.venv/
+.myenv/
 public/
 resources/
 /.DS_Store
