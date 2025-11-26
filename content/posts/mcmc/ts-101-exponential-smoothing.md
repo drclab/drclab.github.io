@@ -1,255 +1,267 @@
 +++
-title = "TS 101: Exponential Smoothing and the LGT Model"
+title = "TS 101: Foundational Time Series Forecasting"
 slug = "ts-101"
 aliases = ["ts101"]
 date = "2028-11-26T00:00:00Z"
 type = "post"
 draft = false
 math = true
-tags = ["time-series", "exponential-smoothing", "bayesian", "forecasting"]
+tags = ["time-series", "exponential-smoothing", "forecasting"]
 categories = ["posts"]
-description = "An introduction to exponential smoothing and the Local-Global Trend (LGT) model from Uber's Orbit package, bridging classical methods with modern Bayesian approaches."
+description = "A foundational introduction to time series forecasting concepts and model components, based on Uber's Orbit framework for exponential smoothing."
 +++
 
-Welcome to TS 101: Exponential Smoothing and the Local-Global Trend Model! This guide introduces the foundations of exponential smoothing and explains how Uber's Orbit package refines these classical methods using Bayesian inference. We'll focus on the Local Global Trend (LGT) model, which elegantly handles both linear and nonlinear trends.
+Welcome to TS 101: Foundational Time Series Forecasting! This guide introduces the core concepts and notation for time series forecasting, focusing on how we decompose a time series into interpretable components. We'll build understanding from the ground up, using examples from Uber's Orbit package as a modern implementation reference.
 
-This post is based on the paper [*Orbit: Probabilistic Forecast with Exponential Smoothing*](https://arxiv.org/abs/2004.08492) by Edwin Ng, Zhishi Wang, Huigang Chen, Steve Yang, and Slawek Smyl (2020).
+This post covers foundational material from sections 2.1 and 2.2.1 of the paper [*Orbit: Probabilistic Forecast with Exponential Smoothing*](https://arxiv.org/abs/2004.08492) by Edwin Ng, Zhishi Wang, Huigang Chen, Steve Yang, and Slawek Smyl (2020).
 
 ## Learning Goals
 
 By the end of this post, you will:
-- understand the evolution from classical exponential smoothing to Bayesian variants,
-- see how the LGT model combines local and global trends,
-- learn the mathematical formulation of the LGT model,
-- appreciate why Bayesian approaches provide richer uncertainty quantification.
+- understand the core components of time series models (trend, seasonality, error),
+- learn standard notation used in time series forecasting,
+- recognize the difference between additive and multiplicative formulations,
+- see how classical statistical methods remain powerful for many forecasting tasks.
 
 ## Key Vocabulary
 
-- **Exponential smoothing**: A family of forecasting methods that compute weighted averages of past observations, with weights decaying exponentially for older data.
-- **Holt's linear trend method**: An extension of simple exponential smoothing that adds a trend component, allowing forecasts to capture linear growth or decline.
-- **Local trend**: A trend component that evolves adaptively based on recent observations, similar to traditional exponential smoothing.
-- **Global trend**: A longer-term, smoother trend component that captures the overall growth pattern across the entire time series.
-- **Hybrid trend**: The combination of local and global trends in the LGT model, enabling it to handle complex trend dynamics.
-- **Multiplicative vs. additive errors**: In multiplicative models, errors scale with the level of the series; in additive models, errors remain constant. Orbit uses log-transformation to handle multiplicative forms.
-- **Heteroscedasticity**: When the variance of errors changes over time. LGT can model this by allowing error variance to grow with the expected value.
-- **Student-t distribution**: A probability distribution with heavier tails than the normal distribution, making it more robust to outliers.
-- **Probabilistic programming**: A paradigm for building statistical models using specialized languages (like Stan or Pyro) that automate inference.
+Before diving in, let's establish our terminology:
 
-## Why Exponential Smoothing Still Matters
+- **Time series**: A sequence of observations recorded at successive time points, denoted $y_1, y_2, \ldots, y_T$.
+- **Forecast**: A predicted value for a future time point, typically denoted $\hat{y}_{T+h}$ where $h$ is the forecast horizon.
+- **Components**: The building blocks of a time series model (trend, seasonality, error).
+- **Trend**: The long-term direction or pattern in the data (upward, downward, flat).
+- **Seasonality**: Regular, periodic fluctuations (daily, weekly, yearly patterns).
+- **Error term**: The random noise or unpredictable variation in the data.
+- **Additive model**: Components are summed together: $y_t = \text{trend}_t + \text{seasonal}_t + \epsilon_t$.
+- **Multiplicative model**: Components are multiplied: $y_t = \text{trend}_t \times \text{seasonal}_t \times \epsilon_t$.
+- **Exponential smoothing**: A family of forecasting methods that weight recent observations more heavily than older ones.
 
-Despite the rise of machine learning methods, exponential smoothing remains a workhorse for time series forecasting, particularly for:
-- **Low granularity data**: When you have limited observations or short time series.
-- **Interpretability**: The model components (level, trend, seasonality) have clear business meanings.
-- **Computational efficiency**: Exponential smoothing models are fast to fit and forecast.
-- **Proven track record**: They consistently perform well in forecasting competitions like the M-competitions.
+Keep these definitions handy as we build our understanding step by step.
 
-However, classical exponential smoothing has limitations:
-- Fixed error distributions (usually Gaussian)
-- Difficulty modeling heteroscedasticity
-- Point estimates only (no uncertainty quantification)
-- Limited flexibility in trend specification
+## Section 2.1: Why Time Series Forecasting Matters
 
-The Orbit package addresses these limitations using a Bayesian framework.
+Time series forecasting is central to countless business and scientific applications:
 
-## From Holt's Method to LGT
+- **Demand forecasting**: Predicting product sales to optimize inventory
+- **Financial planning**: Forecasting revenue, costs, and cash flow
+- **Energy management**: Predicting electricity demand to balance supply
+- **Web traffic**: Anticipating user load to scale infrastructure
+- **Healthcare**: Forecasting disease spread or patient admissions
 
-### Classical Holt's Linear Trend Method
+While machine learning methods (neural networks, gradient boosting) receive significant attention, **statistical methods remain powerful** for time series forecasting, especially when:
 
-Holt's method forecasts future values using a level $\ell_t$ and a trend $b_t$:
+1. **Data is limited**: You have only 50-100 observations rather than millions
+2. **Granularity is low**: Weekly or monthly data rather than second-by-second readings
+3. **Interpretability matters**: Stakeholders need to understand *why* the forecast changed
+4. **Fast iteration is critical**: You need results in seconds, not hours of GPU training
+
+Classical methods like exponential smoothing consistently perform well in forecasting competitions (the M-competitions) and are widely used in production systems at companies like Uber, Amazon, and Facebook.
+
+## Section 2.2.1: The Fundamental Components
+
+### The General Additive Form
+
+At its core, a time series model decomposes observed values into meaningful pieces. The **general additive form** is:
 
 $$
-\begin{aligned}
-\ell_t &= \alpha y_t + (1 - \alpha)(\ell_{t-1} + b_{t-1}), \\
-b_t &= \beta^* (\ell_t - \ell_{t-1}) + (1 - \beta^*) b_{t-1}, \\
-\hat{y}_{t+h} &= \ell_t + h b_t,
-\end{aligned}
+y_t = g_t + s_t + h_t + \epsilon_t,
+$$
+
+where each symbol represents a component:
+
+| Symbol | Component | Meaning |
+|--------|-----------|---------|
+| $y_t$ | **Observation** | The actual value we observe at time $t$ |
+| $g_t$ | **Growth (Trend)** | Non-periodic changes—the overall direction |
+| $s_t$ | **Seasonality** | Periodic patterns that repeat at regular intervals |
+| $h_t$ | **Holiday/Event** | Irregular, known events (Black Friday, holidays) |
+| $\epsilon_t$ | **Error** | Random noise we cannot explain |
+
+This equation says: *the value we observe equals the trend plus seasonal effects plus special events plus random noise*.
+
+### Unpacking Each Component
+
+Let's examine each piece with concrete examples:
+
+#### 1. Trend ($g_t$): Where Are We Going?
+
+The trend captures the **long-term direction** of the series. Common trend types include:
+
+- **Linear trend**: $g_t = \delta_{\text{intercept}} + \delta_{\text{slope}} \cdot t$
+  - Example: A startup's monthly revenue grows by \$10,000/month
+  
+- **Log-linear trend**: $g_t = \delta_{\text{intercept}} + \ln(\delta_{\text{slope}} \cdot t)$
+  - Example: User growth that accelerates then slows (concave growth)
+  
+- **Logistic trend**: $g_t = L + \frac{U - L}{1 + e^{-\delta_{\text{slope}} \cdot t}}$
+  - Example: Product adoption that saturates at market capacity $U$
+  
+- **Flat trend**: $g_t = \delta_{\text{intercept}}$ (constant, no growth)
+  - Example: Stable mature products with no net growth
+
+The trend component answers: *If we ignore short-term fluctuations, where is this series heading?*
+
+#### 2. Seasonality ($s_t$): What Repeats?
+
+Seasonality captures **regular, predictable cycles**. Examples:
+
+- Ice cream sales peak every summer
+- Website traffic drops every weekend
+- Electricity demand spikes at 6 PM every weekday
+
+Mathematically, seasonality often uses **Fourier series** to represent periodic patterns:
+$$
+s_t = \sum_{n=1}^{N} \left[ a_n \cos\left(\frac{2\pi n t}{P}\right) + b_n \sin\left(\frac{2\pi n t}{P}\right) \right],
+$$
+
+where $P$ is the period (e.g., $P = 7$ for weekly seasonality, $P = 12$ for monthly).
+
+The seasonality component answers: *What regular patterns repeat over time?*
+
+#### 3. Holiday/Event Effects ($h_t$): What's Special About Today?
+
+Some dates are predictably different but don't follow a regular seasonal pattern:
+
+- Thanksgiving always causes a sales spike, but its date varies
+- Product launches create one-time jumps
+- Marketing campaigns have known start and end dates
+
+We model these as:
+$$
+h_t = \sum_{i} \delta_i \cdot \mathbb{1}(\text{event } i \text{ occurs at } t),
+$$
+
+where $\mathbb{1}(\cdot)$ is an indicator function (1 if the event occurs, 0 otherwise).
+
+The holiday component answers: *Are there known special events affecting this time point?*
+
+#### 4. Error ($\epsilon_t$): What's Left Over?
+
+After accounting for trend, seasonality, and events, the **error term** captures:
+
+- True randomness (customer behavior is inherently variable)
+- Unmeasured factors (a competitor's promotion we don't track)
+- Model misspecification (our trend or seasonal form isn't perfect)
+
+Common error distributions:
+
+- **Gaussian (Normal)**: $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ — symmetric, light-tailed
+- **Student-t**: $\epsilon_t \sim t(\nu, 0, \sigma)$ — heavier tails, robust to outliers
+- **Negative Binomial**: For count data (number of purchases)
+
+The error component answers: *What variation remains unexplained?*
+
+### Additive vs. Multiplicative
+
+The additive form assumes components **add together**:
+$$
+y_t = g_t + s_t + h_t + \epsilon_t.
+$$
+
+This works well when seasonal fluctuations are roughly constant in magnitude. For example, if coffee sales increase by 100 cups every summer regardless of overall trend.
+
+The **multiplicative form** assumes components **multiply**:
+$$
+y_t = g_t \times s_t \times h_t \times \epsilon_t.
+$$
+
+This is appropriate when seasonal effects scale with the level of the series. For example, if ice cream revenue grows 20% every summer, the absolute dollar increase grows as the base revenue grows.
+
+**Key trick**: Take the logarithm to convert multiplicative to additive:
+$$
+\log(y_t) = \log(g_t) + \log(s_t) + \log(h_t) + \log(\epsilon_t).
+$$
+
+Now fit an additive model to $\log(y_t)$, then exponentiate forecasts to get back to the original scale. This requires $y_t > 0$ for all observations.
+
+## Standard Notation Reference
+
+When reading time series papers and documentation, you'll encounter consistent notation:
+
+| Symbol | Meaning | Common Values |
+|--------|---------|---------------|
+| $t$ | Time index | $1, 2, \ldots, T$ |
+| $y_t$ | Observed value at time $t$ | Any real number (or positive for log models) |
+| $\hat{y}_t$ | Predicted/fitted value | Model's estimate for time $t$ |
+| $\hat{y}_{T+h}$ | Forecast $h$ steps ahead | Prediction beyond observed data |
+| $\mu_t$ | Latent level (smoothed estimate) | Underlying signal without noise |
+| $\ell_t$ | Local level | Short-term smoothed value |
+| $b_t$ | Local trend | Recent rate of change |
+| $\tau$ | Global trend | Long-term drift parameter |
+| $s_t$ | Seasonal component | Repeating pattern |
+| $\epsilon_t$ | Error term | Random shock |
+| $\alpha, \beta$ | Smoothing parameters | Between 0 and 1 |
+
+## Why These Foundations Matter
+
+Understanding these components is critical because:
+
+1. **Debugging**: When forecasts fail, you can isolate which component is wrong (bad trend? missed seasonality?).
+2. **Communication**: You can explain "revenue increased because of both strong trend and holiday effects."
+3. **Model selection**: You choose models based on which components your data exhibits.
+4. **Feature engineering**: For ML models, you can create features from these components.
+
+Modern packages like Orbit, Prophet (Facebook), and NeuralProphet build on these foundations, adding:
+- Bayesian inference for uncertainty quantification
+- Automatic detection of changepoints in trend
+- Hierarchical models for related time series
+- Exogenous regressors (external predictors)
+
+But they all decompose series into **trend + seasonality + events + error**.
+
+## From Components to Forecasting
+
+Once we've decomposed the series and estimated each component, forecasting is straightforward:
+
+1. **Extrapolate the trend**: Project $g_t$ forward using the estimated growth rate.
+2. **Add future seasonality**: Use the repeating seasonal pattern for future periods.
+3. **Include known future events**: If we know Black Friday is coming, add its effect.
+4. **Quantify uncertainty**: The error distribution gives us prediction intervals.
+
+For example, to forecast 3 months ahead ($h = 3$):
+$$
+\hat{y}_{T+3} = \hat{g}_{T+3} + \hat{s}_{T+3} + \hat{h}_{T+3},
 $$
 
 where:
-- $y_t$ is the observed value at time $t$,
-- $\alpha$ and $\beta^*$ are smoothing parameters (between 0 and 1),
-- $h$ is the forecast horizon.
+- $\hat{g}_{T+3}$ continues the estimated trend
+- $\hat{s}_{T+3}$ uses the seasonal pattern from 3 months ago (assuming yearly seasonality)
+- $\hat{h}_{T+3}$ includes any known events 3 months out
 
-The level equation updates based on the current observation and the previous estimate. The trend equation smooths the first difference of the level. This method assumes:
-- Linear trend
-- Additive errors
-- Homoscedastic (constant variance) errors
-- Gaussian noise
+The uncertainty around this forecast comes from:
+- Parameter uncertainty (we don't know $\alpha, \beta, \tau$ exactly)
+- Future error realizations (random shocks we can't predict)
 
-### The Local-Global Trend (LGT) Extension
+Bayesian methods give us full distributions; classical methods give us standard errors.
 
-The LGT model refines Holt's method by:
+## What You Should Remember
 
-1. **Separating local and global trends**: Instead of a single trend $b_t$, LGT uses:
-   - A **local trend** $b_t$ that evolves quickly based on recent data
-   - A **global trend** $\tau$ that captures the overall growth direction
+The core takeaways for foundational time series forecasting:
 
-2. **Log-transformation for multiplicative form**: By applying $\log$ to the response, the model handles multiplicative trends while maintaining additive structure in the transformed space.
-
-3. **Flexible error distributions**: Student-t errors instead of Gaussian, providing robustness to outliers.
-
-4. **Heteroscedastic errors**: Error variance can grow with the expected value.
-
-5. **Bayesian inference**: Full posterior distributions for all parameters, not just point estimates.
-
-## The LGT Model Formulation
-
-### State Space Form
-
-The LGT model can be written in state space form. Let $\mu_t$ be the latent level at time $t$. The model equations are:
-
-**Observation equation**:
-$$
-y_t \sim \text{Student-t}(\nu, \mu_t, \sigma_t),
-$$
-
-where $\nu$ is the degrees of freedom, $\mu_t$ is the location, and $\sigma_t$ is the scale (which may vary over time for heteroscedastic errors).
-
-**State evolution equations**:
-$$
-\begin{aligned}
-\mu_t &= \ell_{t-1} + b_{t-1} + \tau, \\
-\ell_t &= \alpha y_t + (1 - \alpha) \mu_t, \\
-b_t &= \beta (b_{t-1} + \tau) + (1 - \beta) (\ell_t - \ell_{t-1}),
-\end{aligned}
-$$
-
-where:
-- $\ell_t$ is the local level,
-- $b_t$ is the local trend,
-- $\tau$ is the global trend (a parameter to be estimated),
-- $\alpha, \beta \in (0, 1)$ are smoothing coefficients.
-
-### Key Components Explained
-
-1. **$\mu_t = \ell_{t-1} + b_{t-1} + \tau$**: The expected value combines the previous level, the local trend evolution, and the global trend shift. This hybrid structure lets the model adapt locally while respecting a long-term direction.
-
-2. **$\ell_t = \alpha y_t + (1 - \alpha) \mu_t$**: The level is a weighted average of the observed value and the predicted level. When $\alpha$ is close to 1, the model reacts quickly to new data; when $\alpha$ is near 0, it smooths heavily.
-
-3. **$b_t = \beta (b_{t-1} + \tau) + (1 - \beta) (\ell_t - \ell_{t-1})$**: The local trend updates based on both the previous trend (adjusted by the global trend) and the recent change in level.
-
-4. **Student-t errors**: By using a Student-t distribution with degrees of freedom $\nu$, the model is less sensitive to outliers than a Gaussian model. When $\nu$ is small (e.g., 3-5), the distribution has heavy tails; as $\nu \to \infty$, it approaches a normal distribution.
-
-### Handling Multiplicative Trends via Log-Transformation
-
-For series that grow multiplicatively (e.g., revenue growing at 20% per year), Orbit applies a log-transformation:
-$$
-\tilde{y}_t = \log(y_t).
-$$
-
-The model is then fit in the log-space, and forecasts are back-transformed:
-$$
-\hat{y}_{t+h} = \exp(\hat{\tilde{y}}_{t+h}).
-$$
-
-This approach requires $y_t > 0$ for all observations. The log-transformation stabilizes variance (addressing heteroscedasticity) and linearizes exponential growth.
-
-### Heteroscedastic Errors
-
-Classical exponential smoothing assumes constant error variance. LGT can model time-varying variance:
-$$
-\sigma_t = \sigma_0 \cdot f(\mu_t),
-$$
-
-where $f(\cdot)$ is a monotonically increasing function. A common choice is:
-$$
-\sigma_t = \sigma_0 \cdot |\mu_t|^\gamma,
-$$
-
-with $\gamma \geq 0$. When $\gamma = 0$, errors are homoscedastic; when $\gamma > 0$, larger expected values have larger variance.
-
-## Bayesian Inference and Probabilistic Programming
-
-Classical exponential smoothing fits parameters (like $\alpha$, $\beta$) by minimizing a loss function (e.g., mean squared error). Orbit instead uses Bayesian inference:
-
-1. **Specify priors**: Assign prior distributions to all parameters. For example:
-   $$
-   \begin{aligned}
-   \alpha &\sim \text{Beta}(a_\alpha, b_\alpha), \\
-   \beta &\sim \text{Beta}(a_\beta, b_\beta), \\
-   \tau &\sim \text{Normal}(0, \sigma_\tau^2), \\
-   \sigma &\sim \text{HalfNormal}(\sigma_0), \\
-   \nu &\sim \text{Gamma}(a_\nu, b_\nu).
-   \end{aligned}
-   $$
-
-2. **Compute the posterior**: Given data $y_{1:T}$, we want:
-   $$
-   p(\alpha, \beta, \tau, \sigma, \nu \mid y_{1:T}) \propto p(y_{1:T} \mid \alpha, \beta, \tau, \sigma, \nu) \cdot p(\alpha, \beta, \tau, \sigma, \nu).
-   $$
-
-3. **Use MCMC or MAP**: Orbit supports:
-   - **MCMC (via Stan)**: Full Bayesian inference with uncertainty quantification.
-   - **MAP (maximum a posteriori)**: Point estimates that are faster to compute.
-   - **Variational inference (via Pyro)**: Approximate posterior for faster inference.
-
-### Why Bayesian?
-
-- **Uncertainty quantification**: Instead of a single forecast, you get a predictive distribution.
-- **Regularization**: Priors prevent overfitting, especially with limited data.
-- **Flexibility**: Easy to add constraints (e.g., $\tau > 0$ for strictly positive growth).
-- **Posterior inference**: Understand parameter relationships and check convergence diagnostics.
-
-## Comparison with DLT (Damped Local Trend)
-
-Orbit also includes a Damped Local Trend (DLT) model. Key differences:
-
-| Feature | LGT | DLT |
-|---------|-----|-----|
-| Trend structure | Local + Global (hybrid) | Damped local trend |
-| Global trend | Smooth, additive $\tau$ | Damping factor $\phi \in (0,1)$ |
-| Transformation | Often uses log | Flexible |
-| Exogenous variables | Limited | Flexible regression component |
-
-**When to use LGT**: Series with strong, potentially non-linear trends (e.g., fast-growing startups, viral products).  
-**When to use DLT**: Series with trends that dampen over time (e.g., product adoption curves), or when you need to include external predictors.
-
-## Practical Considerations
-
-### Data Requirements
-
-- **Positive values**: If using log-transformation, all $y_t > 0$.
-- **Sufficient history**: At least 10-20 observations to estimate smoothing parameters reliably.
-- **Stationarity**: Exponential smoothing handles non-stationary series, but extreme regime shifts may require separate models.
-
-### Hyperparameter Tuning
-
-- **Smoothing parameters** ($\alpha$, $\beta$): Orbit estimates these via Bayesian inference, but you can set informative priors if you have domain knowledge.
-- **Degrees of freedom** ($\nu$): Lower values (3-5) are robust to outliers; higher values (10+) approximate normality.
-- **Prior scales**: Tight priors regularize more; diffuse priors let data dominate.
-
-### Model Validation
-
-- **Holdout forecasting**: Reserve the last $h$ observations and evaluate forecast accuracy.
-- **Posterior predictive checks**: Simulate data from the fitted model and compare to actual data.
-- **Trace plots and $\hat{R}$**: For MCMC, check that chains have converged.
-
-## Example: Interpreting an LGT Forecast
-
-Suppose you fit LGT to monthly revenue data and obtain:
-- $\hat{\alpha} = 0.7$: The model adapts fairly quickly to new observations.
-- $\hat{\beta} = 0.3$: The local trend is somewhat smoothed.
-- $\hat{\tau} = 120$: Revenue has a global upward trend of \$120/month.
-- $\hat{\nu} = 4$: Errors have heavy tails (robust to occasional spikes or dips).
-
-A 12-month-ahead forecast would show:
-- A **median trajectory** combining recent local dynamics and the long-term $\tau$.
-- **Credible intervals** (e.g., 50% and 95%) that widen as the horizon increases, reflecting uncertainty in both parameters and future shocks.
+1. **Decomposition is key**: Every series is trend + seasonality + events + noise.
+2. **Notation is consistent**: $y_t$ is observed, $\hat{y}_t$ is fitted, $\epsilon_t$ is error.
+3. **Additive vs. multiplicative**: Choose based on whether seasonal magnitude changes with level.
+4. **Statistical methods are powerful**: Especially for low granularity, interpretable forecasts.
+5. **Components aid understanding**: You can explain *why* the forecast is what it is.
 
 ## What's Next
 
-You now have a vocabulary-first understanding of exponential smoothing and the LGT model. In a follow-up post, we can:
-- Implement LGT in Python using the Orbit package,
-- Fit the model to real data and interpret posterior samples,
-- Compare LGT with DLT and classical Holt's method,
-- Explore seasonal extensions (Seasonal LGT).
+In the next posts, we'll build on these foundations:
+
+- **TS 102**: Exponential smoothing methods (Simple, Holt's, Holt-Winters)
+- **TS 103**: The Local-Global Trend (LGT) model and Bayesian inference
+- **TS 104**: Seasonal models and handling multiple seasonal periods
+- **TS 105**: Implementing forecasts with the Orbit package in Python
+
+This foundational understanding will make advanced methods feel like natural extensions rather than black boxes.
 
 ## References
 
 - Ng, E., Wang, Z., Chen, H., Yang, S., & Smyl, S. (2020). *Orbit: Probabilistic Forecast with Exponential Smoothing*. [arXiv:2004.08492](https://arxiv.org/abs/2004.08492). [PDF](../../../pdf/$_Orbit_exponential_smoothing.pdf)
 - [Orbit Documentation](https://uber.github.io/orbit/)
-- [Orbit GitHub Repository](https://github.com/uber/orbit)
+- Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: Principles and Practice* (3rd ed.). OTexts. [Free online](https://otexts.com/fpp3/)
 
 ---
 
-*This post is part of the Time Series 101 series. If you found this helpful, check out our MCMC 101 series for related Bayesian modeling topics.*
+*This post is part of the Time Series 101 series, covering foundational concepts for forecasting. For related Bayesian modeling topics, check out our MCMC 101 series.*
