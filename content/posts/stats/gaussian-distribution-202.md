@@ -1,6 +1,6 @@
 +++
 title = "Gauss 202: Log Probability of 2D Sample Means"
-date = "2025-11-26T00:00:00Z"
+date = "2025-11-27T00:00:00Z"
 type = "post"
 draft = false
 math = true

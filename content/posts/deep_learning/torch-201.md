@@ -1,6 +1,6 @@
 +++
 title = "Torch 201: Pre-trained Models and Visual Inference"
-date = "2025-11-25T18:16:00Z"
+date = "2025-11-29T18:16:00Z"
 type = "post"
 draft = false
 tags = ["deep learning", "torch", "computer vision", "tutorial"]
