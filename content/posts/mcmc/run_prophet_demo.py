@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """Execute Prophet demo and save outputs"""
 
-import pandas as pd  
+from pathlib import Path
+
+import pandas as pd
 from prophet import Prophet
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend
+
+ROOT_DIR = Path(__file__).resolve().parents[3]
+OUTPUT_DIR = ROOT_DIR / "static/img/posts/ts-201-prophet"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Load the dataset
 url = 'https://raw.githubusercontent.com/facebook/prophet/main/examples/example_wp_log_peyton_manning.csv'
@@ -34,14 +40,16 @@ print(forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail())
 
 # Plot and save the main forecast
 fig1 = m.plot(forecast)
-plt.savefig('prophet_forecast.png', dpi=150, bbox_inches='tight')
-print("\nSaved prophet_forecast.png")
+forecast_path = OUTPUT_DIR / "prophet_forecast.png"
+plt.savefig(forecast_path, dpi=150, bbox_inches='tight')
+print(f"\nSaved {forecast_path}")
 plt.close()
 
 # Plot and save the components
 fig2 = m.plot_components(forecast)
-plt.savefig('prophet_components.png', dpi=150, bbox_inches='tight')
-print("Saved prophet_components.png")
+components_path = OUTPUT_DIR / "prophet_components.png"
+plt.savefig(components_path, dpi=150, bbox_inches='tight')
+print(f"Saved {components_path}")
 plt.close()
 
 # Super Bowl 50 example

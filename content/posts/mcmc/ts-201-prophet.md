@@ -198,7 +198,7 @@ fig1 = m.plot(forecast)
 plt.savefig('prophet_forecast.png')
 ```
 
-![Prophet forecast showing actual data (black dots), predicted trend (blue line), and 80% uncertainty interval (blue shaded region)](prophet_forecast.png)
+![Prophet forecast showing actual data (black dots), predicted trend (blue line), and 80% uncertainty interval (blue shaded region)](/img/posts/ts-201-prophet/prophet_forecast.png)
 
 The plot shows:
 - **Black dots**: Historical observations
@@ -216,7 +216,7 @@ fig2 = m.plot_components(forecast)
 plt.savefig('prophet_components.png')
 ```
 
-![Prophet component decomposition showing trend, weekly seasonality, and yearly seasonality](prophet_components.png)
+![Prophet component decomposition showing trend, weekly seasonality, and yearly seasonality](/img/posts/ts-201-prophet/prophet_components.png)
 
 This decomposition reveals:
 
