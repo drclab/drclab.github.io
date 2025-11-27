@@ -1,4 +1,4 @@
-version: '3.8'
+#version: '3.8'
 
 services:
   prophet:
@@ -11,4 +11,4 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     container_name: prophet-jupyter
-    restart: unless-stopped  # Container will restart unless explicitly stopped
+    restart: unless-stopped # Container will restart unless explicitly stopped
