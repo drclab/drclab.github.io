@@ -1,8 +1,8 @@
 +++
 title = "Gauss 203: Linear Combinations in 2D Gaussians"
-date = "2026-01-10T00:00:00Z"
+date = "2025-11-28T00:00:00Z"
 type = "post"
-draft = true
+draft = false
 math = true
 tags = ["statistics", "probability", "gaussian", "linear-algebra"]
 categories = ["posts"]

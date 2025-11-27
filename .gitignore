@@ -1,5 +1,6 @@
 .hugo_build.lock
-.myenv/
+venv/
+/content/posts/mcmc/prophet_env
 public/
 resources/
 /.DS_Store
@@ -7,3 +8,4 @@ Thumbs.db
 content/baad-master/
 .RData
 .Rhistory
+content/posts/mcmc/prophet_env/bin/pip

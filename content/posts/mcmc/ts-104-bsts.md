@@ -73,7 +73,7 @@ The Orbit package draws inspiration from these structural models. Orbit's **DLT 
 
 ## What's Next?
 
-In **TS 105**, we will finally bring everything together and dive deep into the **Orbit** package itself. We'll explore the **LGT** and **DLT** models in detail, seeing how they combine the best of Exponential Smoothing and Bayesian Structural Time Series.
+In **TS 2xx**, we will finally bring everything together and dive deep into the **Orbit** package itself. We'll explore the **LGT** and **DLT** models in detail, seeing how they combine the best of Exponential Smoothing and Bayesian Structural Time Series.
 
 ## References
 
