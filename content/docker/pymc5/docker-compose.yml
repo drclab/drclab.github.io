@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  pymc5:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pymc5-jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      # Mount current directory to /app for live code editing
+      #- .:/app
+      # Mount the local content/ipynb directory for notebook access
+      - ../../ipynb:/app/notebooks
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    restart: unless-stopped
+    # Override CMD if needed, otherwise uses default from Dockerfile
+    # command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password=''
