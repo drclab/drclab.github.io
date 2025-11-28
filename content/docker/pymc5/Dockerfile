@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # Install system build deps for numerical libs
 RUN apt-get update \
- && apt-get install -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
     build-essential \
     gfortran \
     git \
@@ -17,19 +17,16 @@ RUN apt-get update \
     liblapack-dev \
     libffi-dev \
     libssl-dev \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Copy and install Python deps
 COPY requirements.txt /app/requirements.txt
 RUN python -m pip install --upgrade pip setuptools wheel \
- && pip install -r /app/requirements.txt \
- && pip install graphviz
+    && pip install -r /app/requirements.txt \
+    && pip install graphviz
 
-# Copy the example test
-COPY example.py /app/example.py
-COPY pymc_example.ipynb /app/pymc_example.ipynb
 
 # Expose Jupyter Lab port
 EXPOSE 8888
