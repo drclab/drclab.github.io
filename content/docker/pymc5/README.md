@@ -31,6 +31,30 @@ Start Jupyter Lab server with your local directory mounted:
 docker run -d --name pymc-jupyter -p 8888:8888 -v $(pwd):/app/notebooks pymc5-latest:cpu
 ```
 
+### Passing API Keys (Optional)
+
+If you need to use API keys (e.g., for Jupyter AI), you can pass them as environment variables.
+
+**Using Docker Compose:**
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Edit `.env` and add your API keys.
+3. Run:
+   ```bash
+   docker-compose up
+   ```
+
+**Using `docker run`:**
+```bash
+docker run -d --name pymc-jupyter \
+  -p 8888:8888 \
+  -v $(pwd):/app/notebooks \
+  --env-file .env \
+  pymc5-latest:cpu
+```
+
 **Access Jupyter Lab:**
 - Open your browser to: **http://localhost:8888**
 - No password required (configured for local development)

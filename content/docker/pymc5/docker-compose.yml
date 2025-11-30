@@ -11,6 +11,8 @@ services:
       #- .:/app
       # Mount the local content/ipynb directory for notebook access
       - ../../ipynb:/app/notebooks
+    env_file:
+      - .env
     environment:
       - JUPYTER_ENABLE_LAB=yes
     restart: unless-stopped

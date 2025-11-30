@@ -9,3 +9,4 @@ content/baad-master/
 .RData
 .Rhistory
 content/posts/mcmc/prophet_env/bin/pip
+.env
