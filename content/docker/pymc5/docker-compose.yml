@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: pymc5-jupyter
+    container_name: pymc5-jupyter-ai
     ports:
       - "8888:8888"
     volumes:
