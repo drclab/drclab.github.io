@@ -9,7 +9,6 @@ matplotlib
 seaborn
 scikit-learn
 
-# Jupyter for interactive notebooks
-jupyterlab
+# Jupyter AI for interactive notebooks with AI capabilities
+jupyter-ai==3.0.0b7
 ipywidgets
-notebook
