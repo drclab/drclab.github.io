@@ -2,7 +2,7 @@
 title = "Torch 102: Activation Functions Meet Delivery Reality"
 date = "2025-12-02T00:58:18Z"
 type = "post"
-draft = true
+draft = false
 tags = [
   "deep learning",
   "torch",
