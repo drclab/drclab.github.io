@@ -2,7 +2,7 @@
 title = "Torch 101: One Neuron, Real Insights"
 date = "2025-12-01T01:53:45Z"
 type = "post"
-draft = true
+draft = false
 tags = ["deep learning", "torch", "tutorial"]
 categories = ["deep_learning"]
 description = "Step-by-step PyTorch primer based on the C1_M1 simple neural network lab notebook."
