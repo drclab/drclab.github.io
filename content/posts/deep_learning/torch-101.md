@@ -1,6 +1,6 @@
 +++
 title = "Torch 101: One Neuron, Real Insights"
-date = "2025-12-01T16:53:45Z"
+date = "2025-12-01T01:53:45Z"
 type = "post"
 draft = true
 tags = ["deep learning", "torch", "tutorial"]
