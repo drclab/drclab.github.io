@@ -1,6 +1,6 @@
 +++
 title = "Torch 102: Activation Functions Meet Delivery Reality"
-date = "2025-12-02T00:58:18Z"
+date = "2025-12-02T00:00:18Z"
 type = "post"
 draft = false
 tags = [
