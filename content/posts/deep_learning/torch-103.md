@@ -1,6 +1,6 @@
 +++
 title = "Torch 103: Debugging, Modularizing, and Inspecting Models"
-date = "2025-12-03T02:34:04-05:00"
+date = "2025-12-03T02:11:11"
 type = "post"
 draft = false
 tags = ["deep learning", "torch", "debugging", "inspection"]
