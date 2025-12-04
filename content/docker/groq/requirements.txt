@@ -1,0 +1,6 @@
+groq
+python-dotenv
+jupyterlab
+jupyter-ai==3.0.0b9
+sqlparse
+duckdb

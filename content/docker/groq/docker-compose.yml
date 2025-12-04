@@ -1,0 +1,17 @@
+
+services:
+  groq-app:
+    build: .
+    container_name: groq-app
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    ports:
+      - "8888:8888"
+    # Keep the container running if needed, or just let it exit after script
+    # For development, it might be useful to keep it alive or just run the script.
+    # Since the user asked to "start the container", running the script and exiting is fine for now.
+    # But if they want to develop, maybe `tail -f /dev/null` is better?
+    # The user's request "creates an image using Groq LLM service" implies using it.
+    # The current main.py just runs and exits. I'll stick to that for now.

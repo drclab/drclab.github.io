@@ -1,0 +1,63 @@
+{
+  "messages": [
+    {
+      "type": "msg",
+      "body": "hello",
+      "sender": "2f75aec4b17a4ac1b79ef7706bc28482",
+      "raw_time": false,
+      "time": 1764869987.325615,
+      "id": "284862bf-9575-4646-91ae-fdce7c3d0376"
+    },
+    {
+      "body": "No chat model is configured.\n\nYou must set one first in the Jupyter AI settings, found in 'Settings > AI Settings' from the menu bar.",
+      "sender": "jupyter-ai-personas::jupyter_ai_jupyternaut::JupyternautPersona",
+      "type": "msg",
+      "id": "cbef4dc9-e622-4546-818a-4e03372a7d15",
+      "time": 1764869987.3278642,
+      "raw_time": false,
+      "mentions": []
+    },
+    {
+      "id": "82527b9e-5b49-4d0d-a743-19d3958df50e",
+      "raw_time": false,
+      "type": "msg",
+      "sender": "2f75aec4b17a4ac1b79ef7706bc28482",
+      "time": 1764870028.1404567,
+      "body": "hello"
+    },
+    {
+      "id": "05338610-9c2c-4448-b3ba-2a97f335eee3",
+      "time": 1764870029.6610918,
+      "type": "msg",
+      "mentions": [],
+      "sender": "jupyter-ai-personas::jupyter_ai_jupyternaut::JupyternautPersona",
+      "raw_time": false,
+      "body": "Hello! How can I assist you today? Whether you have questions about coding, need help with data analysis, or want to learn something new, I'm here for you! \ud83d\ude0a"
+    }
+  ],
+  "users": {
+    "jupyter-ai-personas::jupyter_ai_jupyternaut::JupyternautPersona": {
+      "name": "Jupyternaut",
+      "display_name": "Jupyternaut",
+      "initials": null,
+      "avatar_url": "/api/ai/avatars/jupyter-ai-personas%3A%3Ajupyter_ai_jupyternaut%3A%3AJupyternautPersona",
+      "color": null,
+      "username": "jupyter-ai-personas::jupyter_ai_jupyternaut::JupyternautPersona",
+      "bot": true
+    },
+    "2f75aec4b17a4ac1b79ef7706bc28482": {
+      "bot": false,
+      "mention_name": "Anonymous-Aoede",
+      "color": "var(--jp-collaborator-color5)",
+      "avatar_url": null,
+      "initials": "AA",
+      "name": "Anonymous Aoede",
+      "username": "2f75aec4b17a4ac1b79ef7706bc28482",
+      "display_name": "Anonymous Aoede"
+    }
+  },
+  "attachments": {},
+  "metadata": {
+    "id": "78d7751b-e356-4536-8892-65048b939fa5"
+  }
+}
