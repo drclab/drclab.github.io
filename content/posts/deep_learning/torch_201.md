@@ -1,6 +1,6 @@
 +++
 title = "Torch 201: TorchVision for Pre-Processing"
-date = "2025-12-04T08:40:00-05:00"
+date = "2025-12-04T00:20:05"
 type = "post"
 draft = false
 tags = ["deep learning", "torch", "computer vision", "tutorial"]
