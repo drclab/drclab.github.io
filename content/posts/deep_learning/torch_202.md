@@ -1,6 +1,6 @@
 +++
 title = "Torch 202: TorchVision Datasets"
-date = "2025-12-05T00:00:01"
+date = "2025-12-05T00:01:00"
 type = "post"
 draft = false
 tags = ["deep learning", "torch", "computer vision", "tutorial"]
