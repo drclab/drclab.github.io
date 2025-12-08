@@ -1,6 +1,6 @@
 +++
 title = "Torch 302: Embeddings"
-date = "2025-12-08T00:00:00Z"
+date = "2025-12-08T01:00:00Z"
 type = "post"
 draft = false
 tags = ["deep learning", "torch", "nlp", "embeddings", "glove", "bert"]
