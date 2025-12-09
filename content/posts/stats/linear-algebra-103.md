@@ -1,6 +1,6 @@
 +++
 title = "Linear Algebra 103"
-date = "2025-12-12"
+date = "2025-12-13"
 type = "post"
 draft = true
 math = true
