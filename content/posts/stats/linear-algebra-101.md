@@ -1,8 +1,8 @@
 +++
 title = "Linear Algebra 101"
-date = "2025-12-12"
+date = "2025-12-11"
 type = "post"
-draft = true
+draft = false
 math = true
 tags = ["linear-algebra", "numpy", "python", "mathematics"]
 categories = ["posts"]
