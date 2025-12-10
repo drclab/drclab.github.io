@@ -1,6 +1,6 @@
 +++
 title = "Torch 402: Saliency Maps and Grad-CAM"
-date = "2025-12-10T00:00:00Z"
+date = "2025-12-10T01:00:00Z"
 type = "post"
 draft = false
 tags = ["deep learning", "torch", "cnn", "visualization", "interpretability", "grad-cam"]
