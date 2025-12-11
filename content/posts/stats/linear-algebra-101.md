@@ -4,7 +4,7 @@ date = "2025-12-11"
 type = "post"
 draft = false
 math = true
-tags = ["linear-algebra", "numpy", "python", "mathematics"]
+tags = ["linear-algebra", "numpy"]
 categories = ["posts"]
 description = "An introduction to linear algebra through NumPy arrays: creating, manipulating, and understanding vectors and matrices."
 +++
