@@ -46,6 +46,12 @@ print("f(x) = x**2:", f(x_array))  # [1 4 9]
 print("f'(x) = 2x:", dfdx(x_array))  # [2 4 6]
 ```
 
+Here's what these functions look like when plotted together:
+
+![Function f(x)=x² and its derivative f'(x)=2x](/images/calculus-101/function-derivative.png)
+
+The red curve shows our function $f(x) = x^2$, while the blue line shows its derivative $f'(x) = 2x$. Notice how the derivative tells us the slope of the function at each point.
+
 ## Symbolic Differentiation with SymPy
 
 **Symbolic computation** deals with mathematical objects represented exactly, not approximately. For differentiation, this means the output is similar to computing derivatives by hand using calculus rules.
@@ -105,6 +111,12 @@ x_array = np.array([1, 2, 3])
 dfdx_symb_numpy(x_array)  # Output: [2 4 6]
 ```
 
+Here's the symbolic derivative plotted alongside the original function:
+
+![Symbolic differentiation comparison](/images/calculus-101/symbolic-comparison.png)
+
+This plot demonstrates how SymPy can compute exact derivatives symbolically, then convert them to NumPy-compatible functions for plotting and numerical evaluation.
+
 ### Limitations of Symbolic Differentiation
 
 While powerful, symbolic differentiation has limitations:
@@ -132,6 +144,18 @@ x_array = np.linspace(-5, 5, 100)
 dfdx_numerical = np.gradient(f(x_array), x_array)
 ```
 
+Here's how the numerical approximation compares to the exact derivative:
+
+![NumPy numerical differentiation comparison](/images/calculus-101/numpy-numerical.png)
+
+The solid blue line is the exact derivative, while the dots are the numerical approximation from `np.gradient()`. The results are remarkably accurate!
+
+For more complex functions, numerical differentiation still performs well:
+
+![Complex function numerical differentiation](/images/calculus-101/complex-function.png)
+
+Even for $f(x) = e^{-2x} + 3\sin(3x)$, the numerical method (blue dots) closely matches the exact derivative (blue line).
+
 The results are impressively accurate for most functions. The key advantage is that **it doesn't matter how the function was calculated** - only the final values matter!
 
 ### Limitations of Numerical Differentiation
@@ -139,6 +163,10 @@ The results are impressively accurate for most functions. The key advantage is t
 1. **Approximation Errors**: Results are not exact, though usually accurate enough for machine learning.
 
 2. **Discontinuities**: Like symbolic differentiation, numerical methods struggle at points where derivatives have "jumps."
+
+![Absolute value derivative discontinuity](/images/calculus-101/absolute-value.png)
+
+This plot shows the derivative of $|x|$. The exact derivative should be 1 for $x > 0$ and -1 for $x < 0$, but the numerical method gives incorrect values like 0.5 and -0.5 near the discontinuity at $x=0$.
 
 3. **Computational Cost**: The biggest problem is speed. Every derivative requires a full function evaluation, which becomes expensive with hundreds of parameters in machine learning models.
 
@@ -180,6 +208,12 @@ dfdx_auto_vec = vmap(dfdx_auto)
 x_array = jnp.linspace(-5, 5, 100)
 dfdx_auto_vec(x_array)
 ```
+
+Here's the result of JAX automatic differentiation:
+
+![JAX automatic differentiation](/images/calculus-101/jax-autodiff.png)
+
+JAX computes the derivative using automatic differentiation, which is both exact (like symbolic) and fast (like numerical for simple cases). The plot shows how `grad()` and `vmap()` work together to compute derivatives across arrays efficiently.
 
 JAX handles complex compositions automatically:
 
