@@ -4,7 +4,7 @@ date = "2025-12-12"
 type = "post"
 draft = false
 math = true
-tags = ["linear-algebra", "numpy", "python", "matrices"]
+tags = ["linear-algebra", "matrices"]
 categories = ["posts"]
 description = "Representing systems of linear equations as matrices and understanding solution types"
 +++
