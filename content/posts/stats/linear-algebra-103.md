@@ -2,7 +2,7 @@
 title = "Linear Algebra 103"
 date = "2025-12-13"
 type = "post"
-draft = true
+draft = false
 math = true
 tags = ["linear-algebra", "numpy", "python", "matrices", "determinant"]
 categories = ["posts"]
