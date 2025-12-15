@@ -1,6 +1,6 @@
 +++
 title = "Calculus 103: Optimization Using Gradient Descent in Two Variables"
-date = "2025-12-19"
+date = "2025-12-20"
 tags = ["calculus", "optimization", "gradient descent", "python", "numpy", "3D plotting"]
 categories = ["posts"]
 series = ["Calculus"]
