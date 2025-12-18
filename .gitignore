@@ -10,3 +10,8 @@ content/baad-master/
 .Rhistory
 content/posts/mcmc/prophet_env/bin/pip
 .env
+
+# Large data files
+content/ipynb/rideshare_2022.csv
+content/ipynb/rideshare_2022 (1).csv
+content/ipynb/rideshare_2022_raw_with_problematic_dates.csv
