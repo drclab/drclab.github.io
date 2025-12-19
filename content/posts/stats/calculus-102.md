@@ -3,9 +3,9 @@ title = "Calculus 102: Optimization Using Gradient Descent in One Variable"
 date = "2025-12-19"
 tags = ["calculus", "optimization", "gradient descent", "python", "numpy"]
 categories = ["posts"]
-series = ["Calculus"]
+series = ["Gradient Descent"]
 type = "post"
-draft = true
+draft = false
 math = true
 description = "Implementing gradient descent for single-variable functions in Python, comparing global and local minima optimization."
 +++
