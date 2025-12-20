@@ -5,7 +5,7 @@ tags = ["calculus", "optimization", "gradient descent", "python", "numpy", "3D p
 categories = ["posts"]
 series = ["Calculus"]
 type = "post"
-draft = true
+draft = false
 math = true
 description = "Implementing gradient descent for two-variable functions in Python, analyzing convergence and local minima."
 +++
