@@ -1,6 +1,6 @@
 +++
 title = "Perceptron 101: Regression from Neural Network Foundations"
-date = "2025-12-21T14:59:25-05:00"
+date = "2025-12-21T06:10:55"
 type = "post"
 math = true
 draft = false
