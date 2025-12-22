@@ -1,6 +1,6 @@
 +++
 title = "Perceptron 102: Classification with Neural Networks"
-date = "2025-12-22T15:30:00-05:00"
+date = "2025-12-22"
 type = "post"
 math = true
 draft = false
