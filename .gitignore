@@ -15,3 +15,5 @@ content/posts/mcmc/prophet_env/bin/pip
 content/ipynb/rideshare_2022.csv
 content/ipynb/rideshare_2022 (1).csv
 content/ipynb/rideshare_2022_raw_with_problematic_dates.csv
+content/ipynb/rideshare_2022_cleaned.csv
+content/ipynb/rideshare_2022_user.csv
