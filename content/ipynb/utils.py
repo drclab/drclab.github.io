@@ -1,137 +1,352 @@
 import numpy as np
-import pandas as pd
-import os
+import seaborn as sns
 import matplotlib.pyplot as plt
-from IPython.display import display
+from scipy import stats
+from scipy.stats import norm
 import ipywidgets as widgets
-from ipywidgets import interact,HBox, VBox
-import matplotlib.gridspec as gridspec
+from ipywidgets import interact, interact_manual
 
-df_anscombe = pd.read_csv('df_anscombe.csv')
-df_datasaurus = pd.read_csv("datasaurus.csv")
 
-def plot_anscombes_quartet():
-    fig, axs = plt.subplots(2,2, figsize = (8,5), tight_layout = True)
-    i = 1
-    fig.suptitle("Anscombe's quartet", fontsize = 16)
-    for line in axs:
-        for ax in line:
-            ax.scatter(df_anscombe[df_anscombe.group == i]['x'],df_anscombe[df_anscombe.group == i]['y'])
-            ax.set_title(f'Group {i}')
-            ax.set_ylim(2,15)
-            ax.set_xlim(0,21)
-            ax.set_xlabel('x')
-            ax.set_ylabel('y')
-            i+=1
-        
-def display_widget():
+def sample_means(data, sample_size):
+    means = []
 
-    dropdown_graph_1 = widgets.Dropdown(
-    options=df_datasaurus.group.unique(),
-    value='dino',
-    description='Data set 1: ',
-    disabled=False,
-)
-    
-    statistics_graph_1 = widgets.Button(
-    value=False,
-    description='Compute stats',
-    disabled=False,
-    button_style='',
-    tooltip='Description',
-    icon='' 
-)
+    for _ in range(10_000):
+        sample = np.random.choice(data, size=sample_size)
+        means.append(np.mean(sample))
 
-    dropdown_graph_2 = widgets.Dropdown(
-    options=df_datasaurus.group.unique(),
-    value='h_lines',
-    description='Data set 2: ',
-    disabled=False,
-)
-    
-    statistics_graph_2 = widgets.Button(
-    value=False,
-    description='Compute stats',
-    disabled=False,
-    button_style='',
-    tooltip='Description',
-    icon='' 
-)
-    plotted_stats_graph_1 = None
-    plotted_stats_graph_2 = None
+    return np.array(means)
 
-    fig = plt.figure(figsize = (8,4), tight_layout = True)
-    gs = gridspec.GridSpec(2,2)
-    ax_1 = fig.add_subplot(gs[0,0])
-    ax_2 = fig.add_subplot(gs[1,0])
-    ax_text_1 = fig.add_subplot(gs[0,1])
-    ax_text_2 = fig.add_subplot(gs[1,1])
-    df_group_1 = df_datasaurus.groupby('group').get_group('dino')
-    df_group_2 = df_datasaurus.groupby('group').get_group('h_lines')
-    sc_1 = ax_1.scatter(df_group_1['x'],df_group_1['y'], s = 4)
-    sc_2 = ax_2.scatter(df_group_2['x'],df_group_2['y'], s = 4)
-    ax_1.set_xlabel('x')
-    ax_1.set_ylabel('y')
-    ax_2.set_xlabel('x')
-    ax_2.set_ylabel('y')
-    ax_text_1.axis('off')
-    ax_text_2.axis('off')
-    
-    def dropdown_choice(value, plotted_stats, ax_text, sc):
-        if value.new != plotted_stats:
-            ax_text.clear()
-            ax_text.axis('off')
-        sc.set_offsets(df_datasaurus.groupby('group').get_group(value.new)[['x', 'y']])
-        fig.canvas.draw_idle()
-    
-        
-    def get_stats(value, plotted_stats, ax_text, dropdown, val):
-        value = dropdown.value
-        if value == plotted_stats:
-            return
-        ax_text.clear()
-        ax_text.axis('off')
-        df_group = df_datasaurus.groupby('group').get_group(value)
-        means = df_group.mean()
-        var = df_group.var()
-        corr = df_group.corr()
-        ax_text.text(0,
-                    0,
-                    f"Statistics:\n      Mean x:      {means['x']:.2f}\n      Variance x: {var['x']:.2f}\n\n      Mean y:      {means['y']:.2f}\n      Variance y: {var['y']:.2f}\n\n      Correlation:  {corr['x']['y']:.2f}"
-                    )
-        if val == 1:
-            plotted_stats_graph_1 = value
-        if val == 2:
-            plotted_stats_graph_2 = value
-        
-        
-        
 
-    dropdown_graph_1.observe(lambda value: dropdown_choice(value,plotted_stats_graph_1, ax_text_1, sc_1), names = 'value')
-    statistics_graph_1.on_click(lambda value: get_stats(value, plotted_stats_graph_1, ax_text_1, dropdown_graph_1,1))
-    dropdown_graph_2.observe(lambda value: dropdown_choice(value,plotted_stats_graph_2, ax_text_2, sc_2), names = 'value')
-    statistics_graph_2.on_click(lambda value: get_stats(value, plotted_stats_graph_2, ax_text_2, dropdown_graph_2,2))    
-    graph_1_box = HBox([dropdown_graph_1, statistics_graph_1])
-    graph_2_box = HBox([dropdown_graph_2, statistics_graph_2])
-    display(VBox([graph_1_box,graph_2_box]))
-    
+def gaussian_clt():
+    def _plot(mu, sigma, sample_size):
+        #         mu = 10
+        #         sigma = 5
 
-def plot_datasaurus():
+        gaussian_population = np.random.normal(mu, sigma, 100_000)
+        gaussiam_sample_means = sample_means(gaussian_population, sample_size)
+        x_range = np.linspace(
+            min(gaussiam_sample_means), max(gaussiam_sample_means), 100
+        )
 
-    fig, axs = plt.subplots(6,2, figsize = (7,9), tight_layout = True)
-    i = 0
-    fig.suptitle("Datasaurus", fontsize = 16)
-    for line in axs:
-        for ax in line:
-            if i > 12:
-                ax.axis('off')
-            else:
-                group = df_datasaurus.group.unique()[i]
-                ax.scatter(df_datasaurus[df_datasaurus.group == group]['x'],df_datasaurus[df_datasaurus.group == group]['y'], s = 4)
-                ax.set_title(f'Group {group}')
-                ax.set_ylim(-5,110)
-                ax.set_xlim(10,110)
-                ax.set_xlabel('x')
-                ax.set_ylabel('y')
-                i+=1
+        sample_means_mean = np.mean(gaussiam_sample_means)
+        sample_means_std = np.std(gaussiam_sample_means)
+        clt_std = sigma / np.sqrt(sample_size)
 
+        estimated_pop_sigma = sample_means_std * np.sqrt(sample_size)
+
+        std_err = abs(clt_std - sample_means_std) / clt_std
+
+        clt_holds = True if std_err < 0.1 else False
+
+        #         print(f"Mean of sample means: {sample_means_mean:.2f}\n")
+        #         print(f"Std of sample means: {sample_means_std:.2f}\n")
+        #         print(f"Theoretical sigma: {clt_std:.2f}\n")
+        #         print(f"Estimated population sigma: {estimated_pop_sigma:.2f}\n")
+
+        #         print(f"Error: {std_err:.2f}\n")
+        #         print(f"CLT holds?: {clt_holds}\n")
+
+        mu2 = mu
+        sigma2 = sigma / np.sqrt(sample_size)
+        #         fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 6))
+        fig, axes = plt.subplot_mosaic(
+            [["top row", "top row"], ["bottom left", "bottom right"]], figsize=(10, 5)
+        )
+
+        ax1 = axes["top row"]
+        ax2 = axes["bottom left"]
+        ax3 = axes["bottom right"]
+        sns.histplot(gaussian_population, stat="density", ax=ax1)
+        ax1.set_title("Population Distribution")
+        ax2.set_title("Sample Means Distribution")
+        ax3.set_title("QQ Plot of Sample Means")
+
+        sns.histplot(gaussiam_sample_means, stat="density", ax=ax2, label="hist")
+        sns.kdeplot(
+            data=gaussiam_sample_means,
+            color="crimson",
+            ax=ax2,
+            label="kde",
+            linestyle="dashed",
+            fill=True,
+        )
+        ax2.plot(
+            x_range,
+            norm.pdf(x_range, loc=mu2, scale=sigma2),
+            color="black",
+            label="gaussian",
+            linestyle="solid",
+        )
+        ax2.legend()
+
+        stats.probplot(gaussiam_sample_means, plot=ax3, fit=True)
+        plt.tight_layout()
+        plt.show()
+
+    mu_selection = widgets.FloatSlider(
+        value=10.0,
+        min=0.01,
+        max=50.0,
+        step=1.0,
+        description="mu",
+        disabled=False,
+        continuous_update=False,
+        orientation="horizontal",
+        readout=True,
+        readout_format=".1f",
+    )
+
+    sigma_selection = widgets.FloatSlider(
+        value=5.0,
+        min=0.01,
+        max=20.0,
+        step=0.1,
+        description="sigma",
+        disabled=False,
+        continuous_update=False,
+        orientation="horizontal",
+        readout=True,
+        readout_format=".1f",
+    )
+
+    sample_size_selection = widgets.IntSlider(
+        value=2,
+        min=2,
+        max=100,
+        step=1,
+        description="sample_size",
+        disabled=False,
+        continuous_update=False,
+        orientation="horizontal",
+        readout=True,
+        readout_format="d",
+    )
+
+    interact_manual(
+        _plot, sample_size=sample_size_selection, mu=mu_selection, sigma=sigma_selection
+    )
+
+
+def binomial_clt():
+    def _plot(n, p, sample_size):
+        mu = n * p
+        sigma = np.sqrt(n * p * (1 - p)) / np.sqrt(sample_size)
+        N = n * sample_size
+#         sigma = np.sqrt(n * p * (1 - p)) / np.sqrt(N)
+
+        binomial_population = np.random.binomial(n, p, 100_000)
+
+        binomial_sample_means = sample_means(binomial_population, sample_size)
+
+        x_range = np.linspace(
+            min(binomial_sample_means), max(binomial_sample_means), 100
+        )
+
+        condition_val = np.min([N * p, N * (1 - p)])
+
+        condition = True if condition_val >= 5 else False
+
+        sample_means_mean = np.mean(binomial_sample_means)
+        sample_means_std = np.std(binomial_sample_means)
+        clt_std = np.std(binomial_population) / np.sqrt(sample_size)
+
+        estimated_pop_sigma = sample_means_std * np.sqrt(sample_size)
+
+        std_err = abs(clt_std - sample_means_std) / clt_std
+
+        clt_holds = True if std_err < 0.1 else False
+
+        #         print(f"Value of N: {N}\n")
+        print(f"Condition value: {condition_val:.1f}")
+
+        #         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+        fig, axes = plt.subplot_mosaic(
+            [["top row", "top row"], ["bottom left", "bottom right"]], figsize=(10, 5)
+        )
+
+        ax1 = axes["top row"]
+        ax2 = axes["bottom left"]
+        ax3 = axes["bottom right"]
+        ax1.set_title("Population Distribution")
+        ax2.set_title("Sample Means Distribution")
+        ax3.set_title("QQ Plot of Sample Means")
+        sns.histplot(binomial_population, stat="density", ax=ax1)
+
+        sns.histplot(binomial_sample_means, stat="density", ax=ax2, label="hist")
+        sns.kdeplot(
+            data=binomial_sample_means,
+            color="crimson",
+            ax=ax2,
+            label="kde",
+            linestyle="dashed",
+            fill=True,
+        )
+        ax2.plot(
+            x_range,
+            norm.pdf(x_range, loc=mu, scale=sigma),
+            color="black",
+            label="gaussian",
+            linestyle="solid",
+        )
+        ax2.legend()
+        stats.probplot(binomial_sample_means, plot=ax3, fit=True)
+        plt.tight_layout()
+        plt.show()
+
+    #         print(f"Condition holds?: {condition} with value of {condition_val:.2f}\n")
+
+    #         print(f"Mean of sample means: {sample_means_mean:.2f}\n")
+    #         print(f"Std of sample means: {sample_means_std:.2f}\n")
+    #         print(f"Theoretical sigma: {clt_std:.2f}\n")
+    #         print(f"Estimated population sigma: {estimated_pop_sigma:.2f}\n")
+
+    sample_size_selection = widgets.IntSlider(
+        value=2,
+        min=2,
+        max=50,
+        step=1,
+        description="sample_size",
+        disabled=False,
+        continuous_update=False,
+        orientation="horizontal",
+        readout=True,
+        readout_format="d",
+    )
+
+    n_selection = widgets.IntSlider(
+        value=2,
+        min=2,
+        max=50,
+        step=1,
+        description="n",
+        disabled=False,
+        continuous_update=False,
+        orientation="horizontal",
+        readout=True,
+        readout_format="d",
+    )
+
+    prob_success_selection = widgets.FloatSlider(
+        value=0.5,
+        min=0.01,
+        max=0.99,
+        step=0.1,
+        description="p",
+        disabled=False,
+        continuous_update=False,
+        orientation="horizontal",
+        readout=True,
+        readout_format=".1f",
+    )
+
+    interact_manual(
+        _plot,
+        sample_size=sample_size_selection,
+        p=prob_success_selection,
+        n=n_selection,
+    )
+
+
+def poisson_clt():
+    def _plot(mu, sample_size):
+        sigma = np.sqrt(mu) / np.sqrt(sample_size)
+
+        poisson_population = np.random.poisson(mu, 100_000)
+
+        poisson_sample_means = sample_means(poisson_population, sample_size)
+
+        x_range = np.linspace(min(poisson_sample_means), max(poisson_sample_means), 100)
+
+        fig, axes = plt.subplot_mosaic(
+            [["top row", "top row"], ["bottom left", "bottom right"]], figsize=(10, 5)
+        )
+
+        ax1 = axes["top row"]
+        ax2 = axes["bottom left"]
+        ax3 = axes["bottom right"]
+        ax1.set_title("Population Distribution")
+        ax2.set_title("Sample Means Distribution")
+        ax3.set_title("QQ Plot of Sample Means")
+        sns.histplot(poisson_population, stat="density", ax=ax1)
+
+        sns.histplot(poisson_sample_means, stat="density", ax=ax2, label="hist")
+        sns.kdeplot(
+            data=poisson_sample_means,
+            color="crimson",
+            ax=ax2,
+            label="kde",
+            linestyle="dashed",
+            fill=True,
+        )
+        ax2.plot(
+            x_range,
+            norm.pdf(x_range, loc=mu, scale=sigma),
+            color="black",
+            label="gaussian",
+            linestyle="solid",
+        )
+        ax2.legend()
+        stats.probplot(poisson_sample_means, plot=ax3, fit=True)
+        plt.tight_layout()
+        plt.show()
+
+    sample_size_selection = widgets.IntSlider(
+        value=2,
+        min=2,
+        max=50,
+        step=1,
+        description="sample_size",
+        disabled=False,
+        continuous_update=False,
+        orientation="horizontal",
+        readout=True,
+        readout_format="d",
+    )
+
+    mu_selection = widgets.FloatSlider(
+        value=1.5,
+        min=0.01,
+        max=5.0,
+        #         step=1.0,
+        description="mu",
+        disabled=False,
+        continuous_update=False,
+        orientation="horizontal",
+        readout=True,
+        readout_format=".1f",
+    )
+
+    interact_manual(_plot, sample_size=sample_size_selection, mu=mu_selection)
+
+
+def plot_kde_and_qq(sample_means_data, mu_sample_means, sigma_sample_means):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+
+    # Define the x-range for the Gaussian curve (this is just for plotting purposes)
+    x_range = np.linspace(min(sample_means_data), max(sample_means_data), 100)
+
+    # Histogram of sample means (blue)
+    sns.histplot(sample_means_data, stat="density", label="hist", ax=ax1)
+
+    # Estimated PDF of sample means (red)
+    sns.kdeplot(
+        data=sample_means_data,
+        color="crimson",
+        label="kde",
+        linestyle="dashed",
+        fill=True,
+        ax=ax1,
+    )
+
+    # Gaussian curve with estimated mu and sigma (black)
+    ax1.plot(
+        x_range,
+        norm.pdf(x_range, loc=mu_sample_means, scale=sigma_sample_means),
+        color="black",
+        label="gaussian",
+    )
+
+    res = stats.probplot(sample_means_data, plot=ax2, fit=True)
+
+    ax1.legend()
+    plt.show()
