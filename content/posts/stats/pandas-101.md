@@ -3,7 +3,6 @@ title = "Pandas 101"
 date = "2025-12-26"
 tags = ["pandas", "python", "data analysis"]
 categories = ["posts"]
-series = ["Python 101"]
 type = "post"
 draft = false
 math = true
