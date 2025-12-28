@@ -2,8 +2,7 @@
 title = "Pandas 103: Advanced Statistics & Correlation"
 date = "2025-12-28"
 tags = ["pandas", "python", "data-science", "statistics"]
-categories = ["posts"]
-series = ["Python 101"]
+categories = "posts"
 type = "post"
 draft = false
 math = true
