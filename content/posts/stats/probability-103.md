@@ -1,7 +1,7 @@
 +++
 title = "Probability 103: Dice Simulations with NumPy"
 date = "2025-12-29"
-tags = ["probability", "statistics", "simulation", "python", "numpy"]
+tags = ["probability", "simulation", "python", "numpy"]
 categories = ["posts"]
 series = ["Probability"]
 type = "post"
