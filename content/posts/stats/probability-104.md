@@ -1,7 +1,7 @@
 +++
 title = "Probability 104: Central Limit Theorem"
 date = "2025-12-30"
-tags = ["probability", "statistics", "simulation", "python", "numpy", "CLT"]
+tags = ["statistics", "simulation", "python", "CLT"]
 categories = ["posts"]
 series = ["Probability"]
 type = "post"
