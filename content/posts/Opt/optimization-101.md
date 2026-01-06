@@ -1,6 +1,6 @@
 +++
 title = "Optimization 101: Metric Spaces and Normed Vector Spaces"
-date = "2026-01-06"
+date = "2026-11-16"
 tags = ["optimization", "metric spaces", "norms", "topology", "machine learning"]
 categories = ["mathematics"]
 series = ["Optimization Theory"]
