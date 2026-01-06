@@ -1,6 +1,6 @@
 +++
 title = "Optimization Using Newton's Method"
-date = "2025-12-23"
+date = "2026-12-23"
 type = "post"
 draft = false
 math = true
