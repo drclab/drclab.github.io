@@ -1,7 +1,7 @@
 +++
 title = "PKPD_META 201.1: Multivariate Normal Likelihood for Summary Means"
 type = "post"
-date = "2026-01-12"
+date = "2026-02-01"
 math = true
 draft = true
 summary = "Work the PKPD_META 201 average-data likelihood into explicit multivariate normal form, including the mean vector, covariance construction, and matrix identities needed for Stan."

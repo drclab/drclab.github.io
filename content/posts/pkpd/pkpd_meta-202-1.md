@@ -1,7 +1,7 @@
 +++
 title = "PKPD_META 202.1: Simulating the Hierarchical Stress Test"
 type = "post"
-date = "2026-01-12"
+date = "2026-02-03"
 math = true
 draft = true
 summary = "Deep-dive on how the PKPD_META 202 synthetic datasets are generated, including the exact draws, sanity tables, and plots lifted from the supporting notebook."

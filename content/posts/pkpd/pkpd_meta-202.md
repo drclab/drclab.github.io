@@ -1,7 +1,7 @@
 +++
 title = "PKPD_META 202: Hierarchical Linear Stress Test"
 type = "post"
-date = "2026-01-12"
+date = "2026-02-12"
 math = true
 draft = true
 summary = "Section 4.1 of Gelman et al. (2018) shows how a toy hierarchical linear model validates the simulated-likelihood strategy before we plug it into nonlinear PKPD meta-analyses."

@@ -1,7 +1,7 @@
 +++
 title = "PKPD_META 202.3: Integrated Average Likelihood"
 type = "post"
-date = "2026-01-12"
+date = "2026-02-12"
 math = true
 draft = true
 summary = "Revisit the PKPD_META 202 synthetic datasets with Stan switched to the analytic average-data likelihood so we can see exactly how the external means enter the target."
