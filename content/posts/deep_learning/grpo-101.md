@@ -1,6 +1,6 @@
 +++
 title = "GRPO 101: Calculating Loss in Group Relative Policy Optimization"
-date = "2026-01-08T10:00:00Z"
+date = "2026-01-08"
 type = "post"
 math = true
 draft = false
