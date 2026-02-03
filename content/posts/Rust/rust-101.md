@@ -1,6 +1,6 @@
 +++
 title = "Rust 101: Getting Started on WSL"
-date = "2026-01-01"
+date = "2026-07-01"
 tags = ["rust", "wsl", "programming", "getting-started"]
 categories = ["posts"]
 series = ["Rust 101"]

@@ -1,7 +1,7 @@
 +++
 title = "PKPD_META 201: Bayesian Aggregation of Average Data"
 type = "post"
-date = "2026-02-02"
+date = "2026-08-02"
 math = true
 draft = true
 summary = "Distilling Section 3 of Gelman et al. (2018) into a PKPD-ready recipe: informative priors on study deltas, simulated likelihoods for average-only readouts, and convergence tuning in Stan."

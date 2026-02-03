@@ -1,6 +1,6 @@
 +++
 title = "Pandas 104: Confidence Intervals & Hypothesis Testing"
-date = "2026-01-03"
+date = "2026-07-03"
 tags = ["pandas", "python", "data-science", "statistics", "hypothesis-testing"]
 categories = ["posts"]
 series = ["Python 101"]

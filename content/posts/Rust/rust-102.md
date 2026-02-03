@@ -1,6 +1,6 @@
 +++
 title = "Rust 102: Building a Guessing Game"
-date = "2026-01-02"
+date = "2026-07-02"
 tags = ["rust", "tutorial", "guessing-game", "programming"]
 categories = ["posts"]
 series = ["Rust 101"]

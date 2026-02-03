@@ -1,7 +1,7 @@
 +++
 title = "PKPD_META 202.2: Local-Only Stan Diagnostics"
 type = "post"
-date = "2026-02-12"
+date = "2026-08-12"
 math = true
 draft = true
 summary = "Walk through the Stan switches, posterior draws, and bayesplot diagnostics that back the local-only PKPD_META 202 fit lifted directly from the supporting notebook."
