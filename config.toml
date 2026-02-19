@@ -25,7 +25,7 @@ pygmentsStyle = 'monokai'
   [[menu.main]]
     name = 'C.J. Duan'
     pre = "<span data-feather='home'></span>"
-    url = '/'
+    url = 'http://www.dulun.com'
     weight = 1
 
   [[menu.main]]
