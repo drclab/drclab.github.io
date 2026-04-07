@@ -1,6 +1,6 @@
 +++
 title = "brms 103: Model Formulation"
-date = "2026-11-21T00:00:00Z"
+date = "2026-11-26T00:00:00Z"
 type = "post"
 draft = true
 tags = ["brms", "bamdd", "bayesian", "model formulation"]
