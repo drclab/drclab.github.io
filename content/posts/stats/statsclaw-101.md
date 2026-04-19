@@ -1,6 +1,6 @@
 +++
 title = "StatsClaw 101: Why Statistical Software Is the Real Bottleneck"
-date = "2026-04-27"
+date = "2026-04-20"
 tags = ["statsclaw", "statistical-software", "research-workflow", "reproducibility"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
