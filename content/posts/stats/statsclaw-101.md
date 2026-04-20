@@ -5,7 +5,7 @@ tags = ["statsclaw", "statistical-software", "research-workflow", "reproducibili
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
 type = "post"
-draft = true
+draft = false
 math = false
 description = "Why methodology adoption is constrained by implementation, testing, and maintenance rather than theory alone."
 +++
