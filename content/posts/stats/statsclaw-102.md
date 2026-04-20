@@ -1,6 +1,6 @@
 +++
 title = "StatsClaw 102: The Hidden Failure Mode in AI Coding for Statistics"
-date = "2026-04-28"
+date = "2026-04-21"
 tags = ["statsclaw", "ai-coding", "validation", "testing"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
