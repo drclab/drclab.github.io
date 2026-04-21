@@ -5,7 +5,7 @@ tags = ["statsclaw", "ai-coding", "validation", "testing"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
 type = "post"
-draft = true
+draft = false
 math = false
 description = "How shared information between code generation and test generation can produce false confidence."
 +++
