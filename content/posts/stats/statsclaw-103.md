@@ -1,11 +1,11 @@
 +++
 title = "StatsClaw 103: Designing Information Barriers for AI Agents"
-date = "2026-04-29"
+date = "2026-04-22"
 tags = ["statsclaw", "multi-agent", "software-architecture", "verification"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
 type = "post"
-draft = true
+draft = false
 math = false
 description = "A practical architecture where planning, implementation, simulation, and testing are separated."
 +++
