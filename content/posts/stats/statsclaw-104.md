@@ -1,11 +1,11 @@
 +++
 title = "StatsClaw 104: From Equations to Interfaces"
-date = "2026-04-30"
+date = "2026-04-23"
 tags = ["statsclaw", "api-design", "statistical-methods", "software-specification"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
 type = "post"
-draft = true
+draft = false
 math = true
 description = "How to translate a statistical method into implementation specs, invariants, and API contracts."
 +++
