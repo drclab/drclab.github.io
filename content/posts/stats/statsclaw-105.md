@@ -1,11 +1,11 @@
 +++
 title = "StatsClaw 105: Probit End-to-End with Independent Validation"
-date = "2026-05-01"
+date = "2026-04-24"
 tags = ["statsclaw", "probit", "maximum-likelihood", "workflow"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
 type = "post"
-draft = true
+draft = false
 math = true
 description = "A full implementation cycle using probit regression as a concrete example."
 +++
