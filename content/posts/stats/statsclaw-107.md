@@ -1,11 +1,11 @@
 +++
 title = "StatsClaw 107: Deterministic Tests for Statistical Code"
-date = "2026-05-03"
+date = "2026-04-26"
 tags = ["statsclaw", "testing", "numerical-methods", "quality-assurance"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
 type = "post"
-draft = true
+draft = false
 math = false
 description = "How to build robust deterministic tests around stochastic algorithms and floating-point behavior."
 +++

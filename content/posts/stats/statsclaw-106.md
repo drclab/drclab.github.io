@@ -1,11 +1,11 @@
 +++
 title = "StatsClaw 106: Simulation as a Ground-Truth Engine"
-date = "2026-05-02"
+date = "2026-04-25"
 tags = ["statsclaw", "simulation", "monte-carlo", "causal-inference"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
 type = "post"
-draft = true
+draft = false
 math = true
 description = "Why simulation design should be independent and how to use it to reveal implementation defects."
 +++
