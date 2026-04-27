@@ -1,11 +1,11 @@
 +++
 title = "StatsClaw 109: Applying the Workflow to Real Packages"
-date = "2026-05-05"
+date = "2026-04-27"
 tags = ["statsclaw", "r", "python", "package-development"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
 type = "post"
-draft = true
+draft = false
 math = false
 description = "How to adapt the architecture to existing package codebases with legacy tests and APIs."
 +++
