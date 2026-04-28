@@ -1,11 +1,11 @@
 +++
 title = "StatsClaw 110: Documentation Sync as a Statistical Integrity Task"
-date = "2026-05-06"
+date = "2026-04-28"
 tags = ["statsclaw", "documentation", "reproducibility", "scientific-computing"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
 type = "post"
-draft = true
+draft = false
 math = false
 description = "Why stale docs are a correctness risk and how to keep docs, examples, and defaults aligned."
 +++
