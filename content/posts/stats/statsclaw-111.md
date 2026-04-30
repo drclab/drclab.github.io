@@ -1,11 +1,11 @@
 +++
 title = "StatsClaw 111: Researcher Control vs AI Automation"
-date = "2026-05-07"
+date = "2026-04-29"
 tags = ["statsclaw", "ai-governance", "research-methods", "decision-making"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
 type = "post"
-draft = true
+draft = false
 math = false
 description = "A decision framework for what should be delegated to AI and what must remain researcher-owned."
 +++
