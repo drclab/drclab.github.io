@@ -1,0 +1,2353 @@
+7 Generalised and Augmented Synthetic Control
+
+7.1 Motivation and Setup
+Credibility and efficiency often pull in opposite directions. Design-based methods earn trust by avoiding
+strong functional-form assumptions, but they pay a price. When the treated unit lies outside the donor
+pool’s convex hull, as discussed in Section 6.1, weighting alone cannot close the gap. The fit deteriorates, bias
+creeps in, and pure synthetic control, for all its transparency, sometimes fails. In the factor-model perspective
+from Chapter 6, this failure corresponds to a mismatch in the treated unit’s latent factor loadings relative to
+any convex combination of donor loadings, so that the remaining imputation error can be first-order.
+This chapter confronts that failure and offers a resolution. Hybrid methods blend weighting with outcome
+modelling to gain flexibility while staying anchored to the design logic of synthetic control. They can improve
+pre-treatment fit and reduce variance, but they also introduce modelling and stability assumptions. The
+question is whether the compromise works, and when it does not.
+Consider what happens when a retailer pilots a loyalty programme in five flagship stores. The pilot runs
+for two years. The retailer has perhaps twenty control stores, but none resembles the flagships. These stores
+anchor high-traffic urban centres, draw different customer segments, and generate revenue patterns that no
+convex combination of suburban or regional stores can replicate. Standard synthetic control produces weights,
+but the pre-treatment fit is poor. The gap between the synthetic and actual trajectories signals trouble. Any
+post-treatment estimate carries that residual bias forward.
+Hybrid methods attack this problem from three directions. Augmented synthetic control pairs the weighting
+estimator with a regression adjustment that corrects for the residual imbalance. If the weights produce a
+synthetic control that undershoots the treated unit’s pre-treatment revenue by five per cent, the regression
+model estimates that gap and uses it to re-centre the synthetic control’s counterfactual trajectory before
+computing the treatment effect. Regularised synthetic control takes a different path: it shrinks the weights
+toward simplicity, trading a small increase in bias for a larger reduction in variance. Synthetic differencein-differences introduces time weights alongside unit weights, aligning both the cross-sectional and temporal
+dimensions before computing contrasts.
+Each approach relaxes a constraint that pure synthetic control imposes. They respond to two distinct
+failure modes. The first is interpolation failure: when the treated unit sits outside the donor convex hull, no
+choice of non-negative weights can match its untreated path. The second is overfitting: when the donor pool is
+large or the pre-period is noisy, the optimisation can chase idiosyncratic fluctuations and produce a synthetic
+path that does not generalise. You gain flexibility, but flexibility has costs. Adding a regression adjustment
+introduces model dependence. Regularisation requires tuning choices that practitioners must justify. Time
+weights rely on a reweighted parallel-trends-style comparison that may or may not be credible. Hybrid
+methods are not strictly superior to their predecessors. They occupy a different point on the bias–variance
+frontier, and the right choice depends on the data structure you face.
+The factor model foundation developed in Chapter 6 remains central. As defined there, untreated potential outcomes decompose into unit-specific loadings and time-varying factors. When the treated unit’s
+loadings lie outside the convex hull of donor loadings, pure synthetic control cannot recover the counterfactual without bias. Hybrid methods modify the constraints that govern this imputation. Augmented synthetic
+control uses a regression adjustment to repair residual mismatch after weighting. Regularised variants pe-
+
+7.1 Motivation and Setup
+
+291
+
+nalise extreme weight vectors and can stabilise estimates when plain synthetic control overfits. Synthetic
+difference-in-differences reweights both units and pre-treatment periods, changing which comparisons carry
+identifying weight.
+Return to the loyalty programme. The five flagship stores differ from controls not just in observable
+characteristics such as square footage, foot traffic, and product mix, but in unobservable ways that load onto
+latent factors. Urban flagship stores may respond more strongly to macroeconomic shocks, and their customer
+base may exhibit different seasonal patterns. Pure synthetic control tries to match on pre-treatment outcomes,
+hoping the match implicitly captures these factor loadings. When it fails, the treated unit sits outside the
+convex hull, and no combination of donors can replicate its trajectory.
+Augmented synthetic control (ASCM) offers a partial fix. You fit the best synthetic control you can, then
+estimate a regression of outcomes on covariates or lagged outcomes within the control group. You apply
+that regression to adjust the synthetic control’s predictions for the treated unit. Under conditions we make
+precise later (for example, correctly specified factor structure or correctly specified regression adjustment
+within the control group), this estimator has a doubly robust flavour: it can remain close to unbiased if either
+the weighting scheme or the regression adjustment is well specified. But “doubly robust” does not mean
+“doubly correct”. In small samples, and marketing panels are almost always small in the relevant dimension,
+misspecification on either side can still generate finite-sample bias. The insurance policy has limits.
+Regularisation addresses a different pathology. When the donor pool is large, synthetic control can overfit.
+The optimisation finds weights that match pre-treatment outcomes precisely, but those weights may be chasing noise. A donor that happens to correlate with the treated unit’s idiosyncratic pre-treatment fluctuations
+receives weight it does not deserve. Out of sample, the synthetic control performs poorly. In variance terms,
+highly concentrated weight vectors (small effective number of donors) inflate the idiosyncratic component
+P
+σ 2 (1 + j (wj∗ )2 ) from Section 6.4, making overfitted synthetic controls particularly unstable. Ridge-type
+penalties shrink weights toward uniformity or toward zero. Elastic-net variants combine sparsity with shrinkage. The bias–variance trade-off shifts: you accept some pre-treatment imbalance to avoid fitting noise.
+Synthetic difference-in-differences (SDID) makes a structural innovation. Identification in SDID relies on a
+reweighted common-trend condition: after applying the estimated unit and time weights, untreated potential
+outcomes for treated and control units follow parallel trends in the reweighted space. SDID does not make
+parallel trends true by construction. It shifts the identifying burden onto whether the reweighted comparison
+is credible in your application. Standard synthetic control constructs a weighted average of donor units.
+SDID also constructs a weighted average of pre-treatment time periods. The estimator computes a double
+contrast: treated minus synthetic control, post-period minus a weighted pre-period. This structure nests both
+difference-in-differences, with equal unit weights and equal time weights, and synthetic control, with optimised
+unit weights and equal time weights, as special cases. By optimising both sets of weights, SDID can handle
+settings where neither pure method would succeed, provided its reweighted common-trend assumptions are
+credible.
+Now consider a brand launching campaigns in twenty markets over three years. Markets adopt treatment
+at different times. Some start early, others late, some never. This is staggered adoption, a setting introduced
+in Chapter 4, and it complicates everything. You cannot simply pool post-treatment observations, because
+early adopters contribute to the donor pool for late adopters. The safe way to organise a staggered analysis
+
+292
+
+7 Generalised and Augmented Synthetic Control
+
+is to define cohort–time effects τ (g, t) relative to not-yet-treated or never-treated donors, and then aggregate
+them into event-time summaries θk with transparent, non-negative weights. Hybrid methods aim to improve
+the quality of each τ (g, t) estimate by constructing better counterfactuals within each group–time cell. They
+do not, by themselves, eliminate the aggregation pitfalls discussed in Chapter 4.
+The design-first philosophy remains central, but it needs reinterpretation in hybrid settings. Pure synthetic
+control embodies the idea that identification lives in the assignment process and the comparability of donors,
+not in a fitted regression. Hybrid methods introduce modelling, which creates dependence on additional
+stability and specification assumptions. The resolution is not to abandon design thinking but to use it as
+discipline. You choose models that respect the structure of the problem, validate them through diagnostics,
+and report sensitivity to specification. The goal is transparency about what you are assuming, not purity
+about what you are not.
+What follows develops these ideas systematically. We begin with augmented synthetic control in Section 7.2, which addresses bias from poor pre-treatment fit by combining synthetic control weighting with
+outcome regression. We then examine regularised and balancing approaches in Section 7.3, which stabilise
+weights and improve robustness to overfitting. Synthetic difference-in-differences receives extended treatment
+in Sections 7.4–7.10, showing how unit and time weights reshape the comparison that underpins a paralleltrends-style argument. Finally, we briefly survey matrix completion and other machine learning hybrids that
+relax linearity assumptions further.
+The core message is pragmatic. Hybrid methods are not a replacement for design. They are an extension, a
+way to make design-disciplined inference work in settings where the data would otherwise defeat it. Use them
+when pure methods fail. Understand what you gain and what you give up. Report your choices transparently.
+That is how credible evidence gets built.
+
+7.2 Augmented Synthetic Control (ASCM)
+
+293
+
+7.2 Augmented Synthetic Control (ASCM)
+The Problem That Motivates Augmentation
+Return to the five flagship stores piloting a loyalty programme. Standard synthetic control searches for weights
+that make a convex combination of control stores match the flagships’ pre-treatment revenue trajectory. In
+this case the optimisation stalls short of that goal. The flagships anchor high-traffic urban centres with
+customer profiles that no suburban or regional store replicates. Even the best synthetic control undershoots
+the flagships’ baseline revenue by around 8%. That gap carries forward into the post-treatment period, so
+the synthetic control estimator mixes the treatment effect with residual bias from imperfect pre-period fit.
+Augmented synthetic control attacks this problem directly. It pairs the weighting estimator with a regression adjustment that corrects the gap in expected outcomes. If the synthetic control undershoots by 8% in
+periods where the regression predicts the treated store should be higher, the augmentation shifts the counterfactual up to reflect that systematic difference. The benefit is that we can improve fit when the treated
+unit sits near, but not squarely inside, the donor convex hull. The cost is model dependence: once we add a
+regression component, the estimator inherits whatever misspecification that model carries.
+
+The Estimator
+Let unit 1 be treated and let J index donor stores. Denote by ŵ the weights from the standard synthetic
+control optimisation, with components ŵj , and let m̂it be predictions from an auxiliary outcome model for
+Yit (0), estimated on pre-treatment data for donors and (where available) the treated unit. In practice m̂it
+often comes from a ridge regression of outcomes on a covariate vector Xit . In many applications Xit is
+time-invariant and the t subscript simply keeps the notation consistent with the panel setup.
+For a post-treatment period t > T0 , the augmented counterfactual for the treated unit takes the form
+Ŷ1tASCM (0) =
+
+X
+j∈J
+
+
+
+X
+ŵj Yjt + m̂1t −
+ŵj m̂jt .
+j∈J
+
+The first term is the standard synthetic control prediction. The second term corrects for any residual imbalance that the auxiliary model attributes to systematic differences between the treated unit and its synthetic
+control. When, according to the regression model, the treated unit and the synthetic control have the same
+expected outcome in period t, this correction vanishes and the estimator collapses back to standard synthetic
+control.
+P
+A useful diagnostic is to report the size of the augmentation term, m̂1t − j∈J ŵj m̂jt , relative to the
+P
+weighted-donor term, j∈J ŵj Yjt . If the augmentation dominates, the estimate is driven primarily by extrapolation through the outcome model rather than by donor interpolation.
+The period-t treatment effect estimator is
+
+294
+
+7 Generalised and Augmented Synthetic Control
+ASCM
+τ̂1t
+= Y1t − Ŷ1tASCM (0) = Y1t − m̂1t −
+
+
+
+X
+
+
+ŵj Yjt − m̂jt .
+
+j∈J
+
+You can read this as reweighting residuals from the auxiliary outcome model. We strip out the component
+of revenue that the regression explains and then apply synthetic control to the remaining, unexplained part.
+This representation makes clear that any misspecification in the regression model flows directly into the
+residuals we reweight.
+
+Why Augmentation Helps — and When It Hurts
+Augmentation is attractive because it gives us another route to good counterfactuals. If the synthetic control
+weights alone already capture the relationship between treated and donor units, the augmentation term is
+small and ASCM behaves much like standard synthetic control. If the weights are imperfect but the regression
+model captures how covariates predict outcomes across stores and time, the augmentation can correct much
+of the bias from imperfect pre-treatment fit.
+This “two chances to get it roughly right” story is sometimes described as a form of double robustness
+[Ben-Michael et al., 2021]. In our setting, the analogy is that if either (i) the SC weights approximate the
+untreated counterfactual well or (ii) the regression adjustment m̂it is close to E[Yit (0) | Xit ], then ASCM
+can substantially reduce bias relative to pure SC. In the strict econometric sense, however, ASCM is not
+generically doubly robust in the way classical missing-data estimators are. In finite marketing panels both
+components are estimated, both are noisy, and both can be misspecified. The practical message is more
+modest: augmentation can reduce bias when one of the components tracks the untreated potential outcomes
+well, but it can increase variance and even bias when both components are off in different directions.
+A deeper issue is extrapolation. Standard synthetic control constrains the treated unit’s counterfactual to
+live inside the convex hull of donor outcomes. When the treated store is an outlier relative to donors, this constraint forces you to admit that no credible synthetic control exists. ASCM keeps the convex-hull restriction
+for the weighted donor outcomes, but then adds a regression correction that can push the augmented counterfactual outside that hull. For the flagship stores, the regression might infer that urban locations systematically
+load more heavily on an “urban-consumer” factor than any individual donor store. The augmentation then
+shifts the counterfactual store up to reflect that higher loading. If this model of how covariates map into outcomes is right, extrapolation buys you a better counterfactual. If it is wrong, the same mechanism projects
+you into the wrong part of outcome space.
+
+Identification Assumptions
+ASCM targets the same estimand as standard synthetic control: the treatment effect on the treated unit in
+each post-treatment period, τ1t = Y1t (1) − Y1t (0). The estimator replaces the unobserved Y1t (0) with the
+
+7.2 Augmented Synthetic Control (ASCM)
+
+295
+
+augmented counterfactual Ŷ1tASCM (0). The assumptions extend those for synthetic control by adding structure
+on the regression component.
+First, the no-anticipation and no-interference conditions introduced in Chapter 6 continue to apply. Pretreatment outcomes for the treated unit must equal their untreated potential outcomes, Y1t = Y1t (0) for
+t ≤ T0 , and donor outcomes must not be affected by the treated unit’s loyalty programme, so Yjt = Yjt (0) for
+all donors and all periods. In the loyalty-programme example this rules out substantial competitive responses
+that meaningfully shift donor revenue paths.
+Second, we require that the outcome model and the weighting step together approximate the treated unit’s
+untreated path. A convenient way to express this is to define an outcome model
+mit := E[Yit (0) | Xit ]
+and residualised untreated outcomes uit := Yit (0) − mit . The ASCM logic is that the weights should approximately balance these residualised outcomes in the pre-treatment period,
+u1t ≈
+
+X
+
+wj∗ ujt ,
+
+t ≤ T0 ,
+
+j∈J
+
+while the fitted model m̂it provides a stable approximation to mit for imputing untreated outcomes in the
+post-treatment period.
+Finally, ASCM needs stability of the regression relationship across the treatment boundary. The outcome
+model that underlies m̂it , estimated from pre-treatment donor data (and, where relevant, the treated unit),
+must continue to describe how covariates relate to untreated outcomes in the post-treatment period. Structural breaks that change this mapping—such as a major platform algorithm shift or a sharp macroeconomic
+shock—will cause the regression component to extrapolate incorrectly. Because we never observe Y1t (0) after
+treatment, this stability condition cannot be verified directly. You must justify it using institutional knowledge
+and auxiliary evidence about how Xit and outcomes co-move around the intervention.
+Some parts of this structure can be partially assessed. You can check whether the augmentation improves
+fit within the pre-treatment period by splitting it into training and validation segments. Estimate the weights
+and regression on the training segment, predict the validation segment, and compare prediction errors with
+and without augmentation. If the augmented model consistently worsens pre-period fit, it is unlikely to repair
+problems after treatment. What you cannot observe is whether the same regression relationship holds once
+the loyalty programme goes live. That extrapolation across the treatment boundary is, as in many causal
+designs, the part you must defend with economic argument rather than direct data.
+
+Implementation
+Implementing ASCM requires three linked choices: the predictors for synthetic control, the covariates for
+augmentation, and the form of the regression model. The predictors for synthetic control typically include
+a vector of pre-treatment outcomes and a small set of time-invariant store characteristics, mirroring the
+
+296
+
+7 Generalised and Augmented Synthetic Control
+
+baseline synthetic control set-up from Chapter 6. The regression covariates may overlap this set or extend it
+with transformations, trends, or interactions that capture how store attributes relate to revenue dynamics.
+Ridge regression is a natural default because it handles collinearity in marketing covariates and shrinks
+coefficient estimates when we only have a short pre-treatment history. When the covariate set is rich relative
+to T0 , use sample splitting or cross-fitting for the regression step so that the same noise in pre-treatment
+outcomes does not drive both weight choice and regression adjustment. In the flagship example, the weighting
+step might use monthly revenue over twenty-four pre-treatment months along with store characteristics such
+as square footage, average foot traffic, and a product-mix index. The regression step then uses these same
+covariates to predict each store’s revenue. You choose the ridge penalty λ by cross-validation within the
+pre-treatment period, trading off in-sample fit against stability of predictions.
+Short pre-treatment periods create a tension. With few time points, the regression has limited data and
+will overfit unless regularised. Ridge and elastic net penalties help by shrinking coefficients towards zero and,
+in the elastic net case, encouraging sparsity in covariate selection. At the same time, a large donor pool
+can make the synthetic control weights diffuse, spreading small positive weights across many donors whose
+characteristics only loosely resemble the flagship stores. In that setting the regression correction does much
+of the work, effectively pulling the counterfactual towards what the model thinks an “urban flagship” should
+look like given its covariates. When the treated unit’s characteristics sit far from the donor distribution, that
+correction becomes a strong extrapolation and should be interpreted with care.
+A sensible validation strategy mirrors what you did for basic synthetic control. Split the pre-treatment
+period into a training block and a holdout block. Estimate synthetic control weights and the regression on
+the training block, use them to predict the holdout block, and compare root mean squared prediction error
+with and without augmentation. This checks predictive stability within the untreated regime. It does not
+validate that the same relationship will hold once treatment starts. If ASCM does not improve prediction in
+the holdout, there is little reason to trust it in the post-treatment period. You can also run placebo checks
+with pseudo intervention dates inside the pre-period, exactly as in Chapter 6, and examine whether the
+resulting pseudo treatment effects concentrate near zero. In the ASCM setting, placebo checks stress-test
+the weighting and regression components: large pseudo-effects indicate that at least one of them is capturing
+noise or unstable structure rather than the untreated trajectory.
+
+Comparing ASCM to Alternatives
+ASCM is most attractive when the treated unit lies near the boundary of the donor convex hull and simple
+synthetic control cannot achieve good pre-treatment fit. In that setting the regression adjustment can use
+observed differences in store attributes and pre-trends to repair part of the mismatch. The trade-off is that
+ASCM is more model dependent: any misspecification in the regression component directly feeds into the
+adjusted counterfactual.
+Good empirical practice is to treat ASCM as one estimator in a small ensemble rather than as a replacement
+for simpler designs. You can run standard synthetic control, event-study difference-in-differences, and ASCM
+
+7.2 Augmented Synthetic Control (ASCM)
+
+297
+
+on the same loyalty-programme experiment, all targeting the same post-treatment ATT for the flagship
+stores. If the three estimators tell a consistent story, you gain confidence that conclusions are not driven by
+the modelling choices specific to any one method. If they diverge, that divergence is itself information. For
+example, large differences between ASCM and standard SC with similar pre-period fit point to sensitivity
+to the regression specification, whereas differences between SC and event-study DiD with similar covariates
+highlight tension between convex-hull and parallel-trends assumptions. In that case the right response is
+not to pick the most “favourable” estimate but to diagnose why the methods disagree and to reflect that
+uncertainty in how you present the results.
+The next section turns to a different way of addressing poor fit. Rather than adding a regression correction
+on top of synthetic control, regularised synthetic control modifies the weight construction itself, shrinking
+towards simpler weighting schemes or enforcing explicit balance constraints.
+
+298
+
+7 Generalised and Augmented Synthetic Control
+
+7.3 Regularised and Balancing Variants of SC
+Standard synthetic control can overfit. When the donor pool is large and the pre-treatment period short,
+the optimisation can find weights that chase noise rather than signal. A donor that happens to share an
+idiosyncratic seasonal blip with the treated unit may receive high weight for the wrong reason. The synthetic
+control then fits pre-treatment outcomes tightly but predicts post-treatment outcomes poorly.
+Return to the flagship stores. The retailer has twenty potential control stores. Standard synthetic control
+assigns weight 0.45 to one suburban store that happens to experience a similar seasonal spike in month
+fourteen, weight 0.35 to a regional store with an unrelated promotional calendar, and spreads the remaining
+0.20 across three others. The pre-treatment root mean squared prediction error looks impressively low. Yet
+the weights reflect coincidence, not structural similarity. When the loyalty programme launches, the synthetic
+control diverges from the flagships’ trajectory because the weighted donors share noise, not fundamentals.
+Regularised synthetic control attacks this problem by penalising weight configurations that are overly
+concentrated. Instead of letting the optimisation pursue pre-treatment fit at any cost, regularisation shrinks
+weights towards simpler, more diffuse patterns. This typically sacrifices a small amount of in-sample fit in
+exchange for weights that are more stable and less sensitive to sampling variation.
+
+Ridge Synthetic Control
+Ridge synthetic control adds an L2 penalty to the standard optimisation problem [Doudchenko and Imbens,
+2016]. Let X1 collect pre-treatment outcomes and covariates for the treated unit and let X0 stack the
+corresponding donor values, so that X1 ∈ Rk and X0 ∈ Rk×N0 , where N0 is the number of donors. Let V
+weight the predictors as in Chapter 6. Ridge SC solves
+min ∥X1 − X0 w∥2V + η∥w∥2
+w
+
+subject to wj ≥ 0,
+
+X
+
+wj = 1,
+
+j
+
+where ∥a∥2V := a′ Va, η > 0 controls the strength of the penalty, and ∥w∥2 =
+
+2
+j wj . Under the simplex
+
+P
+
+constraints, minimising ∥w∥2 discourages putting all the mass on one or two donors and instead favours more
+diffuse weights. In fact, if w̄ denotes the uniform vector with components 1/N0 , then ∥w− w̄∥2 = ∥w∥2 −1/N0 ,
+so penalising ∥w∥2 is equivalent (up to an additive constant) to shrinking towards uniform weights. In terms
+P
+of the variance decomposition in equation (6.24), shrinking ∥w∥2 reduces the Herfindahl index j (wj∗ )2 and
+P
+thereby the idiosyncratic-variance component σ 2 (1 + j (wj∗ )2 ). Uniform weights wj = 1/N0 minimise the
+penalty, while highly concentrated weights incur a large penalty.
+The parameter η governs the trade-off. If you set η = 0 you recover standard synthetic control. As η grows,
+the objective gives more weight to simplicity and less to pre-treatment fit, and the solution moves towards
+uniform weights. The goal is to choose an intermediate η that retains enough structure from the pre-treatment
+data while damping out idiosyncratic noise. A practical way to do this is to use the same cross-validation
+logic introduced for ASCM. Split the pre-treatment period into training and validation blocks, estimate ridge
+
+7.3 Regularised and Balancing Variants of SC
+
+299
+
+SC over a grid of η values on the training block, and select the η that minimises prediction error on the
+validation block.
+Cross-validation can reduce overfitting to pre-period noise, but it cannot validate that the resulting weights
+will produce unbiased post-treatment counterfactuals.
+Applied to the flagship stores, ridge SC with a cross-validated η will typically spread weights across more
+donors. Pre-treatment RMSPE might increase from 0.03 to 0.05, which is a modest deterioration in fit. In
+return, the synthetic control reflects a broader set of stores with similar customer demographics and format
+characteristics, rather than a narrow pair that merely share a transient seasonal spike.
+Regularisation is not free. If the true counterfactual is genuinely well-approximated by a sparse combination
+of donors that closely resemble the flagships, ridge SC dilutes those weights and introduces bias. You trade
+accuracy in those best-case designs for robustness in the more common case where the data are noisy and the
+pre-period is short. From a design perspective, standard SC and ridge SC both construct counterfactuals as
+weighted averages of observed donors, using the same predictor set. Ridge SC simply adds a stronger structural
+assumption on the weights: that you prefer diffuse combinations unless the data provide a compelling reason
+to concentrate.
+
+Balancing Synthetic Control
+Ridge SC regularises via the objective function. Balancing SC takes a complementary route and builds explicit
+covariate balance into the constraints. The optimisation problem becomes
+min ∥w∥2
+w
+
+subject to wj ≥ 0,
+
+X
+
+wj = 1, ∥X1 − X0 w∥B ≤ δ,
+
+j
+
+where ∥ · ∥B measures imbalance in a chosen set of balance statistics and δ is a tolerance parameter chosen
+√
+ex ante as a credibility constraint. For example, you might take ∥a∥B := a′ Ba for a positive semidefinite
+weighting matrix B built from standardised mean differences over a selected covariate subset. The objective
+again prefers diffuse weights, while the balance constraint insists that the synthetic control match the treated
+unit on key predictors within tolerance δ.
+This formulation inverts the emphasis of standard SC. Standard SC minimises a measure of covariate
+imbalance subject to convexity constraints on the weights. Balancing SC minimises weight complexity while
+treating covariate balance as non-negotiable. The inversion matters when you have strong prior views about
+which characteristics must be matched for the design to be credible.
+Consider a DMA-level advertising study where the treated DMA (San Francisco) has population 4.7
+million, median household income 112,000 dollars, and baseline monthly sales of 2.3 million dollars. Suppose
+the analyst believes that any credible counterfactual must match these characteristics within about 10 per
+cent. Standard SC might achieve an impressive match on pre-treatment sales by assigning large weight to a
+smaller DMA whose sales path happens to track San Francisco but whose demographics look nothing like it.
+Balancing SC encodes the demographic requirements directly: it looks for weights that bring standardised
+
+300
+
+7 Generalised and Augmented Synthetic Control
+
+differences in population, income, and baseline sales below a chosen threshold, even if that forces some
+deterioration in the fit of the pre-treatment sales path.
+The tolerance parameter δ tunes this tension. Very small δ values demand near-exact balance and may
+make the problem infeasible if the treated unit lies outside the donor convex hull. Very large δ values relax
+the constraint so much that the solution drifts back towards uniform weights. In practice you choose δ by
+inspecting standardised mean differences for critical covariates and aiming for thresholds (for example below
+0.1 in absolute value) as a heuristic, calibrated to how predictive those covariates are for outcomes.
+Balancing SC and ridge SC serve different purposes. Balancing SC is useful when particular covariates,
+such as demographics or baseline volume, are non-negotiable for credibility and you want that requirement
+enforced mechanically. Ridge SC is better suited when you have a large donor pool relative to the pre-period
+and are primarily worried about overfitting idiosyncratic noise, without strong prior views about specific
+covariates beyond the predictor set already used in SC.
+
+Elastic Net and Other Variants
+Elastic net synthetic control combines L1 and L2 penalties in the objective. In regression settings the L1 term
+induces sparsity by pushing many coefficients exactly to zero. In synthetic control designs with convexity
+constraints, many donors already receive zero weight even without an L1 penalty, so in typical marketing
+panels the additional sparsity from an explicit L1 term is modest. Under the non-negativity and sum-to-one
+constraints, ∥w∥1 = 1 for all feasible w, so any L1 penalty must operate on deviations from a target (for
+example, ∥w − w̄∥1 ) or be embedded in a formulation without the simplex constraint. In practice, this limits
+the incremental impact of L1 penalties beyond what convexity already imposes. Elastic net SC can be useful
+when the donor pool is extremely large and you want aggressive regularisation, but ridge SC will suffice in
+most applications covered in this book.
+Other weighting schemes push in similar directions. Entropy-balancing weights, for example, minimise a
+divergence measure from a reference distribution subject to moment constraints on covariates [Hainmueller,
+2012], and can be adapted to panel settings by balancing on pre-treatment summaries (for example, means
+and trends) and then applying the resulting weights to the panel. Kernel-based approaches weight donors
+by similarity in a richer feature space, while Bayesian formulations place priors directly on weights or counterfactual trajectories. Each of these methods imposes a particular structure on how weights should behave.
+They differ in how they trade fit against stability and interpretability, but they share the core principle that
+some regularisation of weights is often necessary to obtain reliable out-of-sample performance.
+
+Extrapolation and Interpolation
+Regularisation also changes where the synthetic control sits inside the donor space. Unregularised SC interpolates inside the convex hull of donors and often places substantial weight on boundary donors that most
+
+7.3 Regularised and Balancing Variants of SC
+
+301
+
+closely resemble the treated unit (that is, donors whose predictor vectors lie near the edge of the convex hull
+of X0 in predictor space), as discussed in Chapter 6. Ridge SC shrinks those weights towards the centre of the
+donor distribution and reduces reliance on any single boundary donor. This is helpful when the treated unit
+is well represented in the middle of the donor cloud, because the synthetic control becomes less sensitive to
+outlier donors. It can hurt when the treated unit genuinely lies near the boundary. Shrinking weights towards
+the centre then pulls the synthetic control away from the treated unit’s true untreated trajectory.
+Balancing SC brings its own potential failure mode. When covariate constraints are tight and the donor
+pool does a poor job of spanning the treated unit’s characteristics, the optimisation may be forced onto
+donors that match on demographics but differ sharply on outcome dynamics. The resulting synthetic control
+satisfies the covariate balance criteria but predicts pre-treatment outcomes poorly.
+As in the earlier SC sections, diagnostics start with pre-treatment fit and covariate balance. If regularisation
+causes a dramatic increase in RMSPE or clearly worsens the alignment of pre-treatment paths, the method
+is fighting the data and should be treated with suspicion. If it modestly increases RMSPE while stabilising
+weights and preserving acceptable balance on key covariates, the trade-off is more likely to be favourable.
+
+Choosing Among Variants
+The choice among standard, ridge, and balancing synthetic control depends on both the data structure and
+the credibility constraints of the application. In practice, choices among variants should be driven by pretreatment RMSPE, effective number of donors Neff , covariate balance, and sensitivity of estimated effects to
+small changes in the donor pool and predictor set, as discussed in Section 6.5.
+Standard SC is well suited to settings where the donor pool is modest, the pre-treatment period is long
+enough to pin down stable weights, and the treated unit lies comfortably inside the donor convex hull. In
+those designs, unregularised weights often achieve tight pre-treatment fit without obvious instability.
+Ridge SC is more appropriate when the donor pool is large relative to the pre-treatment period and you
+see signs of overfitting, such as highly concentrated weights on donors that share only idiosyncratic patterns
+with the treated unit. The penalty spreads weight across more donors and typically improves out-of-sample
+performance at the cost of a small increase in pre-treatment RMSPE.
+Balancing SC is most attractive when certain covariates are critical to the story you will tell. In the DMA
+advertising study, for instance, a marketing executive is unlikely to accept a counterfactual that differs sharply
+from San Francisco on population or income, regardless of how well it matches sales trends. In that case you
+should encode demographic balance as a hard design requirement via balancing SC.
+In practice you do not need to commit to a single variant. A robust workflow applies standard SC and
+one or two regularised variants to the same campaign and compares both pre-treatment diagnostics and
+estimated treatment paths. When the estimates and diagnostics line up across methods, you gain confidence
+that conclusions are not driven by a particular regularisation choice. When they diverge, that disagreement
+is itself an important finding. It signals that some combination of convex-hull coverage, covariate balance,
+
+302
+
+7 Generalised and Augmented Synthetic Control
+
+and regularisation structure is failing, and that your substantive conclusions should reflect this uncertainty
+explicitly rather than resting on a single preferred specification.
+
+7.4 Synthetic Difference-in-Differences (SDID)
+
+303
+
+7.4 Synthetic Difference-in-Differences (SDID)
+The Problem That Motivates Time Weights
+Let us return to the brand launching campaigns in twenty markets over three years. Markets adopt treatment
+at different times: some in Q1 2022, others in Q3 2022, still others in Q2 2023. Standard synthetic control
+matches each treated market to a weighted combination of controls based on pre-treatment outcomes. The
+difficulty is that pre-treatment windows differ across cohorts. Early adopters have long pre-treatment histories.
+Late adopters have short ones. Their pre-treatment periods also overlap different seasonal patterns, macro
+conditions and competitive environments.
+Standard synthetic control treats all pre-treatment periods equally. If a treated market experiences an
+unusual spike in month eight because of a local event, that spike receives as much weight in the matching
+objective as any other month. The optimisation then seeks donors that also spiked in month eight, perhaps
+for entirely unrelated reasons. The resulting match reflects coincidence rather than structural similarity.
+Synthetic difference-in-differences, introduced by Arkhangelsky et al. [2021], addresses this by weighting
+time periods as well as units. Periods with idiosyncratic shocks receive lower weight. The matching objective
+focuses on periods when treated and control markets behave more comparably. The result is a synthetic
+control that reflects stable patterns rather than particular quirks of the calendar.
+
+The Estimator
+Let Yit denote the outcome for unit i in period t. Let I be the set of treated units and J the set of control
+units. SDID constructs two sets of weights from the pre-treatment data: unit weights wj for control units
+j ∈ J and time weights vt for pre-treatment periods t ∈ Tpre . Both sets satisfy convexity constraints, with
+non-negative weights that sum to one.
+One convenient formulation chooses weights by minimising a regularised, weighted squared-error loss over
+the pre-treatment panel,
+min
+w,v
+
+X X 
+
+Yit −
+
+i∈I t∈Tpre
+
+X
+
+wj Yjt
+
+2
+
+vt + ηw ∥w∥2 + ηv ∥v∥2 ,
+
+j∈J
+
+P
+P
+P
+subject to wj ≥ 0 and j∈J wj = 1, and similarly vt ≥ 0 and t∈Tpre vt = 1. Here ∥w∥2 := j wj2 and
+P
+∥v∥2 := t vt2 . The regularisation parameters ηw and ηv control how strongly we penalise concentrated unit
+and time weights. Under the simplex constraints, minimising these norms pushes the solution towards more
+diffuse weights, down-weighting reliance on any single donor or any single pre-treatment period.
+Given the estimated unit weights ŵ and time weights v̂, SDID estimates an average treatment effect on the
+treated by comparing doubly-differenced means. The SDID estimator targets a single scalar ATT summary
+over a user-chosen post-treatment window.
+
+304
+
+7 Generalised and Augmented Synthetic Control
+
+To make the averaging explicit, let Tpost denote the post-treatment periods included in the summary, and
+define
+Ȳtreated,post :=
+
+X X
+1
+Yit ,
+|I| |Tpost |
+
+Ȳj,post :=
+
+i∈I t∈Tpost
+
+1
+|Tpost |
+
+X
+
+Ȳtreated,t :=
+
+Yjt ,
+
+t∈Tpost
+
+1 X
+Yit .
+|I|
+i∈I
+
+One convenient representation of the estimator is
+
+  X
+
+X
+X
+X
+ˆ SDID = Ȳtreated,post −
+ATT
+ŵj Ȳj,post −
+v̂t Ȳtreated,t −
+ŵj
+v̂t Yjt .
+j∈J
+
+t∈Tpre
+
+j∈J
+
+t∈Tpre
+
+The first term compares treated units with their synthetic control in the post-treatment period. The second
+term subtracts the baseline difference between treated and synthetic control in a weighted version of the
+pre-treatment period. The double differencing removes unit-specific levels and time-specific shocks, provided
+the weights succeed in balancing those components.
+This structure is helpful to picture. The unit weights pull the synthetic control towards control markets
+that resemble the treated ones. The time weights down-weight periods dominated by idiosyncratic shocks.
+Together they construct a counterfactual path that aims to track the treated markets’ common trend more
+faithfully than either standard SC or unweighted DiD.
+
+What SDID Does Differently
+The central innovation is the time weights. Standard synthetic control assigns equal importance to every
+pre-treatment period and asks which donors match the treated unit’s entire trajectory. When that trajectory
+includes strong idiosyncratic shocks, the resulting match may be driven by local coincidences rather than by
+enduring relationships. Difference-in-differences, by contrast, assigns equal weight to all units and periods
+and relies on unit and time fixed effects to absorb level differences. When units differ in their exposure to
+time-varying shocks, the unweighted parallel trends assumption can fail.
+SDID relaxes both rigidities. The unit weights allow the estimator to focus on control units that look like
+the treated markets on observables and pre-treatment dynamics. The time weights allow the estimator to
+focus on periods when treated and control units are most comparable. This double flexibility is attractive in
+marketing applications where treated and control markets face different seasonal or macro environments, or
+where the pre-treatment period includes one-off shocks.
+Apply this to the campaign launch. Suppose treated markets include both Sun Belt cities with strong
+summer sales and Midwestern cities with strong holiday sales. A single unregularised synthetic control will
+often struggle to match both patterns, because no fixed set of donor weights fits the entire year for both
+cohorts. SDID instead estimates time weights that down-weight the months when Sun Belt and Midwest
+diverge most sharply and puts more emphasis on spring and autumn, when their patterns converge. The
+resulting synthetic control captures the common trend without being dominated by region-specific seasonality.
+
+7.4 Synthetic Difference-in-Differences (SDID)
+
+305
+
+Identification
+SDID targets the same type of estimand as DiD, namely an average treatment effect on the treated over the
+chosen post-treatment window, but under a weighted version of the parallel trends assumption. Let Yit (0)
+denote the untreated potential outcome. Weighted parallel trends requires that, for each post-treatment
+period t, there exist population weights wj∗ on control units and vs∗ on pre-treatment periods such that the
+doubly differenced untreated outcomes satisfy
+h
+i
+hX 
+i
+X
+X
+vs∗ Yis (0) | i ∈ I = E
+E Yit (0) −
+wj∗ Yjt (0) −
+vs∗ Yjs (0)
+s∈Tpre
+
+j∈J
+
+s∈Tpre
+
+Expectations are taken over the sampling distribution (or a superpopulation model) for outcomes, with i ∈ I
+indicating the treated group. In words, after reweighting pre-treatment periods and control units, treated
+units and their synthetic control would display the same change from the weighted pre-treatment mean in
+the absence of treatment.
+This condition weakens unweighted parallel trends along one dimension and strengthens it along another. It
+is weaker in that we require parallelism only after reweighting, which can accommodate differential exposure
+to shocks that are balanced by the unit and time weights. It is stronger in that it depends on the existence of
+suitable weights and on the estimator’s ability to approximate them from the pre-treatment data. As in the
+generalised parallel trends discussion in Chapter 4, you trade an unconditional assumption for a weighted one
+and pay for that flexibility by estimating the weights. By contrast, unweighted parallel trends would require,
+for a fixed reference pre-treatment period t0 ,
+E[Yit (0) − Yit0 (0) | i ∈ I] = E[Yjt (0) − Yjt0 (0) | j ∈ J ]
+for all post-treatment t. SDID replaces this with a reweighted version that holds only after applying wj∗ and
+vs∗ .
+Two further ingredients are implicit and should be remembered from earlier chapters. First, the usual noanticipation and no-interference conditions apply. Write Gi for the adoption time of unit i. Units must not
+adjust behaviour in anticipation of the campaign, so outcomes must satisfy Yit = Yit (0) for all t < Gi . Control
+markets must remain unaffected by others’ campaigns. Second, the mapping from unit and time characteristics
+into untreated outcomes must be sufficiently stable across the pre- and post-treatment periods that weights
+estimated from pre-treatment data remain informative after treatment.
+Whether this trade-off is favourable depends on the data. When the donor pool is large and the pretreatment period contains enough informative variation, the optimisation can find weights that balance
+pre-treatment paths in a way that plausibly generalises. When the donor pool is thin or the pre-treatment
+window is short, the weight estimates become noisy and the weighted parallel trends condition becomes more
+of a modelling claim than a restriction you can pressure-test.
+
+306
+
+7 Generalised and Augmented Synthetic Control
+
+Implementation
+Implementing SDID in the campaign example requires the same design choices as DiD and SC, plus regularisation parameters. You must specify the donor pool, the pre-treatment window, the post-treatment
+evaluation window, and how to tune ηw and ηv . For a staggered launch over three years, the donor pool
+includes markets that never receive the campaign and those that have not yet received it at a given event
+time, mirroring the staggered DiD set-up in Chapter 4. The pre-treatment window should be long enough
+to identify stable weights; in marketing panels this typically means at least a year of monthly data. The
+post-treatment window covers the horizon over which you care about effects, for example the first year after
+launch.
+The regularisation parameters control the bias–variance trade-off for the weights. Larger values shrink
+unit and time weights towards something close to uniform, improving stability but reducing the estimator’s
+ability to exploit heterogeneity across markets and time. A practical choice again uses cross-validation on the
+pre-treatment panel. Split the pre-treatment period into training and validation segments, estimate SDID
+weights over a grid of ηw , ηv values on the training segment, and select the pair that minimises prediction
+error on the validation segment. This can reduce overfitting to pre-period noise, but it cannot validate
+post-treatment counterfactuals. After tuning, verify that the chosen weights deliver acceptable pre-treatment
+RMSPE, covariate balance, and placebo behaviour, using the diagnostics in Section 6.5.
+In a typical campaign application, this procedure yields moderate regularisation. The resulting unit weights
+concentrate on a handful of donor markets with similar demographics and baseline sales, while the time
+weights down-weight months dominated by unrelated promotions or macro shocks. The SDID estimate then
+typically sits between the DiD and SC estimates in this campaign example, with tighter standard errors
+than DiD when the weights succeed in removing noise and a more plausible level than SC when plain SC
+suffers from poor pre-treatment fit. This is not a general guarantee, but rather a diagnostic pattern in many
+marketing panels. The point is not that SDID will always land between the two, but that its performance is
+diagnostic of how much the double weighting buys you in a particular design.
+
+Connection to Factor Models
+SDID fits naturally into the factor model perspective developed in Chapter 6. If untreated potential outcomes
+admit a low-rank representation with unit-specific loadings on a small number of time-varying factors, then
+unit weights can be interpreted as approximating the treated units’ factor loadings by convex combinations
+of donor loadings, while time weights emphasise pre-treatment periods that are most informative about the
+factors that matter for the post-treatment comparison. Together, the weights aim to reconstruct the relevant
+part of the low-rank structure that governs untreated outcomes for the treated units.
+This perspective clarifies when SDID is likely to work well. When the outcome matrix is close to low rank
+and a moderate number of factors explain most of the variation, the doubly weighted averages can track
+the treated units’ latent factors and produce credible counterfactuals. When outcomes are driven by many
+
+7.4 Synthetic Difference-in-Differences (SDID)
+
+307
+
+independent shocks with weak common structure, no choice of unit and time weights can summarise the
+data effectively, and SDID may fail to fit pre-treatment paths. As with SC and ASCM, pre-treatment fit and
+balance diagnostics provide the main empirical check on whether the factor-structure story is plausible.
+
+Costs and Limitations
+SDID buys flexibility at a cost. The estimator is more complex than basic SC or DiD because it requires
+two sets of weights, two regularisation parameters and an additional set of diagnostics. Explaining a timeweighted, unit-weighted double difference to a non-technical stakeholder is harder than explaining a simple
+before–after comparison or a single-unit SC gap plot.
+The dependence on estimated weights also creates fragility. When the pre-treatment period is short, the
+optimisation problem for the weights is underpowered and the resulting ŵ and v̂ are imprecise. In that case,
+the weighted parallel trends condition becomes largely untestable in practice. When the donor pool is small,
+the unit weights have limited room to move and tend towards simple averages, pushing SDID back towards
+a DiD-like comparison with only modest gains from the synthetic component.
+Staggered adoption adds further layers. In designs with multiple cohorts, you are effectively estimating
+separate sets of weights by cohort and then aggregating cohort-specific effects into an overall effect. As
+discussed in Chapter 4, the aggregation scheme matters: event-time averages, population-weighted averages
+and variance-weighted averages can all yield different summaries. SDID does not remove these aggregation
+issues. It provides an alternative set of cohort-level estimates that you can plug into the same aggregation
+framework.
+
+When to Use SDID
+SDID is most useful when you have a moderate number of treated units, a donor pool rich enough to support
+meaningful unit reweighting, and a pre-treatment period long enough to support meaningful time reweighting.
+It shines in settings where treated and control markets face different seasonal patterns or macro conditions,
+and where pre-treatment periods contain idiosyncratic shocks that you would like the design to down-weight
+rather than fit.
+It is not a default. When the donor pool is very small or the pre-treatment period is short, the weight
+estimates will be noisy and the extra complexity may not buy you much beyond carefully specified DiD or
+augmented SC. In those cases, the simpler methods discussed earlier in the chapter often deliver more stable
+answers and are easier to explain.
+In practice, you can treat SDID as another estimator in the same ensemble that already includes SC,
+ASCM and DiD. Applying all of them to the same campaign, inspecting pre-treatment diagnostics and
+comparing estimated treatment paths gives you a richer picture of how sensitive your conclusions are to the
+way you weight units and time. When SDID and the simpler methods agree, you gain confidence that your
+
+308
+
+7 Generalised and Augmented Synthetic Control
+
+substantive conclusions are not driven by the extra modelling structure. When they diverge, that divergence
+is itself informative and should be reflected openly in how you present and interpret the results.
+
+7.5 Triply Robust Panel (TROP) Estimators
+
+309
+
+7.5 Triply Robust Panel (TROP) Estimators
+The synthetic control, augmented synthetic control and synthetic difference-in-differences methods in the
+preceding sections each extend basic parallel trends in a different direction. Standard synthetic control relies
+on a convex combination of donors that matches the treated unit’s pre-treatment path. Augmented synthetic
+control adds an explicit outcome model to correct residual imbalance. SDID reweights both units and time
+periods to focus on more comparable comparisons. Each design is robust within its own framework, but each
+can fail badly when its primary identification mechanism breaks down. SDID, for example, remains biased if
+weighted parallel trends does not hold, no matter how well we tune unit and time weights.
+Triply Robust Panel (TROP) estimators push this logic one step further by combining all three ingredients: unit weights, time weights and a flexible outcome model based on interactive fixed effects. Athey
+et al. [2025b] propose a TROP estimator that learns unit weights to balance treated and control groups,
+learns time weights to down-weight less informative periods, and fits a low-rank factor structure to capture
+heterogeneous responses to common shocks. The core theoretical claim is a conditional bias bound: under a
+factor-structured model for untreated outcomes, the leading bias term is bounded by a constant times the
+product of three errors, one for unit imbalance, one for time imbalance, and one for misspecification in the
+regression adjustment. This is the sense in which the estimator is “triply robust”.
+To connect the paper’s formalism to the monograph’s causal language, it is useful to state the target
+explicitly. A natural estimand in the paper is a treated-cell average over the analysis window,
+
+
+τ TROP := E Yit (1) − Yit (0) | Dit = 1 .
+This is an ATT-style object, but the expectation is taken over treated unit–period cells rather than over
+treated units.
+The formal analysis in Athey et al. [2025b] is also developed under strong restrictions that are often
+questionable in marketing settings. In particular, it assumes no interference (no spillovers into donors) and no
+dynamic effects, so that potential outcomes can be written as Yit (d) rather than depending on the treatment
+path dti . We use the paper’s results as a guide to how bias behaves inside this restricted model class, not as
+a mechanical guarantee in settings with carryover or interference.
+TROP does not escape the need for structure. It replaces the additive parallel trends assumption that
+underlies DiD and SDID with a factor-model assumption for untreated potential outcomes. We state this
+assumption here for reference and refer you back to Chapter 6 for a full discussion.
+Assumption 19 (Factor Model for Untreated Potential Outcomes) For all units i and periods t,
+untreated outcomes satisfy
+Yit (0) = αi + λt +
+
+R
+X
+r=1
+
+λir ftr + εit ,
+
+E[εit | {λir , ftr }R
+r=1 ] = 0,
+
+310
+
+7 Generalised and Augmented Synthetic Control
+
+where αi are unit fixed effects, λt are time fixed effects, ftr are latent factors and λir are unit-specific
+PR
+factor loadings, and εit is idiosyncratic noise. The low-rank matrix with elements Lit = r=1 λir ftr captures
+interactive fixed effects.
+This factor structure is more flexible than additive parallel trends but more restrictive than a fully nonparametric model. It allows units to load differently on common shocks – something we often see in marketing
+panels – but still assumes that a small number of latent factors explain most of the systematic co-movement
+in outcomes.
+
+What Triple Robustness Means
+It is easy to misuse the language of robustness in panel settings. Earlier in the chapter we saw two different
+notions of “double robustness.” Augmented synthetic control offers insurance across two different modelling
+components: if either the weighting model or the regression model is correctly specified, the estimator remains
+consistent. SDID’s “double robustness” is weaker. Within an additive two-way fixed-effects model, its bias is
+proportional to the product of unit imbalance and time imbalance. If either imbalance term is small, the bias
+is small, but both are defined relative to the same underlying structural model.
+TROP’s promise is to extend this product-of-errors logic to a factor-structured setting. The key result in
+Athey et al. [2025b] is a conditional bias bound stated for fixed (non-data-dependent) weights, interpreted
+as probability limits of estimated weights.
+In applications, the weights and tuning parameters are chosen from the data. The theorem is therefore
+best read as describing how the leading bias behaves when the estimated weights concentrate around stable
+limits, not as a finite-sample identity.
+Theorem 7.1 (Triple robustness bias bound; Athey et al. [2025b]) Under Assumption 19, suppose
+unit weights w and pre-treatment time weights v (both non-negative and summing to one) are fixed. Let
+λi = (λi1 , . . . , λiR )′ denote the factor-loading vector for unit i and let ft = (ft1 , . . . , ftR )′ denote the factor
+vector at time t. Define unit and time imbalance terms
+∆u =
+
+X
+
+w j λ j − λi ∗ ,
+
+j∈J
+
+∆t =
+
+X
+
+vs fs − ft∗ ,
+
+s∈Tpre
+
+for a target treated unit i∗ and target post-treatment period t∗ . If the regression adjustment for the low-rank
+component has bias controlled by an operator B with operator norm ∥B∥op , then the conditional bias of the
+resulting counterfactual contrast is bounded by
+E[τ̂ − τ | L] ≤ ∥∆u ∥2 ∥∆t ∥2 ∥B∥op .
+In the paper’s formal analysis, B captures systematic shrinkage in the estimated low-rank component
+(for example, bias induced by nuclear-norm regularisation or rank truncation), and ∥ · ∥op is the operator
+(spectral) norm.
+
+7.5 Triply Robust Panel (TROP) Estimators
+
+311
+
+The theorem clarifies what “triply robust” does and does not mean. It does not say that arbitrary modelling
+errors cancel out. It says that, under a shared factor structure, the leading bias term is small when at least one
+of the three components is small: unit imbalance, time imbalance, or regression-adjustment misspecification.
+This is the sense in which TROP is “triply robust.” It does not mean that you can be cavalier about
+all three ingredients. It means that you now have three levers which, if any one of them is correctly tuned
+relative to the underlying factor structure, can salvage identification. In practice, all three will be estimated
+with error and all three may be misspecified to some degree. The value of TROP is that small mistakes
+in several places multiply rather than add, so that moderate imbalance and moderate model error can still
+produce modest bias.
+
+Why Factor Structure Matters in Marketing Panels
+The factor model is not an abstract technicality. It is designed to capture a pattern we routinely see in
+marketing data: outcomes co-move because of common shocks, but different units respond with different
+intensity.
+Consider again a national recession in a campaign evaluation. Under additive parallel trends, every market
+experiences the same time effect λt , so recession quarters shift all units by the same amount. That is implausible. Affluent DMAs with high discretionary spending might see a sharp fall in premium-category sales.
+Industrial regions hit by plant closures see a different pattern again. Budget markets where consumers trade
+down to cheaper brands may see smaller or even opposite shifts in category volume. These heterogeneous
+responses are exactly what cause additive DiD and SDID designs to struggle.
+In a factor framework, the recession is represented by a common factor ft that spikes during downturn
+quarters. Affluent, industrial and budget DMAs carry different loadings λi on that factor. A treated DMA’s
+untreated path during the recession therefore depends on both the factor and its own loading. TROP’s lowrank component aims to learn these heterogeneous loadings from the donor panel, while its unit and time
+weights try to align the treated DMA with a weighted combination of donors that shares a similar factor
+profile. When this works, the method can deliver credible counterfactuals in settings where additive two-way
+fixed effects are clearly inadequate.
+The same story applies to seasonality, category trends and platform shocks in digital advertising. Common
+shocks exist, but units react differently. TROP’s model structure is built to capture exactly that pattern.
+
+Estimator Sketch and Relation to Existing Methods
+At a high level, TROP works by fitting a two-way fixed-effects plus factor model to the donor panel, while
+reweighting both units and time periods to focus on observations that are most informative for a given treated
+unit and treatment period. In the most general formulation in Athey et al. [2025b], the weights can depend on
+the target treated cell (i, t). For exposition, we suppress this dependence and describe the three components
+
+312
+
+7 Generalised and Augmented Synthetic Control
+
+in a simpler global-weight form. Let Dit denote treatment, Yit the outcome and assume we observe a panel
+with many untreated (i, t) pairs. The estimator proceeds in three steps.
+First, it defines unit weights wj that give more weight to donors whose pre-treatment paths lie close to
+the treated unit’s path. Conceptually, these play the same rôle as the unit weights in SC and SDID. Distance
+can be measured by root mean squared differences in pre-treatment outcomes, much as in synthetic control.
+A tuning parameter controls how sharply the weights decay with distance; when the parameter is zero the
+weights become uniform and the method behaves like a global factor model, whereas large values make the
+estimator focus on close neighbours.
+Second, it defines time weights vs that give more weight to pre-treatment periods close to the treatment
+date. This reflects the idea that recent history is often more informative about current behaviour than
+distant history. A separate tuning parameter controls how quickly the weights decay as you move away from
+the treatment date. When this parameter is zero all pre-treatment periods are weighted equally. When it is
+large the estimator behaves more like a local time-differencing design.
+Third, given these weights, it fits a low-rank factor model to the untreated panel by solving a nuclearnorm-regularised least-squares problem over unit and time fixed effects and the interactive component. The
+nuclear norm penalty controls the effective rank of the factor structure and is tuned by cross-validation.
+The fitted model yields predictions of untreated outcomes for any unit and time, including treated units in
+post-treatment periods. The TROP treatment effect estimate for unit i in period t is the difference between
+the observed outcome and this predicted counterfactual.
+This framework connects to several familiar designs. If you set all weights equal and choose a large rank,
+you obtain something close to matrix completion on the donor panel. If you turn off the factor component
+and keep only unit and time fixed effects with data-driven weights, you obtain an estimator similar in spirit
+to SDID. If you remove time weighting and focus on unit weighting and a simple outcome model, you move
+back towards ASCM. TROP is best thought of as a unifying language and a flexible class of estimators rather
+than a single closed-form formula.
+
+Design Choices and Tuning
+In applied work you face three main design choices with TROP: how sharply to concentrate unit weights,
+how local to make time weights, and how complex to make the factor structure. Athey et al. [2025b] propose
+choosing these tuning parameters by cross-validation on untreated cells, with an objective designed so that
+pseudo treatment effects on untreated cells are close to zero. This tuning logic is appealing because it directly
+targets the imputation problem that drives TROP.
+Good predictive performance on held-out untreated outcomes is necessary for credible identification but
+not sufficient. Cross-validation cannot, on its own, guarantee that the factor structure and weighting scheme
+satisfy the causal assumptions needed for post-treatment counterfactuals.
+In practice, you would define a grid of candidate tuning parameters for unit weights, time weights and the
+nuclear norm penalty. For each combination you fit the model on a training subset of untreated observations
+
+7.5 Triply Robust Panel (TROP) Estimators
+
+313
+
+and measure prediction error on a validation subset. You then select the parameters that minimise this error.
+If the data exhibit strong interactive fixed effects, cross-validation will favour a non-trivial factor structure.
+If additive two-way fixed effects suffice, it will push the nuclear norm penalty high and effectively shut down
+the factor component. If all history is informative, it will choose slowly decaying time weights. If only recent
+periods matter, it will pick fast decay.
+This tuning mechanism is conceptually appealing because it lets the data decide which components matter
+most, rather than forcing the analyst to commit ex ante to SC, SDID or matrix completion. It is also
+computationally intensive. Each tuning combination requires solving a large convex optimisation problem.
+For small-to-medium marketing panels (say a few dozen units over a few dozen periods) this is feasible with
+modern optimisation toolkits. For very large panels, staged or random-search strategies are needed to keep
+computation reasonable.
+
+When to Use TROP
+TROP is an ambitious method. It makes sense in applications where you have good reason to suspect
+interactive fixed effects, where the sample is large enough to estimate a low-rank structure and where simpler
+methods struggle to achieve credible pre-treatment fit.
+Marketing panels with many units and moderate time depth are a natural candidate. Think of 40 DMAs
+followed for 20 quarters, with rich common shocks and clear heterogeneity in how markets respond. In such
+settings, standard SC may fail because the treated unit sits outside the convex hull of donors, ASCM may
+struggle because a simple regression cannot capture the full pattern of co-movement and SDID may fail
+because additive time effects are too crude. If, in that context, a carefully tuned TROP model achieves
+substantially better pre-treatment fit than SC, ASCM or SDID while using plausible weights and a modest
+factor rank, it deserves serious consideration.
+By contrast, when the donor pool is small or the time dimension is short, the extra complexity of TROP
+is unlikely to pay off. Estimating a factor structure with only eight pre-treatment months or with only five
+control markets is more art than science. In those cases, you are better off with the simpler designs developed
+earlier in the chapter, which are easier to estimate and explain.
+At the time of writing, TROP is a frontier method. The underlying research is at preprint stage and
+stable, well-documented software implementations are not yet widely available. Implementing it today requires custom optimisation code, typically built on general-purpose tools such as cvxpy in Python or convex
+optimisation libraries in R. That makes it more suitable for methodological work or for teams with strong
+in-house econometrics capability than for routine marketing analytics.
+
+314
+
+7 Generalised and Augmented Synthetic Control
+
+Positioning TROP in the Hybrid Methods Hierarchy
+From a strategic point of view, the main value of TROP for this book is conceptual. It shows how weighting,
+differencing and factor modelling can be combined in a single framework and clarifies what “triple robustness”
+means in panels. It also gives you a way to think about why SC, ASCM, SDID and matrix completion
+succeed or fail in particular designs. For example, SC failures typically reflect convex-hull and unit-imbalance
+problems, ASCM failures reflect regression misspecification on top of those, SDID failures reflect violations
+of (weighted) parallel trends, and matrix-completion failures reflect poor low-rank approximation.
+In empirical marketing work, the right approach is to treat TROP as one more estimator in a small
+ensemble. You start with methods that are transparent and well understood – SC, ASCM, regularised SC
+and SDID – and only move to TROP when those methods either fail to fit the pre-treatment data or produce
+estimates that are clearly at odds with economic common sense. When you do estimate TROP, you should
+present it alongside these simpler benchmarks, explain what its tuning parameters are doing and show how its
+pre-treatment diagnostics compare. Agreement across methods strengthens confidence in your conclusions.
+Disagreement is a signal to dig deeper, not a licence to cherry-pick the method that tells the most appealing
+story.
+In that sense, TROP completes the conceptual hierarchy rather than replacing the tools you already have.
+It is a powerful idea – and potentially a powerful estimator – but its practical role in marketing analytics
+will depend on how the method and its software ecosystem evolve beyond the time this book is written.
+
+7.6 Identification and Assumptions
+
+315
+
+7.6 Identification and Assumptions
+Hybrid methods build on the same basic causal ingredients as synthetic control and difference-in-differences.
+They still ask what the treated units’ outcomes would have been in the absence of treatment, still rely on
+comparisons to donor units, and still use pre-treatment data to learn relationships they then extrapolate into
+the post-treatment period. What changes is how these relationships are modelled and how much structure
+is imposed. This section states the identification assumptions that hybrids inherit from earlier chapters,
+highlights what each hybrid adds on top, and connects these requirements to the factor-model perspective
+developed in Chapter 6.
+For clarity we focus on a single treated unit with index 1 and donor units indexed by j ∈ J , as in the basic
+synthetic control setup in Chapter 6. Extension to multiple treated units proceeds by averaging unit-specific
+effects, as in the DiD and SC chapters.
+Throughout, let T0 denote the last pre-treatment period. Treatment begins after T0 .
+The primary estimand is the post-treatment path effect τ1t = Y1t (1) − Y1t (0) for t > T0 . Later sections
+summarise this path by averaging over post-treatment windows or aggregating across treated units.
+The core identification logic for hybrid estimators mirrors that of synthetic control. We require that, in
+expectation, the untreated potential outcome for the treated unit can be represented by a combination of
+donor outcomes and a model-based adjustment that we can estimate from pre-treatment data and plausibly
+extrapolate to post-treatment periods. Schematically, we can write untreated outcomes for the treated unit as
+a sum of a weighted donor component and a model-based adjustment. For example, for augmented synthetic
+control we work with a representation of the form
+Y1t (0) ≈
+
+X
+
+′
+wj∗ Yjt (0) + X1t
+β ∗ + ε1t ,
+
+j∈J
+
+where wj∗ are population weights and β ∗ are outcome-model parameters. For SDID, we work with a representation that combines unit weighting with additive time adjustments,
+Y1t (0) ≈
+
+X
+
+wj∗ Yjt (0) + α1 + λt + ε1t ,
+
+j∈J
+
+with α1 a unit effect and λt a time effect. In SDID the time weights vt defined in Section 7.4 determine which
+pre-treatment periods matter most for learning the comparison, rather than redefining time effects. These
+expressions are approximations that summarise the rôle of weights and adjustments. They are best read as
+imputation decompositions used to motivate estimation, not as causal structural models for Yit (0). In the
+pre-treatment period we estimate the relevant weights and adjustment parameters from observed data. In
+the post-treatment period we hold those relationships fixed and use them to construct counterfactuals for
+Y1t (0).
+
+316
+
+7 Generalised and Augmented Synthetic Control
+
+Generic Assumptions
+All hybrid methods in this chapter inherit a common set of identification conditions from the general framework in Chapter 2, the synthetic control chapter and the DiD chapter. We restate them here in compact form
+to fix ideas and to emphasise that hybrids do not relax these fundamentals.
+Assumption 20 (No Anticipation in Pre-Treatment Periods) For the treated unit, pre-treatment
+outcomes coincide with untreated potential outcomes:
+Y1t = Y1t (0)
+
+for all t ≤ T0 .
+
+No anticipation, introduced in Chapter 2, rules out behavioural responses before the recorded treatment
+date. If there is evidence that outcomes start to move in response to the campaign before T0 , then those periods
+do not provide clean information about the untreated trajectory. In practice, you respond by redefining the
+intervention to include the anticipation period or by restricting the pre-treatment window used to estimate
+weights and adjustments to earlier periods.
+Assumption 21 (No Interference or Explicit Exposure Modelling) Either the treatment applied to
+the treated unit does not affect donor outcomes,
+Yjt = Yjt (0)
+
+for all j ∈ J , t = 1, . . . , T,
+
+or spillovers are represented through an exposure mapping hj (D−j,t ) with spillover-aware potential outcomes
+Yjt (d, h), and the analysis targets effects holding the exposure process fixed.
+This is the same no-spillovers component of SUTVA that underpins synthetic control and DiD. If the
+treated unit’s campaign materially changes competitors’ behaviour or market conditions in donor units,
+then donor outcomes no longer represent valid counterfactuals. Hybrid designs cannot solve this problem
+mechanically. The remedy remains design-based: curate the donor pool, impose geographic or competitive
+buffers, or build an explicit exposure model.
+Assumption 22 (Pre/Post Stability of the Imputation Relationship) The relationships used to impute Y1t (0) from donor outcomes, covariates, and any adjustment model remain stable across the treatment
+boundary. In particular, interpret the weights and adjustment parameters used by a given hybrid method
+as converging to population limits w∗ and ψ ∗ learned from pre-treatment data. We require that the same
+imputation rule that fits the pre-treatment untreated outcomes continues to apply to Y1t (0) after T0 .
+Stability says that the way we map donor outcomes, predictors, and weights into counterfactual outcomes
+does not jump at the treatment date. For ASCM, this means the outcome regression extrapolates sensibly
+beyond the pre-treatment window. For SDID, it means that the reweighted two-way fixed-effects structure
+that fits pre-treatment data remains a good approximation afterwards. For factor-based hybrids such as
+TROP, it means that the factor structure learnt from pre-treatment data continues to describe untreated
+outcomes in the post-treatment period. We cannot test this directly for Y1t (0), but placebo checks and crossvalidation within the pre-treatment period provide indirect evidence on whether the mechanism generalises.
+
+7.6 Identification and Assumptions
+
+317
+
+Assumption 23 (Overlap and Feasibility) There exist unit weights wj∗ , augmentation parameters ψ ∗
+and, where relevant, time weights vt∗ such that the hybrid representation achieves good pre-treatment fit for
+the treated unit, with stable and interpretable weights.
+Overlap here means that the treated unit is not so extreme that no combination of donors and adjustment
+terms can approximate its untreated path. In the pure SC case this reduces to the convex-hull condition on
+factor loadings; in hybrids it adds the requirement that the chosen adjustment model and time weights can
+repair any residual mismatch without creating implausible extrapolation. In practice you diagnose this by
+inspecting pre-treatment RMSPE relative to the scale of Y , by plotting pre-treatment paths for the treated
+unit and its synthetic counterpart and by examining how concentrated and specification-sensitive the weights
+are. There is no universal numerical threshold that guarantees identification. The rule of thumb is that pretreatment discrepancies should be small relative to both the natural volatility of outcomes and the size of the
+effects you care about, and that small perturbations in the design should not cause weights or fits to swing
+wildly.
+
+Method-Specific Assumptions
+On top of these generic conditions, each hybrid introduces its own additional structure. These method-specific
+assumptions are where identification gains or breaks.
+For ASCM, the key extra ingredient is the outcome regression. As discussed in Section 7.2, within a suitable factor-model framework the estimator can remain close to unbiased if either the SC weights achieve good
+balance or the regression model accurately captures the remaining imbalance, even if the other component
+is imperfect. In finite marketing panels both components will typically be imperfect, so the practical interpretation is more modest: ASCM buys you another route to good counterfactuals, not a guarantee that one
+of the two is correct.
+For a formal treatment of the augmentation logic, see [Ben-Michael et al., 2021].
+For ridge and balancing SC, the additional structure comes from regularisation [Doudchenko and Imbens,
+2016]. Ridge SC shrinks weights towards more diffuse configurations; balancing SC enforces explicit covariatebalance constraints. Identification then hinges on choosing the penalty or tolerance so that you do not
+regularise away the very heterogeneity you need to capture. The stability assumption in Assumption 22 must
+hold for the particular regularised weights chosen by cross-validation or other tuning rules, not just for some
+hypothetical unregularised solution.
+For SDID, the central new requirement is weighted parallel trends. After applying population unit weights
+and time weights wj∗ and vs∗ , the doubly differenced untreated outcomes for treated units must evolve in
+parallel to those of the weighted donors, as set out formally in Section 7.4. This assumption is weaker than
+unweighted parallel trends, because it allows you to reweight the comparison group and pre-treatment periods
+to balance differential exposure to shocks. It is stronger than simply observing good pre-treatment fit, because
+it asserts that the reweighted relationship continues to hold for Y1t (0) after treatment. See Section 7.4 for
+the formal weighted parallel-trends condition.
+
+318
+
+7 Generalised and Augmented Synthetic Control
+
+For TROP, the method-specific assumption is the factor structure discussed in Section 7.5. Untreated
+potential outcomes must admit a low-rank decomposition into unit and time effects plus a small number of
+latent factors. Triple robustness – in the sense that bias can be expressed as a product of unit imbalance, time
+imbalance and factor-model error – operates inside this factor framework. If outcomes in fact do not exhibit a
+strong low-rank structure, the factor-model error component of the product-of-errors bound is large, so even
+small unit and time imbalance can generate substantial bias.
+
+Connection to Factor and Imputation Models
+The factor-model perspective from Chapter 6 provides a unifying lens for these identification assumptions.
+Suppose untreated potential outcomes follow a factor structure
+Yit (0) = αi + λt +
+
+R
+X
+
+λir ftr + εit ,
+
+r=1
+
+with a small number of common factors ftr and unit-specific loadings λir . Synthetic control implicitly conP
+strains the treated unit’s loadings to lie in the convex hull of donor loadings: λ1r = j wj λjr for each factor
+r, with non-negative weights summing to one. This convexity delivers interpretability but can fail when the
+treated unit sits near or outside the hull.
+Interactive fixed-effects and matrix-completion methods estimate loadings freely without convexity constraints. They can match pre-treatment paths very closely, but rely on regularisation and factor-rank restrictions to avoid overfitting and to extrapolate credibly. They shift the burden of identification from geometric
+coverage (convex hull) to structural assumptions about low rank and stability of factors.
+Hybrid estimators sit between these poles. ASCM keeps the convex-hull logic but adds a regression adjustment that can soak up residual factor-structure differences. Ridge and balancing SC adjust the geometry
+of the hull by regularising weights or enforcing covariate balance. SDID adds an additive structure that
+reweights units and periods while remaining within an extended fixed-effects framework. TROP combines
+unit weights, time weights and a factor model, letting the data decide which component carries most of the
+explanatory power. Athey et al. [2021] and Arkhangelsky and Imbens [2024] formalise this view by treating
+these procedures as versions of imputation with different constraints on how the counterfactual surface may
+vary across units and time.
+
+Practical Guidance
+From an identification standpoint, hybrid methods are most useful when neither pure synthetic control nor
+pure DiD gives a comfortable answer on its own. If the treated unit lies well inside the donor convex hull and
+unregularised synthetic control achieves excellent pre-treatment fit, the extra structure of ASCM, SDID or
+TROP is unlikely to change the substantive conclusions and may add unnecessary complexity. If unconditional
+
+7.6 Identification and Assumptions
+
+319
+
+parallel trends between treated and control groups is plausible and panel structure is simple, classical DiD
+or event-study designs may suffice.
+Hybrids earn their keep in the intermediate regions. When the treated unit is near but not squarely inside
+the donor hull, or when treated and control groups violate unweighted parallel trends but can be brought into
+alignment by reweighting, hybrids allow you to trade additional modelling structure for better pre-treatment
+balance and more credible counterfactuals. The price is stronger assumptions about how that extra structure
+behaves out of sample.
+The right way to use these methods is cumulative. Start with the simplest design whose identification
+assumptions you can defend. Use hybrid estimators to see whether conclusions are sensitive to relaxing
+convexity or unweighted parallel trends, and to check whether richer factor structures improve pre-treatment
+fit in a way that aligns with your marketing context. When hybrids and simpler methods agree, you gain
+confidence that the underlying causal story is robust. When they disagree, the identification assumptions in
+this section tell you exactly which features of the data-generating process you need to scrutinise to explain
+why.
+
+320
+
+7 Generalised and Augmented Synthetic Control
+
+7.7 Multiple Treated Units and Staggered Adoption
+Hybrid methods extend naturally to settings with multiple treated units and staggered adoption. The main
+challenge is no longer constructing a counterfactual for a single treated store or market, but doing so coherently
+across many treated units that adopt at different times. The gains from hybrids in this setting are the same
+as before — better pre-treatment fit through augmentation, robustness to trend violations through time
+weighting and more stable weights through regularisation — but we now have to combine unit-level estimates
+into group-time and event-time summaries.
+Throughout this section, let I denote the set of treated units, grouped into cohorts g by their adoption
+date, and let J denote the set of potential donors. For a given calendar period t, let J−t be the set of units
+that have not yet been treated by period t and can therefore serve as valid donors. Let Ȳg,t denote the average
+outcome for cohort g in period t, and similarly for other bar-notation quantities.
+
+Common Intervention Times: Unit-Level vs Pooled Estimation
+When several treated units adopt at a common time, there are two natural ways to use hybrids. The first is
+unit-level estimation. You estimate a separate synthetic control, augmented synthetic control or SDID for each
+treated unit using the same donor pool and predictor set. Let τ̂i denote a chosen summary effect for treated
+unit i (for example, the average post-treatment effect over a specified horizon). This yields unit-specific effects
+that you can aggregate into an overall average using policy-relevant weights,
+τ̂ pooled =
+
+X
+
+wi τ̂i ,
+
+i∈I
+
+with wi reflecting, for example, equal importance across treated units, market size or revenue contribution.
+The unit-level route has the advantage of transparency. In a store-format trial with five flagships, you can
+show five separate hybrid counterfactuals and see directly that the format lifts sales in dense urban centres
+but has little effect in smaller suburban locations. That heterogeneity matters for decisions about scaling.
+The cost is computational — especially for more complex hybrids — and practical: some treated units will
+inevitably be harder to match than others, and unit-level estimates for those cases will be fragile.
+The second route is pooled estimation. Here you estimate a single set of donor weights that minimises an
+aggregate pre-treatment loss across all treated units, for example
+min
+w
+
+X X
+i∈I t∈Tpre
+
+Yit −
+
+X
+
+wj Yjt
+
+2
+
++ η ∥w∥2 ,
+
+j∈J
+
+subject to the usual convexity constraints, wj ≥ 0 and
+
+P
+
+j∈J wj
+
+= 1. The resulting w defines a common
+
+synthetic control path, which you compare to the average treated path. Pooled estimation is simpler to
+implement and produces a single set of weights to interpret, but it can fit some treated units well and others
+
+7.7 Multiple Treated Units and Staggered Adoption
+
+321
+
+poorly. If treatment effects or untreated dynamics vary sharply across treated units, a single pooled synthetic
+control will obscure that variation.
+In practice, many applications start with unit-level hybrids to diagnose heterogeneity and then report both
+unit-level estimates and a pooled summary based on policy-motivated weights.
+
+Aggregation and Policy-Relevant Weighting
+Once you have unit-level or cohort-level hybrid estimates, you must decide how to weight them in forming
+aggregate effects. The right weights depend on the question.
+If you care about the average effect across the treated units in your sample — for example, for an internal
+cost–benefit calculation — equal weights or sample-size weights are natural. If you care about extrapolating
+to a larger target population — such as a national store network — aggregation weights should reflect how
+representative each treated unit or cohort is of that population.
+Hybrid methods do not change this logic. What they change is the quality of each unit- or cohort-level
+effect. The aggregation step is the same as in Chapter 4: choose weights that answer your substantive question,
+check that they are non-negative and interpretable, and report them.
+
+Staggered Adoption and Event-Time Effects
+When units adopt at different times, we index cohorts by their adoption date g. For each cohort g and calendar
+period t ≥ g, we can estimate a cohort–time treatment effect τ (g, t) by applying a hybrid estimator to the
+comparison between cohort g and donors in J−t [Ben-Michael et al., 2022]. Here J−t denotes the set of units
+that are not yet treated at time t and therefore remain valid donors for cohort g at that date. This choice
+of donor set matters for the estimand. It targets the effect for cohort g at time t relative to not-yet-treated
+donors (and never-treated donors, when available).
+For SDID, for instance, we estimate unit weights ŵjg and time weights v̂sg on the pre-treatment panel for
+cohort g and donors [Arkhangelsky et al., 2021], and then form a doubly differenced comparison between the
+cohort’s average outcome and its synthetic control in period t, exactly as in Section 7.4 but now applied to
+cohort means rather than a single unit.
+We can convert these cohort–time effects into event-time profiles by defining event time k = t − g and
+averaging over the cohorts that contribute data at each k. If Gk is the set of cohorts with observations at
+event time k, we can form
+θ̂k =
+
+X
+
+wg τ̂ (g, g + k),
+
+g∈Gk
+
+with weights wg ≥ 0 that sum to one within each Gk . This is the same event-time aggregation logic developed
+in Chapter 5. The only difference is that hybrid methods improve the construction of τ̂ (g, t) inside each
+cohort–time cell by using unit and time weights and, for ASCM, regression adjustments.
+
+322
+
+7 Generalised and Augmented Synthetic Control
+
+A practical detail that matters in staggered designs is donor-pool evolution. Early-adopting cohorts enjoy
+large donor pools but relatively short pre-treatment windows. Late-adopting cohorts have longer pre-periods
+but smaller sets of not-yet-treated controls. Hybrid estimators help in both directions — ASCM and ridge SC
+stabilise estimation with short pre-periods, while SDID’s time weights focus comparisons on more comparable
+segments of the pre-period — but they cannot create donors where none exist. You should always inspect
+which cohorts contribute to each event-time estimate and how the donor pool changes over event time.
+
+Connection to Group–Time Effects
+The modern difference-in-differences literature, reviewed in Chapter 4, organises staggered designs around
+cohort–time effects τ (g, t) [Callaway and Sant’Anna, 2021, Sun and Abraham, 2021]. Many papers describe
+these as group–time ATT objects. Hybrid methods plug directly into this framework. For each g and t, you
+construct a hybrid counterfactual for cohort g using donors in J−t ; the gap between observed and synthetic
+hyb
+outcomes in period t is an estimate of τ (g, t). Formally, if Ŷg,t
+(0) is the hybrid counterfactual for cohort g at
+hyb
+time t, then τ̂ (g, t) = Ȳg,t − Ŷg,t
+(0) plugs directly into the aggregation formulas in Chapter 4. Aggregating
+
+these cohort–time effects over cohorts and time yields the same overall, calendar-time or event-time summaries
+as in Chapter 4; hybrid methods do not change the aggregation algebra.
+This also clarifies the relationship to the negative-weighting problem. As that chapter shows, certain naive
+aggregation schemes over cohorts and time can assign negative weights to some τ (g, t) terms when treatment
+effects are heterogeneous [Sun and Abraham, 2021]. Estimating τ (g, t) with hybrids does not, by itself,
+eliminate negative weighting. What prevents negative weighting is structuring the analysis cohort-by-cohort
+and using aggregation schemes that keep weights non-negative and interpretable. The contribution of hybrids
+is to improve the quality of each τ (g, t) estimate by constructing better counterfactuals from not-yet-treated
+donors.
+
+Practical Challenges in Staggered Panels
+Two practical issues recur in staggered applications. The first is variation in pre-treatment length across
+cohorts. Early-adopting cohorts may have only a handful of pre-periods, while late adopters have many.
+With very short pre-periods, synthetic control weights are under-identified and can overfit. In those cases,
+SDID with time regularisation or ridge SC can be more stable than unregularised SC, because they shrink
+weights and, in SDID’s case, focus attention on the most informative parts of the pre-period. At the extreme,
+when a cohort has only a handful of pre-treatment observations, you should be cautious about relying on any
+weighting-based method and consider reporting that cohort separately with appropriate caveats.
+The second issue is shrinking donor pools. As more cohorts adopt treatment, fewer not-yet-treated units
+remain available as donors. By the last adoption wave, only never-treated units are left. When the donor pool
+drops to only a handful of units, hybrid estimators are forced to lean heavily on those remaining donors, and
+
+7.7 Multiple Treated Units and Staggered Adoption
+
+323
+
+weight stability deteriorates. Monitoring donor-pool size and composition across cohorts, and being explicit
+about which cohorts have robust donor support, is essential.
+
+Choosing Between Hybrid Methods in Staggered Designs
+The basic trade-offs between SC, ASCM and SDID carry over to staggered adoption. SDID is attractive
+when you believe that, after reweighting units and periods, treated and not-yet-treated cohorts satisfy a
+weighted parallel-trends condition, and when pre-treatment dynamics differ across cohorts. Its time weights
+can down-weight months or quarters where cohort trends diverge, making it easier to isolate a common
+component.
+ASCM is more appealing when certain cohorts are clear outliers relative to donors and simple reweighting cannot achieve good fit, or when you have strong prior beliefs about which observables drive outcome
+differences across cohorts. In those cases, the regression adjustment gives you an additional lever to repair
+residual imbalances that SC and SDID leave behind.
+Standard SC remains competitive when cohorts lie comfortably within the donor convex hull and achieve
+excellent pre-treatment fit. In those rare but pleasant cases, the extra structure and tuning parameters of
+SDID or ASCM may not buy you much.
+In practice, the best way forward is empirical. For a subset of cohorts, estimate SC, ASCM and SDID using
+the same donor sets J−t and compare pre-period fit, event-time pre-trends and post-period estimates. If all
+three methods tell a consistent story, you can confidently report the simplest design. If they diverge, that
+divergence is itself diagnostic. In terms of identification, severe discrepancies between SC and SDID point to
+tension between convex-hull coverage and (weighted) parallel trends, whereas discrepancies between SC/SDID
+and ASCM highlight sensitivity to the outcome-regression component. It tells you that some combination
+of convex-hull coverage, weighted parallel trends and outcome modelling is failing and that any conclusions
+about long-run dynamic effects in that part of the event-time profile should be presented with appropriate
+caution.
+
+Reporting and Transparency
+Staggered hybrid designs place a premium on clear reporting. At minimum, you should report how each cohort
+contributes to aggregate and event-time estimates. In practice, this means tabulating the cohort weights wg
+used in each event-time estimate θ̂k , listing Gk for key values of k, and indicating where only early-adopting
+cohorts contribute. You should show pre-treatment fit diagnostics for each cohort — plots of treated vs hybrid
+counterfactual paths and summary measures of fit — and flag cohorts with visibly poor match.
+Finally, you should treat alternative aggregation schemes and estimator choices as sensitivity analyses,
+not afterthoughts. Reweight cohorts in ways that reflect different policy questions, rerun the analysis with
+SC, ASCM and SDID where feasible, and show how the dynamic treatment effect profile changes. When
+
+324
+
+7 Generalised and Augmented Synthetic Control
+
+estimates prove stable across these perturbations, you have a much stronger case that your findings about
+campaign ramp-up, peak and decay are not artefacts of a particular hybrid specification.
+
+7.8 Tuning, Implementation, and Donor Curation
+
+325
+
+7.8 Tuning, Implementation, and Donor Curation
+Implementing hybrid methods in marketing panels means making a series of design choices: which predictors
+to include, how to tune penalties, and how to curate the donor pool. These choices interact with the estimator and affect both pre-treatment fit and the credibility of the counterfactual. The central tension is that
+pushing too hard on prediction accuracy in the pre-period can harm causal identification if the model then
+extrapolates poorly. This section offers practical guidance on navigating that trade-off in a way that respects
+the identification logic developed earlier in the chapter.
+
+Predictor Selection
+Predictor selection plays different roles for different hybrid methods.
+For synthetic control and ridge SC, the predictor set defines the space in which the treated unit must be
+approximated. Including more pre-treatment outcome periods and key covariates expands the dimensionality
+of the matching problem and makes the convex hull richer. In marketing panels, a small number of latent
+demand and seasonality factors often drive most of the variation, so a modest number of carefully chosen preperiods can go a long way. In factor-model terms (Chapter 6), you need the pre-treatment window to be long
+enough that T0 (the last pre-treatment period) is comfortably larger than the number of factors R for preperiods to distinguish signal from noise; in typical marketing panels R is small, so 12–24 well-chosen months
+can be enough even when the full panel is longer. This rule of thumb is safest when seasonality is stable, the
+pre-period contains no major breaks, and the donor pool is rich enough to support matching. If the panel
+is long and outcomes are highly autocorrelated, using every second or third period, or summarising history
+through moving averages, can reduce dimensionality without losing the structure that matters, provided these
+choices still capture the relevant seasonal and business-cycle patterns. Holding out a block of pre-treatment
+periods for validation, as in Section 7.3, helps check that the chosen predictor set generalises within the
+pre-period.
+For ASCM, the augmentation model uses covariates to correct residual differences between the treated unit
+and its synthetic control. Here predictor selection is closer to standard outcome regression. You should include
+variables that plausibly predict outcomes and differ between treated and control units — such as store size,
+location demographics, competitive intensity or channel mix — and be cautious about mechanical variable
+selection that loads the model with weak predictors. Pre-specifying this covariate set based on institutional
+knowledge is essential, with a small number of pre-planned sensitivity checks that add or remove candidate
+variables.
+Do not include predictors that are themselves affected by treatment (or by anticipation), since that can
+build post-treatment information into the counterfactual.
+For SDID, predictors enter implicitly through outcomes rather than through a separate covariate matrix.
+The algorithm constructs unit and time weights to balance pre-treatment paths directly, so the main design
+choice is the length and placement of the pre-treatment window. You still need enough pre-treatment periods
+
+326
+
+7 Generalised and Augmented Synthetic Control
+
+to identify stable weight patterns — typically at least several periods that span the relevant seasonal or
+business cycle variation — but you do not have to specify a separate predictor set.
+For TROP and related factor-based hybrids, predictors matter through the distance metrics used for unit
+weighting and through the factor model itself. The considerations mirror those for synthetic control and
+interactive fixed-effects models in Chapter 6: you need enough pre-treatment periods to identify a low-rank
+structure and enough variation across units to distinguish factor loadings. In short marketing panels with
+only a handful of pre-periods, the factor component will necessarily be simple, and you should treat any rich
+factor structure as exploratory rather than definitive.
+
+Penalty Parameter Tuning
+Regularisation penalties control the balance between fit and stability. Tuning them well is critical for hybrids
+that rely on weighting and augmentation.
+For ridge SC, the ridge penalty on the weights governs how concentrated or diffuse the donor weights
+become. Small penalties allow the optimisation to place large weight on one or two donors and chase tight
+pre-treatment fit. Larger penalties spread weight across more donors and sacrifice some fit in exchange for
+stability. A practical way to choose the penalty is to split the pre-treatment period into a training block
+and a validation block, estimate ridge SC over a reasonable grid of penalty values on the training block and
+pick the value that predicts the validation block best. Cross-validation here tunes out-of-sample prediction
+within the pre-treatment period. Good predictive performance is necessary for credible identification, but it
+does not on its own guarantee that the same weights produce unbiased counterfactuals after treatment. The
+exact grid is not sacred; what matters is that you explore a range from very little shrinkage to quite strong
+shrinkage and that the selected value is not at an extreme of the grid.
+For ASCM, the outcome regression often includes its own regularisation, such as ridge or elastic net on
+the covariate coefficients. The same training–validation logic applies. Given the typically short pre-periods
+in marketing panels, it is safer to err on the side of modest complexity in the augmentation model. The
+double-robustness logic discussed in Section 7.2 provides some insurance across the weighting and regression
+components, but in finite samples both components are estimated and often both are somewhat wrong.
+Regularisation should therefore be viewed as a way to tame variance and overfitting in the regression step,
+not as a licence to greatly increase covariate or functional-form complexity.
+For SDID, the main design choice is the implementation of the optimisation problem that delivers unit and
+time weights. Standard implementations incorporate stabilisation internally, so you do not typically search
+over penalty values by hand. You do, however, need to check that the optimisation has converged and that
+the resulting weights are interpretable — not all mass on one donor, not all mass on one pre-treatment period,
+and broadly in line with your understanding of which markets and periods are comparable.
+Even when you do not tune a single penalty explicitly, SDID still regularises implicitly through its objective
+and constraints. Treat the resulting unit and time weights as tuned objects, not as fixed design inputs.
+
+7.8 Tuning, Implementation, and Donor Curation
+
+327
+
+For TROP and other flexible factor-based hybrids, penalty tuning is more demanding: you must decide
+how sharply to concentrate unit weights, how local to make time weights and how complex to make the factor
+structure. One approach, discussed in Section 7.5, is to use staged cross-validation [Athey et al., 2025b], tuning
+time weights first, then unit weights, then the factor penalty, each time using held-out untreated observations
+to assess predictive performance. This staged scheme is a pragmatic heuristic, not a theoretically guaranteed
+route to causal validity. Given the method’s current research status and lack of off-the-shelf software, we
+view these tuning rules as guidance for methodological work rather than prescriptions for routine marketing
+analysis.
+
+Connection Between Tuning and Diagnostics
+Tuning choices show up directly in the diagnostics you report, and diagnostics should in turn inform how
+you interpret tuning.
+Pre-treatment RMSPE will vary with the strength of regularisation. Tight fit with very small penalties
+can signal that the weights are overfitting idiosyncratic donor fluctuations. Loose fit with very large penalties
+can signal that the estimator is effectively averaging over donors and ignoring meaningful structure. The key
+is not to maximise or minimise RMSPE mechanically, but to look at how RMSPE behaves across a range of
+penalties and how that behaviour lines up with weight patterns and institutional knowledge. If only extreme
+penalties deliver good validation performance or plausible weights, that is a warning sign.
+Weight dispersion is another informative diagnostic. You can summarise how many donors meaningfully
+contribute by using, for example, the inverse of the sum of squared weights, which behaves like an “effective
+P
+P
+−1
+number of donors.” Because Neff
+= j ŵj2 appears inside the idiosyncratic-variance term σ 2 (1 + j (wj∗ )2 )
+from equation (6.24), very small Neff mechanically inflates variance even when pre-period fit is tight. Very
+low values indicate near-singleton donor reliance and high sensitivity to that donor’s idiosyncrasies. Very
+high values indicate near-uniform weighting. In most marketing panels you want an interior solution where a
+modest number of donors carry most of the weight and those donors make sense given the business context.
+Sensitivity to tuning choices completes the picture. If your estimated treatment effect changes little across
+a broad range of penalty values that all deliver acceptable pre-treatment fit, your conclusions are unlikely
+to hinge on fine details of the regularisation. If estimates swing sharply as you move the penalty, especially
+in regions of the grid where fit and weights look similar, then any point estimate should be presented with
+caution and accompanied by a discussion of that instability. Complement these summaries with simple weight
+plots (sorted bar charts for donor weights, line plots for SDID time weights) so that outliers are obvious. Flat
+numerical diagnostics can hide pathologies that are visually clear.
+
+328
+
+7 Generalised and Augmented Synthetic Control
+
+Donor Pool Curation
+Donor curation is at least as important as tuning. As in Chapter 6, donors must be comparable to treated
+units, free of treatment and unaffected by spillovers.
+Comparability comes first. In a retail setting, it is rarely sensible to use outlets from very different formats,
+regions or customer segments as donors. Restrict the pool to units that plausibly face similar demand,
+competition and operational constraints. This often means staying within the same banner or region, or at
+least within a relatively homogeneous subset of markets.
+Absence of treatment and contamination is next. Donor units must not themselves receive the intervention
+during the window you use for estimation and evaluation. More subtly, they should not be exposed to strong
+spillovers through competition, supply chains or shared customers. Buffered designs, where you drop donors
+within a certain geographic or competitive radius of treated units, are a simple way to reduce contamination,
+but they also shrink the donor pool. Hybrid estimators can sometimes tolerate a smaller, cleaner donor pool
+by using augmentation or regularisation to repair fit, but they cannot recover information that is simply not
+there. Overly aggressive donor restrictions can violate the convex-hull or overlap conditions in Section 7.6
+by removing donors that help span the treated unit in predictor space. Curation should therefore balance
+business comparability against the need for geometric coverage.
+If spillovers are plausible, you either curate donors so the exposure mapping hi (D−i,t ) is effectively constant
+(often zero), or you commit to an explicit exposure model.
+These design choices interact with the method. Synthetic control needs donors that span the treated unit
+in the space of predictors. Excluding too many donors can push the treated unit outside the convex hull
+and force the estimator into extrapolation. ASCM can absorb small extrapolations through its regression
+component, but still relies on donors that share the main drivers of outcomes. SDID requires that, after
+reweighting, treated and donor groups can plausibly satisfy weighted parallel trends. Factor-based hybrids
+such as TROP assume that donors and treated units share a common factor structure. In each case, donor
+curation should be justified both by business logic and by how the curated pool supports the specific hybrid’s
+assumptions.
+
+Prediction vs Identification
+It is tempting to treat pre-treatment prediction as the primary goal and to judge hybrids solely by how
+well they fit the pre-period. That is not what we want for causal work. The objective is to construct a
+counterfactual that approximates the treated unit’s untreated path in the post-treatment period, not to win
+a forecasting competition on pre-treatment data.
+Overfitting the pre-period by piling on predictors, using highly flexible models or driving penalties towards
+zero can produce impressive pre-treatment fit. But if the underlying factor structure or covariate relationships
+change at treatment (for example, a structural break in ft or a new channel shock), that same flexibility will
+happily track noise and then extrapolate it forward. Underfitting by imposing strong penalties or sparse
+
+7.8 Tuning, Implementation, and Donor Curation
+
+329
+
+models can produce looser pre-treatment fit but may extrapolate more stably when the pre-period is short
+or only partially representative of the post-period environment.
+The practical lesson is to combine automatic tools, such as cross-validation within the pre-period, with economic judgement about how the intervention might change the data-generating process. Placebo checks, which
+treat pre-treatment periods as pseudo post-treatment periods, are especially valuable: they show whether an
+estimator that fits early pre-period data well can also predict later pre-period outcomes it has not seen.
+
+A Practical Workflow
+A disciplined workflow for hybrids brings these elements together.
+Start by pre-specifying a predictor set based on the business context, focusing on pre-treatment outcome
+histories and covariates that are plausibly related to both treatment assignment and outcomes. Decide in
+advance on a small number of alternative specifications that add or drop predictors to test robustness, rather
+than searching post hoc for combinations that deliver striking results.
+Next, curate the donor pool. Exclude units that receive treatment during the estimation window, units
+that are clearly incomparable on business grounds and units that are likely to be heavily contaminated by
+spillovers. Document these choices and, where possible, illustrate how they affect pre-treatment fit and weight
+patterns.
+Then tune regularisation using pre-treatment data. For ridge-based hybrids such as ridge SC and many
+ASCM implementations, use a training–validation split and a broad grid of penalties that span from very
+light to quite strong shrinkage. For SDID, focus on checking convergence and inspecting the resulting unit
+and time weights rather than searching over penalties. For more complex hybrids like TROP, recognise that
+current tuning guidance is still research-oriented and only pursue that route if you have both the data and
+the technical capacity to justify it.
+Finally, estimate treatment effects and present diagnostics. Report pre-treatment RMSPE, weight dispersion and sensitivity to tuning choices, not just point estimates. If a hybrid method achieves materially
+better pre-treatment fit than standard SC while producing plausible weights and stable estimates across
+tuning choices, the extra complexity is likely earning its keep. Better pre-treatment fit is supportive, but it
+is not sufficient if spillovers, anticipation, or breaks in the untreated outcome process remain plausible. If the
+gains in fit are marginal and estimates are sensitive to tuning, the simpler design is usually preferable for
+transparency and ease of explanation.
+In all cases, the role of tuning and implementation is to support the identification arguments made earlier
+in the chapter, not to replace them. Careful predictor selection, thoughtful donor curation and transparent
+regularisation choices help ensure that hybrid methods deliver counterfactuals that are both statistically well
+behaved and substantively credible in real marketing applications.
+
+330
+
+7 Generalised and Augmented Synthetic Control
+
+7.9 Diagnostics and Goodness of Fit
+Hybrid methods are only as credible as the diagnostics that accompany them. In marketing panels, where
+data are noisy and designs are often tight, you cannot afford to treat a hybrid estimator as a black box.
+You need to check how well it fits the pre-treatment path, how well it balances covariates, how weights are
+distributed across donors and time, how sensitive estimates are to individual donors or periods, and how
+stable the design is under placebo checks. This section outlines a diagnostic workflow tailored to hybrids and
+connects each diagnostic to specific remedial actions, with Chapter 17 providing a more general framework.
+These are diagnostics and falsification checks. Passing them does not prove identification, but failing them is
+strong evidence against it.
+
+Pre-Treatment Fit
+Pre-period fit is the first line of defence. For any hybrid method, define the pre-treatment RMSPE as
+v
+u
+T0
+u1 X
+2
+RMSPEpre = t
+Y1t − Ŷ1tsyn ,
+T0 t=1
+where Ŷ1tsyn is the method-specific hybrid counterfactual in period t, and T0 is the last pre-treatment period.
+For SC, this is the weighted donor average; for ASCM, it is the augmented synthetic control; for SDID, it is
+the reweighted, intercept-shifted comparison.
+RMSPE is not a goal in itself but a way to compare specifications and methods on a common scale.
+Expressing RMSPE relative to the pre-treatment standard deviation of Y1t helps with interpretation: an
+RMSPE that is small relative to the natural variability in outcomes suggests that the synthetic path tracks
+the treated unit closely; an RMSPE of the same order as the outcome SD indicates that the counterfactual
+is effectively noise. Comparing RMSPE across SC, ASCM, SDID and DiD shows whether the extra structure
+in hybrids is buying you materially better pre-treatment fit. In the factor-model notation from Chapter 6,
+RMSPEpre is best viewed as an empirical proxy for pre-period imputation error, not a direct bound on
+post-period bias. Small RMSPEpre is therefore necessary but not sufficient for small post-treatment bias. If
+RMSPE is of the same order as the post-period effect you hope to detect, the design cannot cleanly separate
+treatment from misspecification.
+The key is to combine RMSPE with other diagnostics. A hybrid that shaves a few percentage points off
+RMSPE by pushing weights onto one odd donor is less credible than a slightly looser-fitting design with more
+stable weights and better covariate balance.
+
+7.9 Diagnostics and Goodness of Fit
+
+331
+
+Covariate Balance
+Outcome paths tell only part of the story. You also care about whether the hybrid synthetic control matches
+the treated unit on covariates that predict outcomes and treatment. Standardised mean differences (SMDs)
+are a useful summary:
+SMDx =
+where X1 is the treated unit’s covariate value,
+
+P
+
+X1 −
+
+j ŵj Xj
+
+sX
+
+,
+
+j ŵj Xj is the weighted donor mean, and sX is a reference
+
+P
+
+standard deviation (for example, the pooled standard deviation of X across treated and donor units). Here
+X represents either baseline (time-invariant) covariates or pre-period averages of time-varying covariates.
+Values close to zero indicate good balance; large absolute values indicate imbalance.
+Thresholds from the matching literature — such as SMD below 0.1 in absolute value as “good balance”
+and above about 0.2 as concerning — are useful guides rather than hard rules. In marketing contexts you
+should focus especially on covariates that are central to the business story: store size, income, channel mix,
+competitive intensity, and so on. If one of these remains substantially imbalanced even under a hybrid design,
+you need to decide whether that imbalance plausibly biases the estimated effect.
+ASCM gives you a natural lever to correct residual imbalances by including problematic covariates in the
+augmentation model. Ridge and balancing SC let you tilt the weighting scheme towards better balance at the
+cost of some pre-treatment fit. If, after reasonable adjustments, a key covariate remains badly imbalanced,
+you should report that fact and discuss its implications for identification.
+
+Weight Dispersion
+Hybrid estimators work by reweighting donors and, in SDID, time periods. Diagnostics should therefore
+include a view of how concentrated or diffuse those weights are. For unit weights, an informative summary
+is the “effective number of donors”
+
+1
+2,
+j ŵj
+
+Neff = P
+
+which is the inverse of the Herfindahl index of the weights. A value of one means all weight sits on a single
+donor; a value equal to the number of donors N0 means weights are uniform. For SDID, an analogous effective
+number of pre-treatment periods
+
+1
+Teff = PT0
+
+2
+t=1 v̂t
+
+shows how many periods meaningfully contribute.
+Extremes in either direction are informative. Very low Neff indicates that the hybrid is leaning heavily on
+one or two donors and may be vulnerable to their idiosyncrasies. Very high Neff indicates that the estimator
+is close to uniformly averaging over donors and may be ignoring structure that could help sharpen the
+counterfactual. In many marketing panels, an interior solution where a modest number of sensible donors
+
+332
+
+7 Generalised and Augmented Synthetic Control
+
+carry most of the weight is what you hope to see. If diagnostics show otherwise, revisit the penalty strength,
+donor pool and predictor set.
+
+Leverage and Influence
+Even when overall weight dispersion looks reasonable, individual donors or periods can have outsized influence.
+Simple leave-one-out checks are powerful here. Re-estimate the hybrid estimator excluding each of the largestweight donors in turn and record how much the estimated treatment effect changes. Do the same for pretreatment periods in SDID by excluding one period at a time when estimating time weights.
+If dropping a single donor or period barely moves the estimate, the design is robust along that dimension.
+If excluding one donor or one pre-period causes large swings, dig deeper. Is that donor truly comparable,
+or does it have a unique pattern that the algorithm is over-using? Does the influential period contain an
+unusual local promotion, a data glitch or a macro shock that should be handled explicitly? The point is
+not to mechanically delete influential observations, but to understand why they matter. Large influence for
+a donor or period that is marginal to the business question (for example, a very small donor market or a
+holiday period outside the main evaluation window) may be less concerning than large influence for a core
+donor or a period central to the decision; diagnostics should be interpreted in that light.
+
+Placebo Checks
+Placebo checks probe the stability assumptions that hybrids rely on. The idea is to pretend that treatment
+occurred earlier than it did and see whether the estimator generates spurious “effects” inside the pre-treatment
+window.
+Concretely, choose a pseudo-intervention date T ∗ < T0 . Treat periods up to T ∗ as pre-treatment, estimate
+the hybrid estimator on that shorter pre-period, and then compute pseudo treatment effects for periods
+between T ∗ + 1 and T0 . If the model extrapolates well, these pseudo effects should be small and centred near
+zero. If you see large, systematic pseudo effects, the specification is not stable even within the pre-period,
+and there is little reason to trust it out of sample. Large, systematic pseudo effects indicate violations of the
+stability condition in Assumption 22: the pre-treatment mechanism linking weights, covariates and untreated
+outcomes is not even stable within the pre-period.
+These checks are particularly revealing for complex hybrids such as ASCM, SDID and TROP, where
+overfitting the early pre-period is easy. When placebo checks fail, the appropriate reaction is not to hunt
+for a different pseudo date that “passes”, but to rethink the specification: shorten the pre-period used for
+estimation, simplify the augmentation model, strengthen regularisation, or reconsider whether the design can
+support a hybrid at all. Pre-specify a small set of pseudo-dates (for example, one or two meaningful cut
+points based on seasonality or business cycles) rather than scanning the entire pre-period.
+
+7.9 Diagnostics and Goodness of Fit
+
+333
+
+Residual Diagnostics
+Residuals provide a complementary view. For a given hybrid estimator, define residuals as
+e1t = Y1t − Ŷ1tsyn
+for all periods t, and plot them over time with the intervention date marked. In a well-specified design,
+pre-treatment residuals should fluctuate around zero without obvious trend or seasonality. Systematic drifts,
+seasonal cycles or clusters of large outliers in the pre-period signal misspecification.
+Seasonal residual structure suggests the donor pool is mismatched on seasonality or the pre-period window
+is misaligned. Structural breaks suggest redefining the pre-period or excluding donors with breaks.
+Post-treatment residuals will reflect both treatment effects and any remaining misspecification. A clean
+treatment story looks like a discernible level shift or pattern emerging after treatment against a background
+of pre-period noise that has been well controlled. If pre-period residuals already exhibit strong non-random
+structure, it becomes hard to argue that post-period deviations are due to treatment rather than to model
+failure.
+
+Method-Specific Considerations
+Different hybrids bring their own diagnostic nuances.
+For ASCM, the size of the augmentation correction relative to the pure synthetic-control component is
+informative. If the augmentation correction routinely accounts for a large share of the level of Ŷ1tsyn across
+pre- and post-treatment periods, the estimator is heavily reliant on the outcome model. Inspecting coefficient
+paths for the augmentation regression, and how sensitive the correction is to tuning choices and alternative
+specifications of the augmentation model, helps you judge whether that reliance is defensible.
+For SDID, the pattern of time weights v̂t is revealing. Concentration on the very last pre-treatment period
+effectively turns the design into a first-difference comparison. Near-uniform time weights put equal emphasis
+across the whole pre-period. Combined with diffuse unit weights, the estimator moves closer to a conventional
+DiD-style comparison, but it is not identical to DiD in levels; both extremes should be justified by the
+seasonal and macro environment. When you see extreme patterns, you should ask whether they make sense
+given seasonality, promotions and macro conditions, and whether alternative specifications of the pre-period
+window would yield more interpretable weights.
+For TROP and other factor-based hybrids, the tuning parameters and inferred factor rank play a diagnostic
+role. When cross-validation pushes the factor penalty so high that the factor component is effectively shut
+down, the data are telling you that a simpler hybrid (closer to SDID) suffices. When unit-weight decay is very
+strong, the estimator is effectively using nearest neighbours. Reporting these tuning outcomes alongside fit
+metrics gives readers a sense of how complex the underlying structure really needs to be. Given the current
+research stage of TROP, treat these tuning patterns as exploratory diagnostics rather than as definitive
+evidence that a rich factor structure is required.
+
+334
+
+7 Generalised and Augmented Synthetic Control
+
+Putting Diagnostics Together
+In practice, you should view diagnostics as a package rather than as a sequence of hurdles. A credible
+hybrid design is one where pre-period RMSPE is small relative to outcome variability and clearly better than
+simpler alternatives; covariates central to the business story are well balanced; unit and time weights are
+neither excessively concentrated nor implausibly uniform; estimates are not unduly driven by a single donor
+or period; placebo checks show no large spurious effects; and residuals in the pre-period look like noise rather
+than trend.
+When several of these diagnostics point in the same positive direction, you can be reasonably confident that
+the hybrid method is constructing a credible counterfactual. When they send mixed signals — for example,
+excellent RMSPE but poor balance on key covariates, or good balance but unstable placebo performance —
+you should say so and treat any causal claims with appropriate caution. The goal is not to certify a method
+as “valid” once a checklist is ticked, but to build a cumulative case that your design and estimator are fit for
+purpose in the marketing context at hand. Chapter 17 provides a complementary, design-level checklist; you
+should interpret the hybrid-specific diagnostics here within that broader framework.
+
+7.10 Inference
+
+335
+
+7.10 Inference
+Hybrid methods do not change the basic purpose of inference. We still want to know how much uncertainty
+surrounds our estimated treatment effects and whether those effects are unusually large relative to what the
+design would produce by chance. Uncertainty bands can target either the counterfactual path Ŷ1t (0) itself or
+the treatment effect τ̂1t = Y1t − Ŷ1t (0); the interpretation and width differ. What hybrids do change is the
+structure of that uncertainty: weights are estimated, time weights v̂t may be estimated, augmentation models
+contribute additional noise, and, for TROP, factor structure is tuned. Inference must respect this extra layer
+of estimation while remaining honest about the limits imposed by small marketing panels.
+In this section we sketch inference strategies that are well suited to the hybrid estimators in this chapter,
+and point to Chapter 16 for the full development of panel inference tools.
+
+Method-Specific Variance Structures
+Each hybrid estimator has its own variance structure, reflecting which objects are treated as fixed and which
+as estimated.
+For SDID, both unit weights and time weights v̂t are estimated from the pre-treatment panel. Arkhangelsky
+et al. [2021] derive an analytic variance formula that treats these weights as functions of the data and accounts
+for their sampling variability when the control group is large. In small-N marketing panels, this large-controlgroup asymptotics can be fragile; in those cases it is safer to treat the analytic formula and bootstrap estimates
+as complementary checks rather than to rely on one alone. In practice, many applications rely either on that
+formula as implemented in software or on bootstrap methods that resample units or cohorts, as described
+below.
+For ASCM, uncertainty comes from two sources: the synthetic control weights and the augmentation
+model. The more weight the design puts on the regression adjustment, the more variance (and potential
+model dependence) flows through that channel; the more weight it puts on the synthetic control component,
+the more variance comes from which donors carry weight and how their outcomes fluctuate. Closed-form
+variance expressions exist under specific modelling assumptions, but they depend on nuisance quantities that
+are hard to estimate reliably in small samples. In particular, variance contributions from the augmentation
+model depend on how well its residual structure is captured; when the regression is high-dimensional or heavily
+regularised, asymptotic formulas can be especially misleading. For this reason, resampling-based approaches
+are the natural default.
+For ridge SC and related regularised SC variants, the ridge penalty stabilises weights and typically reduces
+variance relative to unregularised SC, at the cost of some bias. Because the weights are complicated functions
+of the data and the penalty, analytic variance expressions quickly become unwieldy. Again, cluster-robust or
+bootstrap-based inference is the practical choice.
+For TROP and other factor-based hybrids, the variance structure is more complex still because unit
+weights, time weights v̂t and the factor component are all tuned from the data. Here, inference is best treated
+
+336
+
+7 Generalised and Augmented Synthetic Control
+
+as a research topic rather than a settled routine. Proposals in the literature include cross-validation-style
+variance estimates based on how effects vary across folds. At the time of writing, these ideas are promising
+but not yet standard, and we recommend using TROP primarily as a robustness check alongside simpler
+methods whose inference is better understood.
+
+Placebo and Permutation Tools
+Placebo and permutation tools play a central role in hybrid inference because they make minimal modelling
+assumptions and directly probe the stability of the design.
+In-space placebos apply the hybrid estimator to each donor unit in turn, pretending that donor j was
+treated at the same time as the actual treated unit. Comparing the resulting placebo gaps to the treated
+unit’s gap gives a sense of how unusual the observed effect is relative to what the method produces when
+applied to untreated units. Ranking statistics such as the ratio of post- to pre-treatment RMSPE, introduced
+in Chapter 6, can be turned into randomisation-style tail probabilities under symmetry assumptions. In
+observational marketing panels, it is safer to treat these as descriptive diagnostics — “our treated unit is
+more extreme than all but one placebo” — rather than as literal frequentist p-values. In other words, they tell
+you how unusual your treated unit looks when processed through the same estimator and design, conditional
+on the realised panel, not how likely such an effect would be under a random-assignment mechanism that
+did not in fact operate.
+In-time permutations treat intervention timing as if it were unknown within the pre-treatment window.
+By shifting the pseudo-intervention date forward and backward and recomputing pseudo effects, you obtain
+a distribution of “effects” that arise purely from fitting and extrapolating within the pre-period. If the actual
+post-treatment effect sits well outside the range of these pseudo effects, that strengthens the case that you
+are seeing treatment rather than model artefacts. If it falls squarely inside that range, your design is not
+discriminating strongly between real and pseudo treatment. Large pseudo-effects under in-time permutations
+are direct evidence against the pre/post stability condition in Assumption 22: the mechanism that fits early
+pre-period data does not extrapolate even to later pre-periods.
+Both procedures stress-test the hybrid’s weighting and augmentation components without additional parametric assumptions. They are especially valuable when conventional asymptotics are unreliable because the
+number of units or pre-periods is small.
+
+Bootstrap Approaches
+Bootstrap methods, introduced in Chapter 16, provide a flexible route to standard errors and confidence
+intervals when analytic formulas are unavailable or untrustworthy.
+In panel hybrids, the natural resampling unit is the unit or cohort, not individual observations. A unitlevel (or cohort-level) block bootstrap proceeds by resampling units with replacement within the treated
+
+7.10 Inference
+
+337
+
+and donor groups separately, re-estimating the hybrid estimator on each bootstrap sample and recording
+the resulting treatment effect. The dispersion of these bootstrap replicates provides a standard error, and
+percentile intervals provide confidence bands. When there is only a single treated unit, resampling treated
+units is not meaningful; single-treated-unit settings typically rely on placebo distributions, time permutations,
+or residual-based procedures rather than a naive “treated-unit bootstrap”. If you do bootstrap in such settings,
+it is usually via resampling donors (and/or blocks of time under additional assumptions), with interpretation
+as a sensitivity device. This preserves the within-unit time-series structure while acknowledging that treated
+and donor units are the primary sources of sampling variability. When the number of treated units is extremely
+small (for example, one or two flagships), bootstrap variability in pooled effects will be dominated by betweenunit heterogeneity rather than sampling noise; in such cases, simple unit-level bootstraps can understate
+uncertainty and should be interpreted conservatively.
+Wild bootstrap variants adapt the same idea to settings with few units and heteroscedastic residuals. Wild
+bootstrap variants either hold weights fixed and perturb residuals, or re-estimate the full procedure in each
+bootstrap draw; both aim to approximate sampling variation under a null. This is particularly useful when
+you pool effects across cohorts or event times and want to account for heterogeneity in noise levels across
+markets and over time.
+In both cases, you must respect the design: resampling should not break the treatment–control structure
+(for example, treated units should remain treated) or the staggered-adoption pattern.
+
+Conformal and Prediction-Interval Views
+Conformal inference, discussed in Chapter 16 [Chernozhukov et al., 2021, Cattaneo et al., 2021], offers an
+alternative perspective by constructing prediction intervals for the treated unit’s untreated outcomes based
+on the distribution of pre-treatment residuals. For hybrids, the idea is simple. You compute residuals between
+observed and synthetic outcomes in the pre-period, treat their empirical distribution as a reference for what
+“noise” looks like under no treatment, and then form intervals around the hybrid counterfactual in the
+post-period by adding and subtracting suitable quantiles of those residuals.
+If the observed post-treatment outcomes consistently lie outside these bands in one direction, that is
+evidence of a treatment effect. If they oscillate inside the bands, the data are consistent with noise around the
+estimated counterfactual. The strength of this approach is that it makes minimal distributional assumptions
+beyond a form of exchangeability: conditional on no treatment, the distribution of residuals in the postperiod is assumed to match the distribution of pre-treatment residuals. In panels with serial correlation, you
+need a blocked or exchangeable-by-block residual assumption, not i.i.d. residuals. Its weakness is that those
+assumptions are not guaranteed in short, seasonal marketing panels. We recommend using conformal-style
+bands as a complement to, not a replacement for, placebo and bootstrap-based checks.
+
+338
+
+7 Generalised and Augmented Synthetic Control
+
+Randomisation Inference and Multiplicity
+Randomisation inference has a clean interpretation in genuine experiments, where treatment is assigned by
+design. In that case, permuting treatment labels among units and recomputing the hybrid estimator for each
+permutation reproduces the exact randomisation distribution under a sharp null of no effect. Comparing the
+observed effect to this distribution yields p-values with a straightforward causal meaning. In genuine randomised geo-experiments, where treatment assignment across markets is known and under the experimenter’s
+control, this interpretation is exact. In observational panels, any such test must be viewed as a hypothetical
+sensitivity exercise conditional on strong assumptions about the assignment mechanism.
+In observational hybrids, treatment is not randomly assigned, so randomisation inference can only be interpreted as a sensitivity tool under strong assumptions about selection. A small permutation tail probability
+(interpreted as a diagnostic measure of relative extremeness) tells you that, given the observed pattern of
+outcomes and your hybrid estimator, it would be rare to see an effect as large as the one you estimate if
+treatment labels were randomly shuffled. It does not, by itself, prove that treatment caused the effect. Use
+such tests as one piece of a larger inferential puzzle, not as a standalone verdict.
+Multiplicity is unavoidable when you examine many post-treatment periods, cohorts or outcomes. Testing
+each post-treatment event-time effect θk at 5% inflates the chance of at least one false positive. Chapter 16
+discusses formal tools such as Bonferroni corrections, false discovery rate control and stepdown procedures. In
+the hybrid context, it is often more informative to combine these with graphical event-study plots and joint
+tests (for example, testing that all post-treatment event-time effects θk are zero). For hybrid estimators that
+feed into event-time profiles, the uniform-band and joint-test ideas from the event-study chapter (Chapter 5)
+apply directly. In marketing applications with small samples, you will frequently be underpowered for strict
+family-wise error control; the focus should be on patterns that are consistent across periods, methods and
+specifications, rather than on individual stars in a table.
+
+Small-Sample Considerations
+Most marketing panels are small enough that textbook asymptotics are, at best, rough guidance. With
+few treated units, modest donor pools and short pre-treatment histories, any inferential procedure must be
+interpreted with care.
+Chapter 16 discusses the distinction between sampling-based and design-based uncertainty in more detail
+[Abadie et al., 2020], which is especially relevant when inference is layered on top of observational hybrid
+designs.
+With a small donor pool, rank-based placebo tests can only take on a coarse set of tail probabilities,
+and bootstrap distributions may be jagged. With short pre-periods, placebo checks in time have limited
+power and conformal intervals are based on few residuals. With few treated units, pooled estimates will have
+wide intervals and considerable sampling noise. In these settings, the most honest stance is to de-emphasise
+binary significance thresholds and focus on the size, sign and robustness of estimated effects across methods
+
+7.10 Inference
+
+339
+
+and specifications. In practice, this means showing effect paths with confidence or prediction bands, placebo
+distributions, and bootstrap intervals side by side, rather than relying on asterisks in tables.
+Whatever inferential tools you deploy, good practice is to be explicit about sample sizes (numbers of
+treated units, donors, pre- and post-periods), about which inference method you used and why, and about
+how multiple testing was handled if you report many coefficients. This transparency lets readers calibrate
+their own confidence in your conclusions and see where the evidence is strong, where it is suggestive and
+where it is simply too thin to support sharp claims.
+
+340
+
+7 Generalised and Augmented Synthetic Control
+
+7.11 Marketing Applications
+Hybrid methods are particularly well suited to marketing problems where treated units are few, pre-treatment
+periods are short, adoption is staggered and decision-makers care about both transparency and robustness.
+This section sketches four stylised applications drawn from common marketing settings. The examples are
+illustrative rather than empirical case studies. They show how hybrid designs are put together in practice
+and what credible findings typically look like when the methods are used carefully.
+
+Application 1: Multiple-Market Loyalty Programme Rollout
+Suppose a retailer pilots a loyalty programme in ten flagship stores, chosen for their size and affluent urban
+locations, with forty comparable stores never receiving the programme during the study window. Quarterly
+revenue is observed for three years before the pilot and two years after. The goal is to estimate the average
+effect on quarterly revenue for the treated stores.
+Flagship stores are larger and more urban than most donors, so a hybrid that can correct systematic
+covariate imbalances is natural. ASCM fits this structure well [Ben-Michael et al., 2021]. For each flagship,
+the analyst constructs a synthetic control using pre-treatment revenue trajectories and store characteristics
+such as floor space, local income and urbanisation. A regularised outcome regression then adjusts for any
+remaining level differences linked to these covariates.
+Diagnostics show that ASCM tracks pre-treatment revenue more closely than standard SC: pre-period
+RMSPE is noticeably smaller relative to revenue volatility, covariate imbalances on store size and urbanisation
+are substantially reduced, and weights are spread across a moderate number of sensible donor stores rather
+than concentrating on one or two idiosyncratic outlets. Leave-one-donor-out checks indicate that no single
+donor dominates the estimates.
+When the pilot goes live, the hybrid counterfactual reveals an uplift in revenue that builds over the first few
+quarters as customers enrol and then levels off. The magnitude is economically meaningful but not explosive
+— think of a mid-single-digit percentage increase on a quarterly basis, with intervals that suggest a positive
+effect while still reflecting meaningful sampling noise. In-space placebo analyses, treating donor stores as if
+they had launched loyalty, yield much smaller gaps on average, suggesting that the observed pattern is not
+easily reproduced by chance. The retailer uses these results, together with cost information, to form ROI
+projections for a wider rollout.
+
+Application 2: Staggered Advertising Campaign Launch
+Consider a brand that rolls out an advertising campaign in thirty regional markets over six quarters. Ten
+markets adopt in Q1, ten in Q3 and ten in Q5. Twenty markets never receive the campaign and serve as
+
+7.11 Marketing Applications
+
+341
+
+donors. The brand wants to understand how effects evolve over event time and whether early and late adopters
+respond differently.
+The staggered structure and potential differences in pre-treatment trends across cohorts make SDID a
+natural choice [Arkhangelsky et al., 2021]. For each adoption cohort, the analyst applies SDID using notyet-treated and never-treated markets as donors, estimating unit weights that align markets with similar
+pre-trends and time weights v̂t that emphasise pre-treatment periods where treated and donor markets move
+together. The cohort-time effects τ (g, t) are aggregated into event-time effects θ̂k using the framework from
+Chapter 5.
+Diagnostics show that, for each cohort, the SDID synthetic paths match pre-treatment sales reasonably
+well, with time weights v̂t concentrating on the few quarters just before adoption — a pattern that fits the
+idea that recent history is most informative. When seasonality is strong, you should check that the time
+weights are not simply picking one season and ignoring the rest. Event-time estimates tell a coherent story:
+effects are small on impact, build over a few quarters as awareness accumulates and then settle at a roughly
+constant lift. Pre-treatment leads in the event-time plot hover close to zero, supporting weighted parallel
+trends, and cohort-specific profiles look broadly similar rather than wildly heterogeneous.
+From a marketing perspective, the key insights are about timing and persistence: the campaign appears
+to ramp up over a few quarters and then sustain a modest but non-trivial sales lift, with little evidence that
+early or late adopters behave differently once you condition on pre-trends.
+
+Application 3: Overlapping Loyalty and Promotional Programmes
+Now imagine a retailer that introduces two interventions over the same horizon: a loyalty programme launching in Q1 and a new promotional strategy starting in Q4. Ten markets receive both, ten receive only loyalty,
+ten only promotions and twenty receive neither. Management wants to know not just whether each programme
+works, but also whether they interact.
+The overlapping treatment structure creates identification challenges. For markets that receive both programmes, the relevant comparison is markets that receive neither, not those receiving only one programme. A
+hybrid extension of ASCM can help by constructing synthetic controls separately for each treatment sequence
+group, using never-treated markets as donors and including programme indicators in the augmentation model.
+In practice, the analyst would first check that each treatment-sequence group can be matched reasonably
+well in the pre-period using donors that never receive any programme. Augmentation then helps correct
+remaining level differences linked to store and market characteristics. This approach effectively treats “treatment sequence group” as the exposure, requiring that sequence assignment is not driven by unobserved shocks
+to untreated outcomes (beyond the no-anticipation and no-carryover conditions already assumed). Under the
+same identification assumptions that would justify a richer DiD or event-study model — no unobserved
+shocks tied systematically to the timing of loyalty or promotions — ASCM can help disentangle the average
+effect of each programme and their overlap.
+
+342
+
+7 Generalised and Augmented Synthetic Control
+
+A stylised outcome might be that loyalty produces a fairly stable, medium-sized sales lift that accumulates
+over several quarters, while promotions produce shorter-lived spikes around the launch period. Markets with
+both programmes might show combined effects that are smaller than the sum of individual effects, suggesting
+some substitution or saturation. The value of the hybrid here is in sharpening the counterfactuals for each
+group and making these patterns visible, not in eliminating the need for strong assumptions about how
+overlapping treatments are assigned.
+
+Application 4: Flagship City Launch with Potential Spillovers
+Finally, consider a platform that launches a new service in a flagship city, with concern that neighbouring
+cities may be indirectly affected through word-of-mouth, competition or changes in supply. Five neighbouring
+cities are plausibly exposed to spillovers. Thirty more distant cities form a candidate donor pool. The platform
+wants to estimate both the direct effect in the flagship and any spillovers among neighbours.
+For the direct effect, ASCM applied to the flagship city with only distant donors in the pool is a natural
+starting point. The key design step is donor curation: neighbours are excluded from the donor set because
+they may be contaminated by spillovers, while distant cities are retained if there is no compelling reason to
+think they are affected by the launch. As in earlier examples, diagnostics focus on pre-treatment fit, balance
+on relevant city characteristics and weight stability.
+Estimating spillovers requires adopting the exposure-mapping framework from Chapter 11. One simple
+mapping treats neighbours as “exposed” (using the exposure-mapping notation hi (D−i,t ) from Chapter 11)
+once the flagship launches. For each neighbour, the analyst constructs a synthetic control from distant cities
+and includes exposure indicators in an augmentation model that captures how similar the neighbour is to the
+flagship on demographics and baseline adoption. Under the assumption that distant donors are unaffected and
+that exposure captures the main channel linking the flagship to neighbours, differences between neighbours
+and their synthetic controls after launch can be interpreted as spillover effects.
+In a plausible outcome, the flagship city shows a relatively large, sustained jump in adoption following
+launch, while neighbours exhibit smaller, delayed increases that are stronger for nearer cities than for those
+further away. The platform can then form a regional impact measure that combines the direct effect in the
+flagship with spillover effects in neighbours, weighted by population. That informs decisions about where to
+launch next: cities with dense clusters of nearby markets may generate more total value than isolated cities
+with similar own-market potential.
+
+Summary
+These stylised applications show how hybrid methods can be woven into realistic marketing analyses. The
+common elements are straightforward. You choose a hybrid that matches the structure of the problem —
+ASCM when covariate imbalance is central, SDID when staggered timing and differential trends matter, more
+
+7.11 Marketing Applications
+
+343
+
+complex factor-based hybrids only when the data and team can support them. You curate donors carefully to
+respect comparability and spillovers. You lean heavily on diagnostics — pre-treatment fit, covariate balance,
+weight patterns, placebos and sensitivity checks — to assess whether the resulting counterfactuals are credible.
+Quantitatively, credible marketing findings from these designs often tend to be modest in size (single- to
+low-double-digit percentage lifts), with uncertainty intervals that acknowledge real sampling noise and with
+patterns that are consistent across neighbouring periods and alternative estimators. Used in this way, hybrids
+provide a disciplined way to extract causal insight from complex marketing panels without promising more
+precision than the data can support.
+
+344
+
+7 Generalised and Augmented Synthetic Control
+
+7.12 Workflow Checklist
+This section distils the chapter into a compact protocol for using hybrid methods in marketing panels. The
+workflow is deliberately high level. It tells you what to decide and in what order, and points back to earlier
+sections where you can find detail on design, tuning, diagnostics, inference and reporting. The aim is not to
+turn hybrid methods into a mechanical checklist, but to provide a disciplined way to organise an analysis.
+
+Step 1: Define the Estimand and Cohorts
+Start by fixing the substantive question and the estimand. For a single treated unit, this is usually an average
+treatment effect on that unit over a chosen post-treatment window. With several treated units that adopt at
+the same time, you must decide whether you care about unit-specific effects, an overall ATT, or both. With
+staggered adoption, define cohorts by adoption time and decide whether you will focus on cohort-specific
+effects, event-time profiles or calendar-time effects. In staggered designs, the building blocks are cohort-time
+effects τ (g, t), which can be aggregated into event-time effects θk as described in Section 7.7.
+Make this explicit before you look at estimates. The aggregation schemes in Section 7.7 show how unitlevel or cohort–time effects map into different summaries. Pre-specifying the target helps prevent you from
+drifting toward whichever summary looks most flattering ex post.
+
+Step 2: Curate the Donor Pool
+Next, assemble a donor pool that can plausibly stand in for the treated units in the absence of treatment.
+Exclude units that receive treatment during the estimation window, units that are clearly incomparable on
+business grounds, and units that are likely to be heavily contaminated by spillovers, drawing on the guidance
+in Section 7.8 and Chapter 11.
+Document these choices. Summarise how donors differ from treated units on key characteristics such as
+region, size, format or demographics. If donors are systematically smaller, poorer or otherwise different, that
+will influence your choice of method: designs such as ASCM that can correct covariate imbalances become
+more attractive.
+In staggered designs, remember that the donor pool for a given cohort and period consists of not-yettreated and never-treated units. Track how this pool shrinks as later cohorts adopt. Late adopters may have
+far fewer valid donors than early ones.
+
+7.12 Workflow Checklist
+
+345
+
+Step 3: Choose Candidate Hybrid Methods
+Choose one or more hybrid estimators that match the structure of your problem. Section 7.3 lays out the
+main trade-offs.
+ASCM is a natural candidate when treated units differ systematically from donors on observables that
+predict outcomes and when pure SC cannot achieve good pre-treatment fit. Ridge SC is helpful when the donor
+pool is large relative to the pre-period and you worry about unstable weights. SDID fits staggered adoption
+and settings where treated and control units have different pre-trends but can be aligned after reweighting.
+More complex factor-based hybrids such as TROP make sense only when interactive fixed effects are plausible,
+the panel is reasonably large and you have the technical capacity to implement and scrutinise them.
+If more than one method seems appropriate — which is common — plan from the outset to estimate
+several and compare their diagnostics and estimates.
+
+Step 4: Select Predictors and Tuning Rules
+Specify the predictors you will use for weighting and, for ASCM, for augmentation, drawing on Section 7.8.
+Pre-treatment outcomes over a reasonably long window are usually central; a small number of well-chosen
+covariates that capture scale, demographics and competition often add value. Avoid building predictor sets
+by trial and error on the post-treatment data.
+Decide how you will tune regularisation parameters using only pre-treatment information. For ridge-type
+hybrids, this typically means splitting the pre-period into a training block and a validation block and searching
+over a broad grid of penalties. For SDID, most implementations solve the underlying optimisation problem
+once given the design; tuning is implicit rather than explicit. For TROP, staged cross-validation is one option,
+but given its research status it should be treated as experimental rather than routine.
+Write down these rules before inspecting post-treatment outcomes to reduce the temptation to chase
+specifications that produce the most appealing effects.
+
+Step 5: Assess Pre-Treatment Fit and Balance
+Estimate your chosen hybrids and compute pre-treatment RMSPE for each, as defined in Section 7.9. Express
+RMSPE relative to the standard deviation of pre-period outcomes and compare across methods. Designs that
+cannot track the treated unit’s pre-treatment path at all are not credible; designs that match the path much
+better than simpler alternatives, without implausible weights, are promising, conditional on donor validity
+(no spillovers) and stable pre/post relationships.
+At the same time, examine covariate balance for variables you believe matter for both treatment and
+outcomes. Standardised mean differences provide a convenient summary; values close to zero indicate good
+
+346
+
+7 Generalised and Augmented Synthetic Control
+
+balance, and large absolute values flag imbalances that may threaten identification. You do not need to
+enforce a rigid cutoff, but imbalances on central covariates should be rare in a design you trust.
+Finally, look at weight dispersion. Effective numbers of donors or periods that are either extremely low
+(all mass on one donor or one period) or extremely high (near-uniform weights) deserve scrutiny. Visualising
+weight distributions over donors and periods alongside pre-treatment fit helps you see whether a design is
+relying too heavily on a few units or times.
+If pre-treatment fit is poor, key covariates are badly imbalanced, or weights look extreme, regard this as
+feedback, not as failure. Revisit the donor pool, predictors or tuning and iterate until you either achieve
+acceptable diagnostics or conclude that the design cannot support a reliable hybrid.
+
+Step 6: Run Placebos and Sensitivity Checks
+Once pre-period diagnostics look reasonable, stress-test the design. Apply in-space placebos by treating donors
+as if they were exposed and comparing their placebo gaps to the treated unit’s gap. Apply in-time placebos
+by shifting the intervention date into the pre-period and checking whether the method spuriously produces
+“effects” where none should exist.
+Conduct leave-one-out analyses by re-estimating after removing influential donors or pre-periods. Large
+swings in estimates when a single donor or period is omitted indicate fragility and call for explanation.
+Residual plots and weight-distribution plots help you see whether such donors and periods are truly special
+or artefacts of the optimisation.
+The goal of these checks is not to pass a checklist, but to understand how your design behaves under small
+perturbations.
+
+Step 7: Compute and Interpret Inference
+Choose inference tools that respect your sample size and design, drawing on Chapter 16 and Section 7.10.
+In small marketing panels, unit-level or cohort-level block bootstraps, wild bootstraps and placebo-based
+distributions are often more reliable than asymptotic formulas. When there is only one treated unit, placebobased and time-permutation tools often carry more interpretive weight than a naive unit bootstrap.
+Be explicit about what each inferential device assumes. Rank-based placebo statistics rely on symmetry
+or exchangeability arguments; bootstrap procedures treat your sample as a stand-in for a wider population;
+conformal-style prediction intervals lean on residual exchangeability. In observational work, randomisationstyle p-values are best viewed as sensitivity tools, not as definitive causal tests.
+Report interval estimates and uncertainty summaries alongside point estimates, and interpret them in the
+context of effect sizes that matter for decisions.
+
+7.12 Workflow Checklist
+
+347
+
+Step 8: Aggregate and Explore Heterogeneity
+If your design involves multiple treated units or cohorts, aggregate unit-level or group–time estimates into the
+estimand you specified in Step 1. Use weights that reflect the policy question — equal weights for “average
+treated unit” questions, population or revenue weights for questions about aggregate impact — and report
+these weights so readers can see which units drive the results.
+For staggered adoption, present event-time profiles with confidence bands, mark the omitted event time
+(the reference period that defines the baseline for θk ) and indicate which cohorts contribute at each horizon.
+For common-adoption designs, show unit-specific estimates alongside the aggregate to reveal heterogeneity.
+In both cases, sensitivity analyses that vary aggregation weights or restrict attention to better-matched units
+help assess how conclusions depend on these choices.
+
+Step 9: Document Assumptions and Make the Analysis Auditable
+Finally, write down the identification assumptions you are relying on: no anticipation, no interference (or
+an explicit exposure mapping if spillovers are modelled, using hi (D−i,t ) as in Chapter 11), stability of the
+predictor–outcome relationship across pre- and post-periods, and sufficient overlap between treated units and
+donors. Connect these to the economic context of your application. Explain why you believe, for example, that
+donors were not affected by the campaign or that there were no structural breaks at the time of treatment.
+Document any deviations from your pre-specified plan and justify them. Where possible, provide replication
+materials — cleaned data or suitably anonymised proxies, code, and details of software versions — so that
+others can reproduce your results or apply alternative specifications. Transparency about design choices,
+diagnostics and inference strengthens the credibility of your conclusions more than any single “significant”
+estimate.
+Used together with the workflow above, the diagnostics and examples in this chapter provide a practical
+blueprint for deploying hybrid methods in marketing panels in a way that is both rigorous and transparent.
+
+348
+
+7 Generalised and Augmented Synthetic Control
+
+Table 7.1 Hybrid Methods at a Glance (see [Abadie et al., 2010, Ben-Michael et al., 2021, Arkhangelsky et al., 2021, Athey
+et al., 2025b] for methodological details)
+Method
+
+Key Assumptions
+
+Tuning Focus
+
+Typical Use-Cases
+
+Standard SC
+
+Convex-hull approximation;
+no anticipation; stability
+of the imputation mapping
+learned in the pre-period
+
+Predictor set; choice of preperiod
+
+Single treated unit; long
+pre-period; treated unit
+well represented in donor
+pool
+
+ASCM
+
+Same as SC plus outcomemodel stability; bias is
+small when weighting imbalance and augmentation
+error are both small under
+the maintained model
+
+Choice of covariates; regularisation strength for augmentation and, where used,
+weights
+
+Treated units near but not
+clearly inside donor hull;
+important covariate imbalances; short pre-periods
+
+Ridge SC
+
+Approximate convex-hull
+match with explicit shrinkage towards diffuse weights
+
+Ridge penalty on weights;
+pre-period split for validation
+
+Large donor pools; concern
+about unstable or overly
+concentrated weights
+
+SDID
+
+Weighted parallel trends
+after reweighting units and
+periods; overlap between
+treated and not-yet-treated
+units
+
+Implementation details for
+weight estimation; choice of
+pre-period window
+
+Staggered adoption; differential pre-trends across
+units; rich donor pool of
+not-yet-treated markets
+
+TROP
+
+Low-rank factor structure
+for untreated outcomes;
+shared factor space between
+treated and donor units
+
+Penalties on unit weights,
+time weights and factor
+rank (typically tuned by
+cross-validation)
+
+Panels with strong interactive fixed effects; moderate
+sample sizes; teams comfortable with factor models
+
+Part IV
+
+Factor Models and Matrix Methods
+
+Chapter 8
+
+Interactive Fixed Effects and Matrix Completion
+
+This chapter develops factor models and matrix completion methods for counterfactual imputation and
+treatment-effect estimation in marketing panels. We treat factor models as low-rank statistical approximations
+to panel outcomes, capturing shared shocks and heterogeneous exposure across units, and we show how this
+structure motivates interactive fixed effects (IFE) estimators.
+We formalise IFE models, including identification up to rotation (that is, identification of the factor space
+and fitted values, not the factors themselves) and selection of the number of factors. We then show how to
+apply matrix completion with nuclear-norm regularisation to impute counterfactual outcomes for treated or
+otherwise missing cells. We develop diagnostics, tuning rules, and inference procedures that work in marketing
+panels with serial dependence and a limited number of clusters. By the end of the chapter, you should be able
+to (i) specify an IFE model for a marketing panel, (ii) select the factor rank, (iii) implement matrix-completion
+estimators, and (iv) diagnose when a low-rank approximation is not credible.
+Factor-based designs sit alongside parallel-trends and synthetic control approaches introduced earlier in
+the book. As throughout the book, credible use requires a clear estimand, identification assumptions about
+the assignment mechanism and stability of Yit (0), an estimator for imputing counterfactual outcomes, and
+diagnostics and inference that assess sensitivity to these choices. We map connections to synthetic control
+and SDID (Chapters 6 and 7), clarifying when factor designs are preferable to parallel-trends designs and
+when you should instead rely on difference-in-differences (Chapter 4). Later sections refer back to event-study
+diagnostics and inference procedures developed in Chapters 5, 17, and 16.
+
+351
+
+352
+
