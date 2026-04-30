@@ -1,11 +1,11 @@
 +++
 title = "StatsClaw 112: A Two-Week Adoption Plan for Research Teams"
-date = "2026-05-08"
+date = "2026-04-30"
 tags = ["statsclaw", "team-playbook", "workflow", "software-engineering"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
 type = "post"
-draft = true
+draft = false
 math = false
 description = "A practical rollout checklist for labs adopting independent implementation, simulation, and testing workflows."
 +++
