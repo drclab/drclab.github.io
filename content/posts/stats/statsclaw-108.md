@@ -1,6 +1,6 @@
 +++
 title = "StatsClaw 108: Monte Carlo Diagnostics as Release Gates"
-date = "2026-05-04"
+date = "2026-04-26"
 tags = ["statsclaw", "monte-carlo", "diagnostics", "release-engineering"]
 categories = ["posts", "stats"]
 series = ["StatsClaw"]
